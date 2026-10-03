@@ -33,6 +33,7 @@ class UnsavedChangesGuardState extends State<UnsavedChangesGuard> {
         final dialog = DialogRoute<bool>(
           context: context,
           builder: (context) => AlertDialog(
+            scrollable: true,
             title: const Text('Discard unsaved changes?'),
             content: const Text(
               'Your unsaved entries and selected files will be lost.',

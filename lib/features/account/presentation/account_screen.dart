@@ -156,7 +156,7 @@ class _AccountScreenState extends State<AccountScreen> {
         controller.status != AccountStatus.signedOut &&
         controller.status != AccountStatus.forbidden;
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),

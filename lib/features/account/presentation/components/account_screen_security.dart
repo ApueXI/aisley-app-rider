@@ -12,6 +12,7 @@ extension _AccountScreenSecurity on _AccountScreenState {
       context: context,
       builder: (context) {
         return AlertDialog(
+          scrollable: true,
           title: const Text('Change password?'),
           content: Text(
             'Changing your password signs you out on every device. You will need to sign in again.'

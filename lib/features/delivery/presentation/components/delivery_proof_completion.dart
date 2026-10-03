@@ -58,6 +58,8 @@ class _ProofAndCompletionCard extends StatelessWidget {
         (evidenceId == null || proofRejected);
 
     return Card(
+      // Keep each paragraph and action independently readable when scrolled.
+      semanticContainer: false,
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
@@ -298,6 +300,7 @@ class _ProofAndCompletionCard extends StatelessWidget {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
+          scrollable: true,
           title: const Text('Confirm COD collection'),
           content: SingleChildScrollView(
             child: Column(

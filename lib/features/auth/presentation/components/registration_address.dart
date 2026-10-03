@@ -232,6 +232,14 @@ extension _RegistrationAddress on _RegistrationScreenState {
         enableSearch: true,
         initialSelection: selected,
         leadingIcon: icon == null ? null : Icon(icon),
+        trailingIcon: Icon(
+          Icons.arrow_drop_down,
+          semanticLabel: 'Show $label options',
+        ),
+        selectedTrailingIcon: Icon(
+          Icons.arrow_drop_up,
+          semanticLabel: 'Hide $label options',
+        ),
         dropdownMenuEntries: options
             .map(
               (option) =>

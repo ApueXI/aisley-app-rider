@@ -26,6 +26,8 @@ class _BatchAcceptanceCard extends StatelessWidget {
 
     if (batch.isAccepted) {
       return Card(
+        // Keep each paragraph and action independently readable when scrolled.
+        semanticContainer: false,
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Column(
@@ -51,6 +53,8 @@ class _BatchAcceptanceCard extends StatelessWidget {
     }
 
     return Card(
+      // Keep each paragraph and action independently readable when scrolled.
+      semanticContainer: false,
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(

@@ -81,6 +81,9 @@ void main() {
     (tester) async {
       await RegistrationScreenFixture().open(tester);
       await enter(tester, 'Password', 'TestInput123');
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byTooltip('Show password'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Show password'));
       await tester.pump();
       expect(tester.widget<TextField>(field('Password')).obscureText, false);
@@ -88,6 +91,8 @@ void main() {
         tester.widget<TextField>(field('Confirm password')).obscureText,
         true,
       );
+      await tester.ensureVisible(find.byTooltip('Show confirm password'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Show confirm password'));
       await tester.pump();
       expect(

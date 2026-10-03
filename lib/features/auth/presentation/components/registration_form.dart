@@ -79,6 +79,7 @@ extension _RegistrationForm on _RegistrationScreenState {
                         focusNode: _fieldNavigation.focusNode('sex'),
                         initialValue: _sex,
                         isExpanded: true,
+                        itemHeight: null,
                         decoration: _decoration(
                           'Sex',
                           icon: Icons.wc_outlined,
@@ -238,6 +239,7 @@ extension _RegistrationForm on _RegistrationScreenState {
                           focusNode: _fieldNavigation.focusNode('vehicle_type'),
                           initialValue: _vehicleType,
                           isExpanded: true,
+                          itemHeight: null,
                           decoration: _decoration(
                             'Vehicle type',
                             icon: Icons.two_wheeler_outlined,

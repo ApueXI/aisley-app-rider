@@ -1,21 +1,18 @@
-import 'package:aisley_app/features/auth/data/auth_repository.dart';
-import 'package:aisley_app/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:aisley_app/core/networking/api_client.dart';
-import 'package:aisley_app/features/dashboard/data/dashboard_repository.dart';
-import 'package:aisley_app/features/support/data/support_ticket_repository.dart';
 import 'package:aisley_app/features/support/domain/support_ticket_models.dart';
 import 'package:aisley_app/features/support/presentation/controllers/support_ticket_controller.dart';
 import 'package:aisley_app/features/support/presentation/support_ticket_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fixtures/support_ticket_screen_fixture.dart';
+
 void main() {
   testWidgets('shows empty, filters, and distinct support entry action', (
     tester,
   ) async {
-    final repository = _WidgetSupportRepository();
+    final repository = WidgetSupportRepository();
     final controller = SupportTicketController(repository: repository);
-    final auth = _authenticatedAuth();
+    final auth = supportAuthController();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -48,9 +45,9 @@ void main() {
   testWidgets('creates a ticket only after the server confirms it', (
     tester,
   ) async {
-    final repository = _WidgetSupportRepository();
+    final repository = WidgetSupportRepository();
     final controller = SupportTicketController(repository: repository);
-    final auth = _authenticatedAuth();
+    final auth = supportAuthController();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -82,9 +79,9 @@ void main() {
   testWidgets('offline create exposes exact retry without claiming success', (
     tester,
   ) async {
-    final repository = _WidgetSupportRepository()..offlineCreate = true;
+    final repository = WidgetSupportRepository()..offlineCreate = true;
     final controller = SupportTicketController(repository: repository);
-    final auth = _authenticatedAuth();
+    final auth = supportAuthController();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -114,9 +111,9 @@ void main() {
   });
 
   testWidgets('ticket cards expose an accessible unread label', (tester) async {
-    final repository = _WidgetSupportRepository()..showTicket = true;
+    final repository = WidgetSupportRepository()..showTicket = true;
     final controller = SupportTicketController(repository: repository);
-    final auth = _authenticatedAuth();
+    final auth = supportAuthController();
     final handle = tester.ensureSemantics();
 
     await tester.pumpWidget(
@@ -143,20 +140,20 @@ void main() {
   testWidgets('detail orders events and marks the latest sequence read', (
     tester,
   ) async {
-    final repository = _WidgetSupportRepository()
+    final repository = WidgetSupportRepository()
       ..detailEvents = [
-        _event(id: 'event-2', sequence: 2, body: 'Second update'),
-        _event(sequence: 1, body: 'First update'),
+        supportEvent(id: 'event-2', sequence: 2, body: 'Second update'),
+        supportEvent(sequence: 1, body: 'First update'),
       ];
     final controller = SupportTicketController(repository: repository);
-    final auth = _authenticatedAuth();
+    final auth = supportAuthController();
 
     await tester.pumpWidget(
       MaterialApp(
         home: SupportTicketDetailScreen(
           controller: controller,
           authController: auth,
-          ticket: _ticket(unreadCount: 2),
+          ticket: supportTicket(unreadCount: 2),
         ),
       ),
     );
@@ -178,134 +175,4 @@ void main() {
     controller.dispose();
     auth.dispose();
   });
-}
-
-AuthController _authenticatedAuth() {
-  return AuthController(
-    authRepository: _UnusedAuthRepository(),
-    dashboardRepository: _UnusedDashboardRepository(),
-  )..status = AuthStatus.authenticated;
-}
-
-class _UnusedAuthRepository implements AuthRepository {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
-}
-
-class _UnusedDashboardRepository implements DashboardRepository {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
-}
-
-class _WidgetSupportRepository implements SupportTicketRepository {
-  bool offlineCreate = false;
-  bool showTicket = false;
-  int createCount = 0;
-  int? readSequence;
-  List<SupportTicketEvent> detailEvents = [_event()];
-
-  @override
-  Future<SupportTicketPage> list({
-    SupportTicketStatusFilter status = SupportTicketStatusFilter.all,
-    SupportTicketCategoryFilter category = SupportTicketCategoryFilter.all,
-    String? cursor,
-    int limit = 20,
-  }) async {
-    return SupportTicketPage(
-      items: showTicket ? [_ticket(unreadCount: 2)] : const [],
-      nextCursor: null,
-    );
-  }
-
-  @override
-  Future<SupportTicketMutation> create({
-    required String subject,
-    required String category,
-    required String body,
-    required String idempotencyKey,
-  }) async {
-    createCount++;
-    if (offlineCreate) {
-      throw const ApiException.network('private offline');
-    }
-    showTicket = true;
-    return SupportTicketMutation(
-      ticket: _ticket(subject: subject, category: category),
-      event: _event(body: body),
-    );
-  }
-
-  @override
-  Future<SupportTicketDetailPage> detail(
-    String ticketId, {
-    String? cursor,
-    int limit = 20,
-  }) async {
-    return SupportTicketDetailPage(
-      ticket: const SupportTicketDetailRecord(
-        id: 'ticket-1',
-        reference: 'SUP-0001',
-        status: 'open',
-        revision: 1,
-      ),
-      events: detailEvents,
-      nextCursor: null,
-    );
-  }
-
-  @override
-  Future<SupportTicketSummary> markRead({
-    required String ticketId,
-    required int lastReadSequence,
-  }) async {
-    readSequence = lastReadSequence;
-    return _ticket(unreadCount: 0);
-  }
-
-  @override
-  Future<SupportTicketMutation> reply({
-    required String ticketId,
-    required String body,
-    required int expectedRevision,
-    required String idempotencyKey,
-  }) async {
-    return SupportTicketMutation(
-      ticket: _ticket(revision: expectedRevision + 1),
-      event: _event(id: 'event-2', sequence: 2, body: body),
-    );
-  }
-}
-
-SupportTicketSummary _ticket({
-  String subject = 'Task help',
-  String category = 'delivery',
-  int revision = 1,
-  int unreadCount = 0,
-}) {
-  return SupportTicketSummary(
-    id: 'ticket-1',
-    reference: 'SUP-0001',
-    subject: subject,
-    category: category,
-    status: 'open',
-    revision: revision,
-    requesterRole: 'courier',
-    unreadCount: unreadCount,
-  );
-}
-
-SupportTicketEvent _event({
-  String id = 'event-1',
-  int sequence = 1,
-  String body = 'Initial message',
-}) {
-  return SupportTicketEvent(
-    id: id,
-    sequence: sequence,
-    type: 'reply',
-    actorRole: 'courier',
-    isMine: true,
-    assignmentChanged: false,
-    body: body,
-  );
 }

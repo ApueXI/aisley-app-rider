@@ -37,8 +37,10 @@ class _BatchScrollableState extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
       children: [
-        SizedBox(
-          height: MediaQuery.sizeOf(context).height * .55,
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.sizeOf(context).height * .55,
+          ),
           child: Center(
             child: Semantics(
               liveRegion: semanticsLabel != null,

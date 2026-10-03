@@ -59,7 +59,13 @@ class _SupportTicketErrorCard extends StatelessWidget {
           children: [
             Text(message, style: TextStyle(color: scheme.onErrorContainer)),
             if (onRetry != null)
-              TextButton(onPressed: onRetry, child: const Text('Retry')),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: scheme.onErrorContainer,
+                ),
+                onPressed: onRetry,
+                child: const Text('Retry'),
+              ),
           ],
         ),
       ),

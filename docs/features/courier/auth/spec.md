@@ -67,7 +67,7 @@ GET active Logistics options
 - `vehicle_type` is one of `motorcycle`, `car`, `van`, or `truck`; `plate_number` is required text.
 - `government_id` and `vehicle_registration` are separate multipart file parts, not Base64 JSON fields.
 - Do not send `age`, `country`, `role`, `status`, `hub_id`, `reviewer_id`, or a client-generated owner identifier.
-- Preserve the selected form values after a recoverable `422`, but clear password values before retrying.
+- Preserve the selected form values after a recoverable `422`, but clear password values before retrying. Flutter registration tests use production light/dark themes at 320/390px and 1×/2× text, with contrast/target/label guidelines, keyboard/error focus, evidence and discard checks; device/screen-reader acceptance remains open.
 
 ### Evidence and transaction rules
 

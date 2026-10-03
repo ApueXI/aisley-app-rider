@@ -97,6 +97,7 @@ extension _RegistrationSections on _RegistrationScreenState {
       focusNode: _fieldNavigation.focusNode('logistics_organization_id'),
       initialValue: _organization,
       isExpanded: true,
+      itemHeight: null,
       decoration: _decoration(
         'Logistics organization',
         icon: Icons.business_outlined,
@@ -168,8 +169,9 @@ extension _RegistrationSections on _RegistrationScreenState {
               ),
             ],
           );
-          final actions = Row(
-            mainAxisSize: MainAxisSize.min,
+          final actions = Wrap(
+            spacing: 8,
+            runSpacing: 4,
             children: [
               if (upload != null)
                 IconButton(

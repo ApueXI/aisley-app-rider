@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'courier_theme.dart';
+
 import '../features/account/presentation/controllers/account_controller.dart';
 import '../features/auth/presentation/controllers/auth_controller.dart';
 import '../features/auth/presentation/blocked_screen.dart';
@@ -52,8 +54,8 @@ class CourierApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Aisley Courier',
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
+      theme: buildCourierTheme(Brightness.light),
+      darkTheme: buildCourierTheme(Brightness.dark),
       themeMode: ThemeMode.system,
       home: AuthGate(
         authController: authController,
@@ -242,101 +244,6 @@ class CheckingSessionScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-ThemeData _buildTheme(Brightness brightness) {
-  const primary = Color(0xFFE6007A);
-  const deepPurple = Color(0xFF4C1268);
-  const error = Color(0xFFFF3B30);
-  const warning = Color(0xFFFF8800);
-  final scheme = ColorScheme.fromSeed(
-    seedColor: primary,
-    brightness: brightness,
-  ).copyWith(primary: primary, secondary: deepPurple, error: error);
-
-  return ThemeData(
-    brightness: brightness,
-    colorScheme: scheme,
-    useMaterial3: true,
-    scaffoldBackgroundColor: brightness == Brightness.light
-        ? const Color(0xFFF9F7FA)
-        : const Color(0xFF151117),
-    appBarTheme: AppBarTheme(
-      backgroundColor: scheme.surface,
-      foregroundColor: scheme.onSurface,
-      elevation: 0,
-      scrolledUnderElevation: 1,
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: brightness == Brightness.light
-          ? Colors.white
-          : const Color(0xFF211B23),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: scheme.outlineVariant),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: scheme.primary, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: scheme.error),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: scheme.error, width: 2),
-      ),
-    ),
-    filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-    ),
-    cardTheme: CardThemeData(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-        side: BorderSide(color: scheme.outlineVariant),
-      ),
-    ),
-    snackBarTheme: SnackBarThemeData(
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: deepPurple,
-      contentTextStyle: TextStyle(color: scheme.onPrimary),
-    ),
-    extensions: <ThemeExtension<dynamic>>[
-      const _CourierTheme(warning: warning),
-    ],
-  );
-}
-
-class _CourierTheme extends ThemeExtension<_CourierTheme> {
-  const _CourierTheme({required this.warning});
-
-  final Color warning;
-
-  @override
-  _CourierTheme copyWith({Color? warning}) {
-    return _CourierTheme(warning: warning ?? this.warning);
-  }
-
-  @override
-  _CourierTheme lerp(ThemeExtension<_CourierTheme>? other, double t) {
-    if (other is! _CourierTheme) {
-      return this;
-    }
-    return _CourierTheme(
-      warning: Color.lerp(warning, other.warning, t) ?? warning,
     );
   }
 }

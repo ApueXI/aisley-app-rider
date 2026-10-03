@@ -115,6 +115,7 @@ class _FinalMileBatchDetailScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('Accept this entire batch?'),
         content: Text(
           'You will accept responsibility for all ${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'} in ${batch.reference}. This does not record hub pickup.',
@@ -173,18 +174,13 @@ class _BatchSummary extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    batch.reference,
-                    style: Theme.of(context).textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                ),
-                _BatchStatusChip(status: batch.status),
-              ],
+            Text(
+              batch.reference,
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w800),
             ),
+            const SizedBox(height: 8),
+            _BatchStatusChip(status: batch.status),
             const SizedBox(height: 12),
             Text(
               '${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'}',

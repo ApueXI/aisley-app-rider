@@ -1,3 +1,7 @@
+import '../../../helpers/accessibility.dart';
+
+import 'package:aisley_app/app/courier_theme.dart';
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -22,7 +26,12 @@ class RegistrationScreenFixture {
     dashboardRepository: _UnusedDashboardRepository(),
   );
 
-  Future<void> open(WidgetTester tester, {double textScale = 1}) async {
+  Future<void> open(
+    WidgetTester tester, {
+    double textScale = 1,
+    AccessibilityScenario? scenario,
+    bool settle = true,
+  }) async {
     const regionIndex = 'lib/psgc-address-data/data/list-of-all-regions.json';
     rootBundle.clear();
     final messenger = tester.binding.defaultBinaryMessenger;
@@ -57,9 +66,15 @@ class RegistrationScreenFixture {
     var editing = true;
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildCourierTheme(Brightness.light),
+        darkTheme: buildCourierTheme(Brightness.dark),
+        themeMode: scenario?.brightness == Brightness.dark
+            ? ThemeMode.dark
+            : ThemeMode.light,
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: TextScaler.linear(textScale)),
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(scenario?.scale ?? textScale),
+          ),
           child: child!,
         ),
         home: StatefulBuilder(
@@ -72,7 +87,11 @@ class RegistrationScreenFixture {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+    }
   }
 
   Future<void> fill(
@@ -135,14 +154,7 @@ Finder field(String label) => find.byWidgetPredicate(
 );
 
 Future<void> enter(WidgetTester tester, String label, String text) async {
-  if (field(label).evaluate().isEmpty) {
-    await tester.scrollUntilVisible(
-      field(label),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-  }
-  await tester.ensureVisible(field(label));
+  await reveal(tester, field(label));
   await tester.enterText(field(label), text);
   await tester.pump();
 }
@@ -178,14 +190,20 @@ class TestImagePicker extends FileSelectorPlatform {
 
 class RegistrationTestRepository implements AuthRepository {
   ApiException? error;
+  ApiException? optionsError;
+  Completer<List<LogisticsOption>>? pendingOptions;
   Completer<RegistrationResult>? pending;
   bool cancelled = false;
   int submissions = 0;
   @override
-  Future<List<LogisticsOption>> fetchLogisticsOptions({String? search}) async =>
-      const [
-        LogisticsOption(id: 'organization-1', businessName: 'Test Logistics'),
-      ];
+  Future<List<LogisticsOption>> fetchLogisticsOptions({String? search}) async {
+    if (pendingOptions case final pending?) return pending.future;
+    if (optionsError case final error?) throw error;
+    return const [
+      LogisticsOption(id: 'organization-1', businessName: 'Test Logistics'),
+    ];
+  }
+
   @override
   Future<RegistrationResult> register(
     CourierRegistrationRequest request, {

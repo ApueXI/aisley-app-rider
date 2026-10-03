@@ -51,9 +51,9 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 
 ### Brand colors
 
-- Primary accent: `#E6007A`.
-- Secondary/deep purple: `#4C1268`.
-- Error: `#FF3B30`.
+- Brand accent: `#E6007A`. Readable semantic primary uses `#C00065` in light mode and `#FF85BD` in dark mode, with white/black foregrounds respectively.
+- Secondary/deep purple: `#4C1268` in light mode; `#DCB0F1` in dark mode, with white/black foregrounds respectively.
+- Error family: `#FF3B30`; readable semantic error uses `#B3261E` in light mode and `#FFB4AB` in dark mode, with white/black foregrounds respectively.
 - Warning: `#FF8800`.
 - Use a neutral background and readable foreground for the majority of the screen; accents should guide attention, not fill every surface.
 - Use neutral surfaces with restrained accents. Any 60/30/10 color balance is optional guidance; readable contrast, status meaning, and clear action priority take precedence.
@@ -179,6 +179,9 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 - Announce validation results, loading completion, authentication changes, and retry outcomes to assistive technology without stealing focus unexpectedly.
 - Keep focus order logical, labels associated with fields, and errors adjacent to the field or action they explain.
 - Do not communicate state through animation, color, or icons alone; include readable text.
+
+- Automated registration, account, batch-detail, POD/camera and support tests use the production themes at 320×640/390×844, 1×/2× text and light/dark. Scroll through complete screens and check Android/iOS touch targets, labels and text contrast; test keyboard actions, menus/dialogs, draft preservation, loading/recovery and pending review. These widget checks do not establish installed-device, browser or TalkBack/VoiceOver acceptance.
+- Keep interactive card paragraphs and actions independently readable in the semantics tree; allow evidence actions and selector options to wrap, and keep confirmations, camera controls and recovery messages scrollable at large text sizes.
 
 ## Testing and implementation notes
 
