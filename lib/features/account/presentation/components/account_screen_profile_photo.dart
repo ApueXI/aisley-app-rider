@@ -55,7 +55,7 @@ extension _AccountScreenProfilePhoto on _AccountScreenState {
         return;
       }
 
-      if (!mounted) {
+      if (!mounted || _isClosingForSession) {
         return;
       }
       _updateState(() {
@@ -80,7 +80,7 @@ extension _AccountScreenProfilePhoto on _AccountScreenState {
   }
 
   void _setProfilePhotoSelectionError(String message) {
-    if (!mounted) {
+    if (!mounted || _isClosingForSession) {
       return;
     }
     _updateState(() {

@@ -3,7 +3,7 @@ part of '../account_screen.dart';
 extension _AccountScreenAccount on _AccountScreenState {
   Future<void> _loadAccount() async {
     await widget.accountController.loadAccount();
-    if (!mounted) {
+    if (!mounted || _isClosingForSession) {
       return;
     }
     final account = widget.accountController.account;
@@ -16,7 +16,7 @@ extension _AccountScreenAccount on _AccountScreenState {
   Future<void> _refreshAccount() async {
     final hadLocalEdits = _profileHasLocalEdits();
     await widget.accountController.loadAccount();
-    if (!mounted) {
+    if (!mounted || _isClosingForSession) {
       return;
     }
     final account = widget.accountController.account;
@@ -27,6 +27,7 @@ extension _AccountScreenAccount on _AccountScreenState {
   }
 
   void _populateProfile(CourierAccount account) {
+    if (_isClosingForSession) return;
     final profile = account.profile;
     _firstNameController.text = profile.firstName;
     _middleNameController.text = profile.middleName ?? '';
@@ -49,8 +50,9 @@ extension _AccountScreenAccount on _AccountScreenState {
   }
 
   Future<void> _saveProfile() async {
-    if (widget.accountController.isBusy ||
-        !_profileFormKey.currentState!.validate()) {
+    if (widget.accountController.isBusy) return;
+    if (!_profileFormKey.currentState!.validate()) {
+      await _revealAccountError(_profileFieldOrder);
       return;
     }
 
@@ -62,7 +64,7 @@ extension _AccountScreenAccount on _AccountScreenState {
       contactNumber: _contactNumberController.text,
     );
 
-    if (!mounted) {
+    if (!mounted || _isClosingForSession) {
       return;
     }
     final account = widget.accountController.account;
@@ -71,15 +73,14 @@ extension _AccountScreenAccount on _AccountScreenState {
       _populateProfile(account);
     }
     await _closeIfSessionEnded();
+    if (!_isClosingForSession &&
+        widget.accountController.fieldErrors.isNotEmpty) {
+      await _revealAccountError(_profileFieldOrder);
+    }
   }
 
   Future<void> _closeIfSessionEnded() async {
-    if (!mounted || widget.authController.status == AuthStatus.authenticated) {
-      return;
-    }
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    }
+    _onAccountScopeChanged();
   }
 
   Widget _buildPersonalInformationSection(BuildContext context) {
@@ -109,6 +110,8 @@ extension _AccountScreenAccount on _AccountScreenState {
               child: Column(
                 children: [
                   TextFormField(
+                    key: _fieldNavigation.fieldKey('first_name'),
+                    focusNode: _fieldNavigation.focusNode('first_name'),
                     controller: _firstNameController,
                     enabled: !controller.isBusy,
                     textInputAction: TextInputAction.next,
@@ -121,6 +124,8 @@ extension _AccountScreenAccount on _AccountScreenState {
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
+                    key: _fieldNavigation.fieldKey('middle_name'),
+                    focusNode: _fieldNavigation.focusNode('middle_name'),
                     controller: _middleNameController,
                     enabled: !controller.isBusy,
                     textInputAction: TextInputAction.next,
@@ -132,6 +137,8 @@ extension _AccountScreenAccount on _AccountScreenState {
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
+                    key: _fieldNavigation.fieldKey('last_name'),
+                    focusNode: _fieldNavigation.focusNode('last_name'),
                     controller: _lastNameController,
                     enabled: !controller.isBusy,
                     textInputAction: TextInputAction.next,
@@ -144,10 +151,13 @@ extension _AccountScreenAccount on _AccountScreenState {
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
+                    key: _fieldNavigation.fieldKey('contact_number'),
+                    focusNode: _fieldNavigation.focusNode('contact_number'),
                     controller: _contactNumberController,
                     enabled: !controller.isBusy,
                     keyboardType: TextInputType.phone,
                     textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _saveProfile(),
                     decoration: InputDecoration(
                       labelText: 'Contact number',
                       prefixIcon: const Icon(Icons.phone_outlined),

@@ -215,27 +215,31 @@ extension _RegistrationAddress on _RegistrationScreenState {
     required ValueChanged<T?> onSelected,
     IconData? icon,
   }) {
-    return DropdownMenu<T>(
-      key: ValueKey<String>(
-        '$fieldKey-${selected == null ? '' : labelFor(selected)}',
+    return KeyedSubtree(
+      key: _fieldNavigation.anchorKey(fieldKey),
+      child: DropdownMenu<T>(
+        key: ValueKey<String>(
+          '$fieldKey-${selected == null ? '' : labelFor(selected)}',
+        ),
+        enabled: !_isSubmitting && options.isNotEmpty,
+        focusNode: _fieldNavigation.focusNode(fieldKey),
+        width: double.infinity,
+        menuHeight: 360,
+        label: Text(label),
+        hintText: options.isEmpty ? 'No options available' : 'Type to search',
+        errorText: _serverError(fieldKey),
+        enableFilter: true,
+        enableSearch: true,
+        initialSelection: selected,
+        leadingIcon: icon == null ? null : Icon(icon),
+        dropdownMenuEntries: options
+            .map(
+              (option) =>
+                  DropdownMenuEntry<T>(value: option, label: labelFor(option)),
+            )
+            .toList(growable: false),
+        onSelected: onSelected,
       ),
-      enabled: !_isSubmitting && options.isNotEmpty,
-      width: double.infinity,
-      menuHeight: 360,
-      label: Text(label),
-      hintText: options.isEmpty ? 'No options available' : 'Type to search',
-      errorText: _serverError(fieldKey),
-      enableFilter: true,
-      enableSearch: true,
-      initialSelection: selected,
-      leadingIcon: icon == null ? null : Icon(icon),
-      dropdownMenuEntries: options
-          .map(
-            (option) =>
-                DropdownMenuEntry<T>(value: option, label: labelFor(option)),
-          )
-          .toList(growable: false),
-      onSelected: onSelected,
     );
   }
 

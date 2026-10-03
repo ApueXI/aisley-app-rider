@@ -21,6 +21,8 @@ extension _RegistrationSubmission on _RegistrationScreenState {
   }
 
   Future<void> _pickEvidence({required bool governmentId}) async {
+    if (_isSubmitting || _isPickingEvidence) return;
+    _updateState(() => _isPickingEvidence = true);
     try {
       final file = await openFile(
         acceptedTypeGroups: const <XTypeGroup>[_evidenceTypeGroup],
@@ -50,6 +52,8 @@ extension _RegistrationSubmission on _RegistrationScreenState {
         _submissionError =
             'The selected document could not be read. Choose it again.';
       });
+    } finally {
+      if (mounted) _updateState(() => _isPickingEvidence = false);
     }
   }
 
@@ -92,7 +96,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
   }
 
   Future<void> _submit() async {
-    if (_isSubmitting) {
+    if (_isSubmitting || _isPickingEvidence) {
       return;
     }
 
@@ -101,28 +105,31 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       _submissionError = null;
     });
 
-    if (!(_formKey.currentState?.validate() ?? false)) {
+    final validFields = _formKey.currentState?.validate() ?? false;
+    final validAddress = _validatePsgcAddress();
+    if (_organization == null) {
+      _fieldErrors = {
+        ..._fieldErrors,
+        'logistics_organization_id': ['Select a Logistics organization.'],
+      };
+    }
+    if (_governmentId == null) {
+      _fieldErrors = {
+        ..._fieldErrors,
+        'government_id': ['Select a government ID image.'],
+      };
+    }
+    if (_vehicleRegistration == null) {
+      _fieldErrors = {
+        ..._fieldErrors,
+        'vehicle_registration': ['Select a vehicle registration image.'],
+      };
+    }
+    if (!validFields || !validAddress || _fieldErrors.isNotEmpty) {
       _updateState(() {
         _submissionError = 'Some required information is missing or invalid. Review the highlighted fields below before submitting.';
       });
-      return;
-    }
-
-    if (!_validatePsgcAddress()) {
-      return;
-    }
-
-    if (_organization == null) {
-      _updateState(() {
-        _submissionError = 'Select a Logistics organization.';
-      });
-      return;
-    }
-    if (_governmentId == null || _vehicleRegistration == null) {
-      _updateState(() {
-        _submissionError =
-            'Select both a government ID and a vehicle registration image.';
-      });
+      await _revealRegistrationError();
       return;
     }
 
@@ -196,6 +203,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
         _passwordController.clear();
         _passwordConfirmationController.clear();
       });
+      if (_fieldErrors.isNotEmpty) await _revealRegistrationError();
     } on ApiContractException {
       if (!mounted || serial != _submissionSerial) {
         return;
@@ -238,6 +246,8 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       _isSubmitting = false;
       _cancelUpload = null;
       _submissionError = 'Registration upload cancelled. Review the form before submitting again.';
+      _passwordController.clear();
+      _passwordConfirmationController.clear();
     });
   }
 }
