@@ -138,6 +138,8 @@ test/
 
 The exact state-management, routing, networking, and secure-storage packages are project decisions. Inspect `pubspec.yaml` and reuse existing choices before adding a dependency.
 
+`DeliveryController` keeps task/action state and pending attempts in one library. Its movement, photo-submission, and completion parts each own their workflow's validation, submission, and retry. COD reads, private photo reads, reconciliation, and error handling remain separate parts. The workflow split preserves revision checks, exact pending payloads/idempotency keys after uncertain responses, and Logistics authority over final delivery; repositories continue to own HTTP transport.
+
 Operational chat is implemented in `lib/features/chat/` using the existing bearer client and the versioned Courier conversation actions in `features/courier/chat-messaging/api-handoff.md`. Logistics/Seller/Buyer sending is enabled for eligible tasks; ended or denied threads remain read-only and live cross-role acceptance remains unverified. Keep message bodies in session-bound memory and recheck task eligibility on the server.
 
 Courier support tickets are implemented separately in `lib/features/support/` against `courier-support-tickets-v1`. The controller keeps bounded list/history state and uncertain mutation keys only in session memory, polls only the visible support route, and clears private drafts and transcripts when authentication or authorization is lost.
