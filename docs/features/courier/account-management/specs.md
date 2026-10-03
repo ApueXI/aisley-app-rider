@@ -95,7 +95,7 @@ Non-goals:
 - Never return or log password values, hashes, reset values, bearer tokens, or token hashes.
 - A successful change rotates remember_token and revokes every Courier personal access token, including the request token.
 - Flutter clears secure storage and requires fresh login after password success; do not automatically retry after a timeout.
-- Courier forgot-password remains a generic recovery acknowledgement, not an Account Management reset endpoint.
+- Courier forgot-password returns the explicit unavailability response defined by Auth v2.6; reset delivery/completion remains deferred and is not an Account Management endpoint.
 
 ### Existing authentication dependencies
 

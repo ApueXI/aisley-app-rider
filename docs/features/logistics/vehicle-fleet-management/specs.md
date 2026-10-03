@@ -18,7 +18,7 @@ Company trucks now have string-backed `unloading` availability. Starting receipt
 
 ## Company-truck extension — 2026-09-23
 
-The Courier-owned one-vehicle registry below remains implemented and separate. [Company Truck Linehaul Dispatch](../company-truck-linehaul-dispatch/spec.md) adds Logistics-owned `company_trucks`, the `/fleet` management page, truck-driver capability on approved affiliations, and trip/capacity monitoring. It does not weaken the one-personal-vehicle-per-Courier rule or reinterpret the legacy decimal `vehicles.capacity`. `truck` is now a supported personal vehicle type, but only a `company_trucks` record can satisfy a linehaul assignment.
+The Courier-owned one-vehicle registry below remains implemented and separate. `docs/features/logistics/company-truck-linehaul-dispatch/spec.md` in the backend repository (not included in this Flutter bundle) adds Logistics-owned `company_trucks`, the `/fleet` management page, truck-driver capability on approved affiliations, and trip/capacity monitoring. It does not weaken the one-personal-vehicle-per-Courier rule or reinterpret the legacy decimal `vehicles.capacity`. `truck` is now a supported personal vehicle type, but only a `company_trucks` record can satisfy a linehaul assignment.
 
 ## WHAT
 
@@ -162,7 +162,7 @@ The Courier-owned one-vehicle registry below remains implemented and separate. [
 
 - Inspect current Vehicle/notification DTOs and tests before UI implementation; reuse the existing auth, API, layout, and private image patterns.
 - Keep the approval review screen separate from the current vehicle detail; changing OR/CR does not reopen an application.
-- Flutter registration remains a separate client rollout; no Courier web UI belongs in this repository.
+- Flutter implements `motorcycle`, `car`, `van`, and `truck` in registration and vehicle editing of the same personal Vehicle. Combined initial evidence and independent post-approval OR/CR replacement remain unchanged; this grants no company-truck eligibility. Live authenticated/device acceptance remains open.
 - Update external Flutter copies for these newly implemented API routes before shipping the mobile flow; no Courier web UI belongs in this repository.
 - Keep any future Flutter acceptance criteria unchecked until the external client rollout and end-to-end verification establish the behavior.
 - Append documentation and implementation results separately to `docs/PROGRESS.md`.

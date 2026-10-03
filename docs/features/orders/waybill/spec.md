@@ -14,7 +14,7 @@ source_coverage: docs/requirements.md, docs/workspace.md, docs/schema.md, docs/d
 
 ## Trip-specific linehaul receipt — 2026-09-23
 
-Receive at hub also accepts a selected company-truck trip (`/receive-at-hub?trip={id}`). It uses the existing Code 128/waybill QR camera and manual tracking input, but synchronizes through the trip-scoped receiving batch endpoint. Only references on that immutable manifest transfer custody. Unexpected scans record an investigation without revealing another tenant's parcel or changing membership. The original first-mile receiving endpoint and shared immutable waybill remain unchanged. See the [company-truck receiving contract](../../logistics/company-truck-linehaul-dispatch/spec.md).
+Receive at hub also accepts a selected company-truck trip (`/receive-at-hub?trip={id}`). It uses the existing Code 128/waybill QR camera and manual tracking input, but synchronizes through the trip-scoped receiving batch endpoint. Only references on that immutable manifest transfer custody. Unexpected scans record an investigation without revealing another tenant's parcel or changing membership. The original first-mile receiving endpoint and shared immutable waybill remain unchanged. See the `docs/features/logistics/company-truck-linehaul-dispatch/spec.md` in the backend repository (not included in this Flutter bundle).
 
 ## WHAT
 

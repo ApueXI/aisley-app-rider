@@ -9,7 +9,7 @@ status: Implemented first-mile identifier pickup and task-bound final-mile hub h
 implementation_status: First-mile Courier API and route-manifest API retain QR/tracking-ID/Order-reference verification; final-mile hub handoff uses an accepted task and revision without identifier entry; Flutter remains external
 flutter_status: First-mile pickup with explicit schedule filtering and task-bound final-mile hub handoff implemented locally; authenticated filtering, live Logistics validation, and installed-device acceptance remain unverified
 canonical: true
-copied_backend_checkout: d7df220
+copied_backend_checkout: 4c3f504
 scope: Laravel API, development-only React courier mockup, and external Flutter Courier mobile application
 backend_contract_commit: d5c160d4a5a21272e487b6f46a82de35e81395cb
 backend_contract_version: first-and-final-mile-pickup-v1-tracking-id

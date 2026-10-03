@@ -23,7 +23,7 @@ The Courier's **Delivered** action sends an intent linked to the current photo P
 
 ## COD confirmation revision (2026-09-23)
 
-For COD Orders, refetch the accepted-task `GET /api/v1/courier/tasks/{task}/delivery` projection and show `data.order.payable_total` with `data.order.currency` when `data.order.payment_method` is `cod`; `data.parcel.price` is merchandise subtotal, not cash due. Require an explicit confirmation that this exact amount was collected before sending `cod_collected: true`. If payment fields are absent or the cash was not collected, do not submit a successful completion intent; refetch or record an unsuccessful attempt. The API derives declaration amount, currency, and time from the current Order and accepts no Courier-supplied amount. Logistics confirms the declaration and proof before atomically marking delivery and COD `payment_status` as `paid`. Future prepaid Orders require their own approved read/confirmation contract.
+For COD Orders, refetch the accepted-task `GET /api/v1/courier/tasks/{task}/delivery` projection and show `data.order.payable_total` with `data.order.currency` when `data.order.payment_method` is `cod`; `data.parcel.price` is merchandise subtotal, not cash due. Require an explicit confirmation that this exact amount was collected before sending `cod_collected: true`. If payment fields are absent or the cash was not collected, do not submit a successful completion intent; refetch the task. The failed-attempt API exists, but its Flutter submission UI remains unadopted. The API derives declaration amount, currency, and time from the current Order and accepts no Courier-supplied amount. Logistics confirms the declaration and proof before atomically marking delivery and COD `payment_status` as `paid`. Future prepaid Orders require their own approved read/confirmation contract.
 
 ## WHAT
 
@@ -124,7 +124,7 @@ out_for_delivery
 - Show “Awaiting Logistics validation” for accepted intent that is not finalized.
 - A successful submission acknowledgment must not show “Delivered.”
 - Disable duplicate taps during a request; retain its idempotency key after timeout.
-- Refetch completion status after an uncertain result before starting another action. Flutter recovery wording explains that the update is unconfirmed and directs refresh before retrying the same action; response field names remain internal.
+- Refetch completion status after an uncertain result before starting another action. Flutter recovery wording explains that the update is unconfirmed and provides a secondary **Refresh task** read before retrying the same pending action/key; response field names remain internal.
 - Do not optimistically remove a task before server-confirmed delivered state.
 - Offline completion queues are deferred; connectivity is required for submission.
 - Camera, signature, and file permissions belong to Proof of Delivery.
