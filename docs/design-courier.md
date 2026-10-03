@@ -180,7 +180,7 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 - Keep focus order logical, labels associated with fields, and errors adjacent to the field or action they explain.
 - Do not communicate state through animation, color, or icons alone; include readable text.
 
-- Automated registration, account, batch-detail, POD/camera and support tests use the production themes at 320×640/390×844, 1×/2× text and light/dark. Scroll through complete screens and check Android/iOS touch targets, labels and text contrast; test keyboard actions, menus/dialogs, draft preservation, loading/recovery and pending review. These widget checks do not establish installed-device, browser or TalkBack/VoiceOver acceptance.
+- Reported automated registration, account, batch-detail, POD/camera and support tests use the production themes at 320×640/390×844, 1×/2× text and light/dark. Scroll through complete screens and check Android/iOS touch targets, labels and text contrast; test keyboard actions, menus/dialogs, draft preservation, loading/recovery and pending review. These widget checks do not establish installed-device, browser or TalkBack/VoiceOver acceptance.
 - Keep interactive card paragraphs and actions independently readable in the semantics tree; allow evidence actions and selector options to wrap, and keep confirmations, camera controls and recovery messages scrollable at large text sizes.
 
 ## Testing and implementation notes

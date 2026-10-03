@@ -26,7 +26,7 @@ Laravel now allows `courier-linehaul.trip-scheduled` for the assigned qualified 
 - Give an approved Courier a private, persistent in-app inbox for work alerts and a readable unread count in the external Flutter app.
 - The inbox reports committed events; it does not offer, accept, reject, pick up, validate, or deliver a task itself.
 - Laravel writes database notifications to the scheduled Courier for pickup-schedule assignment, revision, cancellation, and due reminder, and now delivers committed final-mile-offer alerts.
-- The protected `/api/v1/courier/notifications` list, count, detail, and mark-read routes are implemented in Laravel. The Flutter notification screen is implemented in this repository; the Courier dashboard notification section remains an unavailable aggregate scaffold.
+- The protected `/api/v1/courier/notifications` list, count, detail, and mark-read routes are implemented in Laravel. The imported Flutter progress records an implemented notification screen in the external client; the Courier dashboard notification section remains an unavailable aggregate scaffold.
 - The inbox exposes existing pickup-schedule alerts and committed final-mile-offer alerts with deterministic recipient/type/source identity.
 - Final-mile offers remain visible through the owning task API even when an alert is delayed or unavailable.
 - Non-goals: SMTP, background push, SMS, chat, campaigns, generic Courier login alerts, notification-driven task mutations, or a Courier web UI.

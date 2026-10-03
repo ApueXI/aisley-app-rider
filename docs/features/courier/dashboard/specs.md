@@ -18,6 +18,8 @@ source_coverage: docs/requirements.md, docs/workspace.md, docs/schema.md, docs/d
 
 # Courier Dashboard
 
+Client implementation and Flutter test coverage below are reported by the imported progress log through 2026-10-03; Flutter source, live authenticated responses, and installed-device behavior were not verified in this Laravel repository.
+
 ## WHAT
 
 - **Purpose:** Provide the external Flutter Courier app with one read-oriented view of new allocations, available pickup/delivery requests, and the Courier's active work.
@@ -112,7 +114,7 @@ approved Courier session
 - [x] Flutter dashboard links to the task-chat inbox; its locally implemented Logistics/Seller/Buyer messaging is not a dashboard chat aggregate; live exchange remains unverified.
 - [x] The current Flutter handoff records partial task-bound hub pickup/photo POD adoption; installed-device and end-to-end Logistics validation remain unverified.
 - [x] Flutter shows read-only first-/final-mile previews from their separate authorized list APIs, each with source labels, independent states, and safe navigation/refetch.
-- [x] Preview tests prove page-limited first-mile reads, unpaginated final-mile reads, unknown-status handling, partial failure, logout clearing, and no action or fabricated count.
+- [x] Imported Flutter progress reports preview tests covering page-limited first-mile reads, unpaginated final-mile reads, unknown-status handling, partial failure, logout clearing, and no action or fabricated count.
 - [x] Flutter locally adopts the documented empty-body, state-idempotent final-mile batch action and reconciliation; live acceptance remains open. Do not reactivate normal per-task acceptance or loop task calls.
 - [ ] A versioned operational dashboard API returns safe available/active summaries with explicit freshness and count semantics; the current scaffold does not.
 - [x] Partial preview rows identify their explicit leg/status and show only authorized list fields; distance/ETA is displayed only if the source DTO includes it.
@@ -221,6 +223,6 @@ approved Courier session
 - Record the backend commit/API version beside every generated Flutter fixture.
 - Recheck all endpoint, status, ownership, and privacy wording when the shared operational schema is revised.
 - Keep Dashboard acceptance checks separate from Accept, Pickup, Deliver, and Complete feature checks.
-- Append material Flutter contract/documentation changes to this project's progress log; record a backend progress change only when Laravel itself changes.
+- Append material changes to the owning project's progress log; record this bundle's documentation synchronization separately from reported Flutter implementation and live acceptance.
 
 **References:** `docs/features/courier/rules.md`, `docs/requirements.md`, `docs/workspace.md`, `docs/schema.md`, `docs/domain/Courier.md`, `docs/domain/Logistics.md`, `docs/features/courier/notification/specs.md`, `docs/features/courier/chat-messaging/specs.md`, `docs/features/courier/accept-delivery-requests/specs.md`, `docs/features/courier/pick-up-order/specs.md`, `docs/features/courier/delivery-order/specs.md`, and `docs/features/courier/complete-delivery/specs.md`.
