@@ -172,13 +172,14 @@ class _ProofAndCompletionCard extends StatelessWidget {
                   icon: const Icon(Icons.policy_outlined),
                   label: const Text('Review policies'),
                 ),
-              if (actionStatus == DeliveryActionStatus.conflict)
+              if (_canRetry(actionStatus) ||
+                  actionStatus == DeliveryActionStatus.validationError)
                 TextButton.icon(
                   onPressed: busy || !controller.canRetryRateLimit
                       ? null
                       : () => controller.loadDetails(task),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh task before retrying'),
+                  label: const Text('Refresh task'),
                 ),
               if (_canRetry(actionStatus) &&
                   actionStatus != DeliveryActionStatus.conflict &&

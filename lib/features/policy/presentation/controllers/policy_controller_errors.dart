@@ -62,7 +62,7 @@ extension PolicyControllerErrors on PolicyController {
     }
     if (error is ApiContractException) {
       state = PolicyViewState.retryableError;
-      errorMessage = _contractFailureMessage(error);
+      errorMessage = _contractFailureMessage();
       successMessage = null;
       _notifyPolicyListeners();
       return;
@@ -80,21 +80,8 @@ extension PolicyControllerErrors on PolicyController {
     _notifyPolicyListeners();
   }
 
-  String _contractFailureMessage(ApiContractException error) {
-    return switch (error.field) {
-      'policy.consent.response' => 'The policy status response was empty or invalid. Confirm the API returns JSON, then retry.',
-      'policy.consent.data' => 'The policy status response is missing its policy data object. Confirm the API response envelope, then retry.',
-      'policy.consent.item' ||
-      'policy.consent.type' ||
-      'policy.consent.label' ||
-      'policy.consent.flags' ||
-      'policy.consent.accepted_at' ||
-      'policy.consent.current_version' ||
-      'policy.consent.accepted_version' =>
-        'The policy status fields do not match the documented API contract (${error.field}). Update the API response or client contract, then retry.',
-      _ =>
-        'The policy service returned an unexpected response (${error.field}). Confirm the documented API contract, then retry.',
-    };
+  String _contractFailureMessage() {
+    return 'Your policy acceptance status could not be confirmed. Refresh policy information and review the current Terms of Service and Privacy Policy before trying again.';
   }
 
   Future<void> _setApiFailure(ApiException error) async {
@@ -151,9 +138,11 @@ extension PolicyControllerErrors on PolicyController {
     }
     state = PolicyViewState.retryableError;
     if (error.statusCode == 404) {
-      errorMessage = 'The policy consent endpoint is unavailable on this API. Deploy the policy routes and retry.';
+      errorMessage =
+          'Policy information is unavailable right now. Try again later.';
     } else if (error.statusCode != null && error.statusCode! >= 500) {
-      errorMessage = 'The policy service returned a server error. Check the policy migrations and seed data, then retry.';
+      errorMessage =
+          'Policy information could not be loaded. Try again in a moment.';
     } else {
       errorMessage = 'We could not load policy information. Please retry.';
     }

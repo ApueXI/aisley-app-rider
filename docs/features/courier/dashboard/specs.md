@@ -155,7 +155,7 @@ approved Courier session
 ### Flutter screen contract
 
 - The initial screen restores an approved session and calls the scaffold endpoint through `lib/features/dashboard/data/dashboard_repository.dart`; a token alone never unlocks operational data.
-- Render scaffold `sections.*` as unavailable; place task-list previews in distinct, source-labelled UI sections. A task preview is not a dashboard aggregate result or an enabled mutation button.
+- Render scaffold `sections.*` as unavailable; place task-list previews in distinct, source-labelled UI sections. A task preview is not a dashboard aggregate result or an enabled mutation button. Flutter groups the three confirmed unavailable summaries into one plain-language notice, retaining independent preview/loading/error states and last-successful-refresh context.
 - Render the independent inbox badge from `lib/features/notification/`, not from scaffold `sections.notifications`. A notification failure must not hide dashboard navigation or become a false empty queue.
 - Show separate first-mile and final-mile loading/empty/failure states; one source's failure cannot erase another's successful preview. Offered final-mile rows must not expose a normal per-task Accept action.
 - Keep preview taps read-only: open the owning work screen and refetch its current task list/detail. Pass a task ID only when a verified in-app target route accepts it; the existing navigation may open the list instead.

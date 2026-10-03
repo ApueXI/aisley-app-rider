@@ -155,14 +155,14 @@ class DashboardPreviewController extends ChangeNotifier {
       _fail(
         source,
         DashboardPreviewStatus.secureStorageFailure,
-        'Secure session storage is unavailable. This task preview cannot be loaded.',
+        'Your saved sign-in could not be accessed. Close and reopen the app, then try loading this task preview again.',
       );
     } on ApiContractException {
       if (!isCurrent()) return;
       _fail(
         source,
         DashboardPreviewStatus.failed,
-        'This task list did not match the documented API response.',
+        'This task list could not be loaded. Please retry in a moment.',
       );
     }
   }

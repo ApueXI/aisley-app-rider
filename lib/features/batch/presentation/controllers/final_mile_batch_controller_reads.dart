@@ -79,7 +79,7 @@ extension FinalMileBatchControllerReads on FinalMileBatchController {
     } on ApiContractException {
       _detailStatuses[scheduleId] = FinalMileBatchLoadStatus.failed;
       _detailErrors[scheduleId] =
-          'The batch details did not match the documented API response.';
+          'Batch details could not be loaded. Refresh the batch and try again.';
     }
     _notify();
   }

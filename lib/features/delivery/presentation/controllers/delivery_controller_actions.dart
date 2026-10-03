@@ -65,11 +65,11 @@ extension DeliveryControllerActions on DeliveryController {
       }
       return await _performMovement(fresh, attempt);
     } on ApiException catch (error) {
-      await _setActionError(task, error);
+      await _setActionError(task, error, submission: false);
     } on TokenStorageException {
       _setStorageActionError(task);
-    } on ApiContractException catch (error) {
-      _setContractActionError(task, error);
+    } on ApiContractException {
+      _setContractActionError(task, submission: false);
     }
     return false;
   }
@@ -116,8 +116,8 @@ extension DeliveryControllerActions on DeliveryController {
       await _setActionError(task, error);
     } on TokenStorageException {
       _setStorageActionError(task);
-    } on ApiContractException catch (error) {
-      _setContractActionError(task, error);
+    } on ApiContractException {
+      _setContractActionError(task);
     }
     return false;
   }
@@ -171,13 +171,13 @@ extension DeliveryControllerActions on DeliveryController {
         return false;
       }
     } on ApiException catch (error) {
-      await _setActionError(task, error);
+      await _setActionError(task, error, submission: false);
       return false;
     } on TokenStorageException {
       _setStorageActionError(task);
       return false;
-    } on ApiContractException catch (error) {
-      _setContractActionError(task, error);
+    } on ApiContractException {
+      _setContractActionError(task, submission: false);
       return false;
     }
     final attempt = _PendingPhotoAttempt(
@@ -243,8 +243,8 @@ extension DeliveryControllerActions on DeliveryController {
       await _setActionError(task, error);
     } on TokenStorageException {
       _setStorageActionError(task);
-    } on ApiContractException catch (error) {
-      _setContractActionError(task, error);
+    } on ApiContractException {
+      _setContractActionError(task);
     }
     return false;
   }
@@ -268,7 +268,7 @@ extension DeliveryControllerActions on DeliveryController {
     if (knownProofId == null || knownProofId != normalizedEvidenceId) {
       _setLocalValidationError(
         task,
-        'Submit proof for this delivery first. Only its server-returned proof ID can be used for completion.',
+        'Upload a delivery photo for this task before sending it to Logistics for review.',
       );
       return false;
     }
@@ -322,18 +322,18 @@ extension DeliveryControllerActions on DeliveryController {
       if (current.revision == null ||
           current.taskStatus != 'out_for_delivery') {
         _actionStatuses[task.id] = DeliveryActionStatus.conflict;
-        _actionErrors[task.id] = 'The task revision or state changed. Refresh before submitting completion.';
+        _actionErrors[task.id] = 'This delivery changed. Refresh the task before sending it to Logistics for review.';
         _notifyDeliveryListeners();
         return false;
       }
     } on ApiException catch (error) {
-      await _setActionError(task, error);
+      await _setActionError(task, error, submission: false);
       return false;
     } on TokenStorageException {
       _setStorageActionError(task);
       return false;
-    } on ApiContractException catch (error) {
-      _setContractActionError(task, error);
+    } on ApiContractException {
+      _setContractActionError(task, submission: false);
       return false;
     }
     final attempt = _PendingCompletionAttempt(
@@ -397,8 +397,8 @@ extension DeliveryControllerActions on DeliveryController {
       await _setActionError(task, error);
     } on TokenStorageException {
       _setStorageActionError(task);
-    } on ApiContractException catch (error) {
-      _setContractActionError(task, error);
+    } on ApiContractException {
+      _setContractActionError(task);
     }
     return false;
   }

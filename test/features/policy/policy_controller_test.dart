@@ -9,6 +9,27 @@ import 'package:aisley_app/features/policy/presentation/controllers/policy_contr
 
 void main() {
   test(
+    'policy server error explains recovery without setup instructions',
+    () async {
+      final api = _FakePolicyApi()
+        ..statusError = const ApiException(
+          statusCode: 500,
+          code: 'SERVER_ERROR',
+          message: 'Internal database details',
+        );
+      final controller = PolicyController(policyApi: api);
+      addTearDown(controller.dispose);
+      expect(await controller.load(), isFalse);
+      expect(controller.state, PolicyViewState.retryableError);
+      expect(
+        controller.errorMessage,
+        'Policy information could not be loaded. Try again in a moment.',
+      );
+      expect(controller.successMessage, isNull);
+    },
+  );
+
+  test(
     'loads status before current documents and exposes consent required',
     () async {
       final api = _FakePolicyApi();
@@ -110,7 +131,7 @@ void main() {
     expect(controller.errorMessage, 'Courier affiliation is not eligible.');
   });
 
-  test('missing policy status route explains the deployment problem', () async {
+  test('missing policy status route explains availability without deployment instructions', () async {
     final api = _FakePolicyApi()
       ..statusError = const ApiException(
         statusCode: 404,
@@ -124,7 +145,7 @@ void main() {
     expect(controller.state, PolicyViewState.retryableError);
     expect(
       controller.errorMessage,
-      'The policy consent endpoint is unavailable on this API. Deploy the policy routes and retry.',
+      'Policy information is unavailable right now. Try again later.',
     );
   });
 
@@ -142,16 +163,21 @@ void main() {
     );
   });
 
-  test('contract failure identifies the safe response field', () async {
-    final api = _FakePolicyApi()
-      ..statusError = const ApiContractException('policy.consent.flags');
-    final controller = PolicyController(policyApi: api);
+  test(
+    'contract failure explains recovery without exposing response fields',
+    () async {
+      final api = _FakePolicyApi()
+        ..statusError = const ApiContractException('policy.consent.flags');
+      final controller = PolicyController(policyApi: api);
 
-    await controller.load();
+      await controller.load();
 
-    expect(controller.state, PolicyViewState.retryableError);
-    expect(controller.errorMessage, contains('policy.consent.flags'));
-  });
+      expect(controller.state, PolicyViewState.retryableError);
+      expect(controller.errorMessage, contains('Refresh policy information'));
+      expect(controller.errorMessage, isNot(contains('policy.consent.flags')));
+      expect(controller.errorMessage, isNot(contains('API')));
+    },
+  );
 
   test('422 keeps the document open when confirmation is rejected', () async {
     final api = _FakePolicyApi()

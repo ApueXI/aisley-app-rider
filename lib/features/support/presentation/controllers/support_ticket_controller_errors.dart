@@ -152,7 +152,7 @@ extension SupportTicketControllerErrors on SupportTicketController {
       return 'Secure session storage is unavailable.';
     }
     if (error is ApiContractException) {
-      return '$subject response did not match the documented API contract (${error.field}).';
+      return 'Support information could not be confirmed. Refresh your tickets to check the latest status before trying again.';
     }
     if (error is! ApiException) return '$subject could not be completed.';
     if (error.statusCode == 401) {

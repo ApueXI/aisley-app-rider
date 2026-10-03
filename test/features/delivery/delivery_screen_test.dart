@@ -215,6 +215,9 @@ void main() {
         statusCode: 422,
         code: 'VALIDATION_ERROR',
         message: 'The photo field is invalid.',
+        fieldErrors: {
+          'photo': ['The photo field is invalid.'],
+        },
       );
     final controller = DeliveryController(deliveryRepository: repository)
       ..tasks = <PickupTask>[_outForDeliveryTask];
@@ -239,9 +242,19 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('The photo field is invalid.'), findsOneWidget);
+    expect(find.text('The photo field is invalid.'), findsNothing);
+    expect(find.textContaining('Choose a JPEG, PNG or WebP'), findsOneWidget);
+    expect(find.text('Refresh task'), findsOneWidget);
     expect(find.textContaining('Photo proof received.'), findsNothing);
     expect(find.text('Submit Delivered intent'), findsNothing);
+    await tester.ensureVisible(find.text('Refresh task'));
+    await tester.pumpAndSettle();
+    final readsBeforeRefresh = repository.deliveryReads;
+    await tester.tap(find.text('Refresh task'));
+    await tester.pumpAndSettle();
+    expect(repository.deliveryReads, greaterThan(readsBeforeRefresh));
+    expect(repository.uploadedPhoto, isNull);
+    expect(repository.completionEvidenceId, isNull);
   });
 
   testWidgets(
@@ -284,7 +297,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Confirm COD collection'), findsNothing);
-      expect(find.textContaining('payable total'), findsWidgets);
+      expect(find.textContaining('cash amount'), findsWidgets);
       expect(repository.completionEvidenceId, isNull);
     },
   );
@@ -312,6 +325,7 @@ AuthController _authenticatedAuthController() {
 }
 
 class _WidgetDeliveryRepository implements DeliveryRepository {
+  int deliveryReads = 0;
   String? completionEvidenceId;
   bool? codCollected;
   DeliveryPhotoSelection? uploadedPhoto;
@@ -343,6 +357,7 @@ class _WidgetDeliveryRepository implements DeliveryRepository {
 
   @override
   Future<DeliveryContext> fetchDeliveryContext(String taskId) async {
+    deliveryReads++;
     return deliveryContext;
   }
 

@@ -48,8 +48,7 @@ extension FinalMileBatchControllerActions on FinalMileBatchController {
           'Secure session storage is unavailable. The batch was not accepted.';
     } on ApiContractException {
       _actionStatuses[scheduleId] = FinalMileBatchActionStatus.failed;
-      _actionErrors[scheduleId] =
-          'The acceptance response did not match the documented API contract.';
+      _actionErrors[scheduleId] = 'We could not confirm whether this batch was accepted. Refresh its details before trying again.';
     }
     _notify();
     return false;

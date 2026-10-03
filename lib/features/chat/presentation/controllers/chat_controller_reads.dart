@@ -29,7 +29,8 @@ extension ChatControllerReads on ChatController {
       inboxStatus = threads.isEmpty
           ? ChatLoadStatus.failed
           : ChatLoadStatus.stale;
-      inboxError = 'The conversation list did not match the API contract.';
+      inboxError =
+          'Task messages could not be loaded. Refresh the list and try again.';
       _notify();
     } on TokenStorageException {
       if (epoch != _epoch || requestId != _inboxRequestId) return;
@@ -204,7 +205,8 @@ extension ChatControllerReads on ChatController {
       threadStatus = messages.isEmpty
           ? ChatLoadStatus.failed
           : ChatLoadStatus.stale;
-      threadError = 'This conversation did not match the API contract.';
+      threadError =
+          'This conversation could not be loaded. Refresh it and try again.';
       _notify();
     } on TokenStorageException {
       if (epoch != _epoch || requestId != _threadRequestId) return;

@@ -37,6 +37,13 @@ class _DashboardBody extends StatelessWidget {
     final isLoading =
         authController.dashboardStatus == DashboardLoadStatus.loading;
     final snapshot = authController.dashboard;
+    final summariesUnavailable =
+        snapshot != null &&
+        snapshot.freshness.state == DashboardFreshnessState.scaffold &&
+        const ['notifications', 'available_tasks', 'active_tasks'].every(
+          (key) =>
+              snapshot.section(key).state == DashboardSectionState.unavailable,
+        );
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -57,14 +64,6 @@ class _DashboardBody extends StatelessWidget {
           style: Theme.of(context).textTheme.titleLarge
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 6),
-        Text(
-          previewController == null
-              ? 'Dashboard summaries are not available yet. Open the work screens for current tasks.'
-              : 'The aggregate is unavailable. Task previews above come from separate task lists.',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
         const SizedBox(height: 16),
         if (authController.dashboardErrorMessage != null)
           _DashboardErrorBanner(
@@ -75,41 +74,44 @@ class _DashboardBody extends StatelessWidget {
           ),
         if (authController.dashboardErrorMessage != null)
           const SizedBox(height: 16),
-        if (isLoading && snapshot == null) ...[
-          const _SkeletonSectionCard(),
+        if (summariesUnavailable)
+          _UnavailableNotice(
+            isLoading: isLoading,
+            hasRefreshError: authController.dashboardErrorMessage != null,
+          )
+        else if (isLoading && snapshot == null) ...[
+          Semantics(
+            liveRegion: true,
+            child: const Text('Checking dashboard summaries…'),
+          ),
           const SizedBox(height: 12),
           const _SkeletonSectionCard(),
           const SizedBox(height: 12),
           const _SkeletonSectionCard(),
-        ] else ...[
+          const SizedBox(height: 12),
+          const _SkeletonSectionCard(),
+        ] else if (snapshot != null) ...[
           _DashboardSectionCard(
             title: 'Notification summary',
-            subtitle: 'This dashboard summary is not live',
+            subtitle: 'Updates about your Courier work',
             icon: Icons.notifications_none_rounded,
-            section: snapshot?.section('notifications'),
+            section: snapshot.section('notifications'),
           ),
           const SizedBox(height: 12),
           _DashboardSectionCard(
             title: 'Available work',
             subtitle: 'Pickup and delivery requests offered to you',
             icon: Icons.assignment_outlined,
-            section: snapshot?.section('available_tasks'),
+            section: snapshot.section('available_tasks'),
           ),
           const SizedBox(height: 12),
           _DashboardSectionCard(
             title: 'Active work',
             subtitle: 'Accepted Courier work in progress',
             icon: Icons.local_shipping_outlined,
-            section: snapshot?.section('active_tasks'),
+            section: snapshot.section('active_tasks'),
           ),
         ],
-        const SizedBox(height: 20),
-        _UnavailableNotice(
-          freshness: snapshot?.freshness,
-          isLoading: isLoading,
-          hasRefreshError:
-              authController.dashboardErrorMessage != null && snapshot != null,
-        ),
         const SizedBox(height: 20),
         if (onOpenNotifications != null) ...[
           OutlinedButton.icon(

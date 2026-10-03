@@ -304,35 +304,32 @@ void main() {
     },
   );
 
-  test(
-    'completion contract failures identify the safe response field',
-    () async {
-      final repository = _FakeDeliveryRepository()
-        ..completionError = const ApiContractException(
-          'delivery.completion.completion_status',
-        );
-      final controller = DeliveryController(deliveryRepository: repository)
-        ..proofs[_outForDeliveryTask.id] = const ProofSubmission(
-          taskId: 'delivery-task-1',
-          proofId: 'proof-1',
-          evidenceStatus: 'awaiting_validation',
-          custodyState: 'out_for_delivery',
-          completionEligible: false,
-        );
-
-      final submitted = await controller.submitCompletion(
-        _outForDeliveryTask,
-        evidenceId: 'proof-1',
-        confirmedCollection: _codCollection,
+  test('completion response failures explain unconfirmed results without field names', () async {
+    final repository = _FakeDeliveryRepository()
+      ..completionError = const ApiContractException(
+        'delivery.completion.completion_status',
+      );
+    final controller = DeliveryController(deliveryRepository: repository)
+      ..proofs[_outForDeliveryTask.id] = const ProofSubmission(
+        taskId: 'delivery-task-1',
+        proofId: 'proof-1',
+        evidenceStatus: 'awaiting_validation',
+        custodyState: 'out_for_delivery',
+        completionEligible: false,
       );
 
-      expect(submitted, isFalse);
-      expect(
-        controller.actionError(_outForDeliveryTask),
-        contains('data.completion_status'),
-      );
-    },
-  );
+    final submitted = await controller.submitCompletion(
+      _outForDeliveryTask,
+      evidenceId: 'proof-1',
+      confirmedCollection: _codCollection,
+    );
+
+    expect(submitted, isFalse);
+    expect(
+      controller.actionError(_outForDeliveryTask),
+      contains('Refresh the task before retrying the same action'),
+    );
+  });
 
   test('photo proof rejects an empty file locally', () async {
     final repository = _FakeDeliveryRepository();
@@ -585,7 +582,7 @@ void main() {
       expect(repository.completionIdempotencyKeys, isEmpty);
       expect(
         controller.actionError(_outForDeliveryTask),
-        contains('payable total'),
+        contains('cash amount'),
       );
     },
   );
@@ -651,7 +648,7 @@ void main() {
     expect(collection, isNull);
     expect(
       controller.actionError(_outForDeliveryTask),
-      contains('supported COD'),
+      contains('Cash collection information is unavailable'),
     );
     expect(repository.completionIdempotencyKeys, isEmpty);
   });
@@ -707,7 +704,7 @@ void main() {
     expect(collection, isNull);
     expect(
       controller.actionError(_outForDeliveryTask),
-      contains('delivery.context.task_id'),
+      contains('Delivery information could not be loaded'),
     );
     expect(repository.completionIdempotencyKeys, isEmpty);
   });
@@ -737,7 +734,7 @@ void main() {
     expect(submitted, isFalse);
     expect(
       controller.actionError(_outForDeliveryTask),
-      contains('full Order payable total'),
+      contains('full cash amount'),
     );
     expect(controller.hasPendingCompletion(_outForDeliveryTask), isFalse);
   });

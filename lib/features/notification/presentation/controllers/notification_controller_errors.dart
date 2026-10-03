@@ -130,7 +130,7 @@ extension NotificationControllerErrors on NotificationController {
       return 'Secure session storage is unavailable. Notifications cannot be loaded.';
     }
     if (error is ApiContractException) {
-      return 'The notification response does not match the documented API contract (${error.field}). Retry after confirming the API response.';
+      return 'Notification information could not be loaded. Refresh Notifications and try again.';
     }
     if (error is! ApiException) {
       return 'Notifications could not be loaded. Please retry.';
