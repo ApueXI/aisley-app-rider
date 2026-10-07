@@ -16,6 +16,7 @@ part 'auth_controller_policy.dart';
 part '../../../dashboard/presentation/controllers/auth_controller_dashboard.dart';
 part 'auth_controller_session.dart';
 part 'auth_controller_state.dart';
+part 'auth_controller_retry.dart';
 
 enum AuthStatus {
   checkingSession,
@@ -52,10 +53,19 @@ class AuthController extends ChangeNotifier {
   String? errorMessage;
   String? dashboardErrorMessage;
   Duration? retryAfter;
+  Duration? sessionRetryAfter;
+  Duration? registrationRetryAfter;
   Duration? dashboardRetryAfter;
   bool isSigningOut = false;
   int _dashboardRequestEpoch = 0;
   Timer? _dashboardRetryTimer;
+  Timer? _loginRetryTimer;
+  Timer? _sessionRetryTimer;
+  Timer? _registrationRetryTimer;
+
+  bool get canSignIn => _loginRetryTimer == null;
+  bool get canRetrySession => _sessionRetryTimer == null;
+  bool get canRegister => _registrationRetryTimer == null;
 
   bool get canRetryDashboard => _dashboardRetryTimer == null;
 
@@ -75,6 +85,9 @@ class AuthController extends ChangeNotifier {
   @override
   void dispose() {
     _dashboardRetryTimer?.cancel();
+    _loginRetryTimer?.cancel();
+    _sessionRetryTimer?.cancel();
+    _registrationRetryTimer?.cancel();
     super.dispose();
   }
 }

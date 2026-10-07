@@ -2,6 +2,7 @@ part of 'auth_controller.dart';
 
 extension AuthControllerSession on AuthController {
   Future<void> initialize() async {
+    if (!canRetrySession) return;
     _invalidateDashboardRequest();
     status = AuthStatus.checkingSession;
     dashboard = null;
@@ -32,7 +33,7 @@ extension AuthControllerSession on AuthController {
   }
 
   Future<void> signIn({required String email, required String password}) async {
-    if (status == AuthStatus.authenticating) {
+    if (status == AuthStatus.authenticating || !canSignIn) {
       return;
     }
 

@@ -96,7 +96,9 @@ extension _RegistrationSubmission on _RegistrationScreenState {
   }
 
   Future<void> _submit() async {
-    if (_isSubmitting || _isPickingEvidence) {
+    if (_isSubmitting ||
+        _isPickingEvidence ||
+        !widget.authController.canRegister) {
       return;
     }
 

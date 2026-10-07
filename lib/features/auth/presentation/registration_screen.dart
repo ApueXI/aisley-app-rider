@@ -96,6 +96,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   void initState() {
     super.initState();
+    widget.authController.addListener(_onDraftChanged);
     for (final controller in _textControllers) {
       controller.addListener(_onDraftChanged);
     }
@@ -105,6 +106,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   void dispose() {
+    widget.authController.removeListener(_onDraftChanged);
     _cancelUpload?.call();
     _fieldNavigation.dispose();
     for (final controller in _textControllers) {

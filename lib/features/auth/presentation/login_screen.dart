@@ -30,7 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) {
+    if (!widget.authController.canSignIn ||
+        widget.authController.status == AuthStatus.authenticating ||
+        !_formKey.currentState!.validate()) {
       return;
     }
 
@@ -145,11 +147,27 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 22),
+                          if (!widget.authController.canSignIn) ...[
+                            Semantics(
+                              liveRegion: true,
+                              child: const Text(
+                                'Please wait before trying to sign in again.',
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
                           Semantics(
                             button: true,
+                            enabled:
+                                !isSubmitting &&
+                                widget.authController.canSignIn,
                             label: isSubmitting ? 'Signing in' : 'Sign in',
                             child: FilledButton(
-                              onPressed: isSubmitting ? null : _submit,
+                              onPressed:
+                                  isSubmitting ||
+                                      !widget.authController.canSignIn
+                                  ? null
+                                  : _submit,
                               child: isSubmitting
                                   ? const SizedBox(
                                       height: 22,

@@ -11,7 +11,7 @@ status: Active inbox/dashboard previews; photo/COD intent, private POD review, a
 
 ## Scope
 
-The supplied documentation baseline is `4c3f504` (Auth v2.6); Flutter implementation evidence remains recorded against `d7df220`, with newer Auth integration outstanding.
+The supplied documentation baseline is `4c3f504` (Auth v2.6); Flutter implementation evidence remains recorded against `d7df220`, with Auth v2.6 response integration now verified by local tests against `4c3f504`; authenticated acceptance remains outstanding.
 
 This guide applies to the external Flutter Courier application on Android and to local browser testing of that same app through Flutter `web-server`. It does not define the separate webapp's Customer storefront or React Admin, Seller, or Logistics dashboards. Laravel remains authoritative for identity, approval, ownership, and operational state.
 

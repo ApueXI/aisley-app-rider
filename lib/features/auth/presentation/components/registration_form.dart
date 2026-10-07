@@ -301,6 +301,15 @@ extension _RegistrationForm on _RegistrationScreenState {
                           _updateState(() => _vehicleRegistration = null),
                     ),
                     const SizedBox(height: 26),
+                    if (!widget.authController.canRegister) ...[
+                      Semantics(
+                        liveRegion: true,
+                        child: const Text(
+                          'Please wait before submitting your registration again.',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     if (_isSubmitting) ...[
                       const LinearProgressIndicator(),
                       const SizedBox(height: 10),
@@ -321,9 +330,12 @@ extension _RegistrationForm on _RegistrationScreenState {
                     ] else ...[
                       Semantics(
                         button: true,
+                        enabled: widget.authController.canRegister,
                         label: 'Submit Courier registration',
                         child: FilledButton.icon(
-                          onPressed: _submit,
+                          onPressed: widget.authController.canRegister
+                              ? _submit
+                              : null,
                           icon: const Icon(Icons.send_outlined),
                           label: const Text('Submit registration'),
                         ),
