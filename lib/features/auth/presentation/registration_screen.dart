@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 
 import '../../../core/networking/api_client.dart';
 import '../../../core/networking/api_contract_exception.dart';
+import '../../../shared/presentation/form_field_navigation.dart';
+import '../../../shared/presentation/unsaved_changes_guard.dart';
 import '../data/psgc_address_data_source.dart';
 import '../domain/auth_models.dart';
 import '../domain/psgc_address_models.dart';
@@ -18,6 +20,7 @@ part 'components/registration_sections.dart';
 part 'components/registration_address.dart';
 part 'components/registration_fields.dart';
 part 'components/registration_result.dart';
+part 'components/registration_interaction.dart';
 
 const _maxEvidenceBytes = 10 * 1024 * 1024;
 const _evidenceTypeGroup = XTypeGroup(
@@ -41,6 +44,8 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _leaveGuardKey = GlobalKey<UnsavedChangesGuardState>();
+  final _fieldNavigation = FormFieldNavigation();
   final _psgcDataSource = PsgcAddressDataSource();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -82,34 +87,32 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _isLoadingPsgcRegion = false;
   bool _useManualAddress = false;
   bool _isSubmitting = false;
+  bool _isPickingEvidence = false;
+  bool _obscurePassword = true;
+  bool _obscurePasswordConfirmation = true;
   int _submissionSerial = 0;
   VoidCallback? _cancelUpload;
 
   @override
   void initState() {
     super.initState();
+    widget.authController.addListener(_onDraftChanged);
+    for (final controller in _textControllers) {
+      controller.addListener(_onDraftChanged);
+    }
     unawaited(_loadOrganizations());
     unawaited(_loadPsgcRegions());
   }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _middleNameController.dispose();
-    _contactNumberController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _passwordConfirmationController.dispose();
-    _birthDateController.dispose();
-    _plateNumberController.dispose();
-    _addressLine1Controller.dispose();
-    _addressLine2Controller.dispose();
-    _barangayController.dispose();
-    _cityMunicipalityController.dispose();
-    _provinceController.dispose();
-    _regionController.dispose();
-    _postalCodeController.dispose();
+    widget.authController.removeListener(_onDraftChanged);
+    _cancelUpload?.call();
+    _fieldNavigation.dispose();
+    for (final controller in _textControllers) {
+      controller.removeListener(_onDraftChanged);
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -119,6 +122,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildRegistrationForm(context);
+    return UnsavedChangesGuard(
+      key: _leaveGuardKey,
+      hasUnsavedChanges: _hasUnsavedChanges,
+      isBusy: _isSubmitting || _isPickingEvidence,
+      onLeave: widget.onSignIn,
+      child: FocusTraversalGroup(child: _buildRegistrationForm(context)),
+    );
   }
 }

@@ -110,6 +110,8 @@ class _SupportTicketFilters extends StatelessWidget {
             children: [
               DropdownButtonFormField<SupportTicketStatusFilter>(
                 initialValue: controller.statusFilter,
+                isExpanded: true,
+                itemHeight: null,
                 decoration: const InputDecoration(labelText: 'Status'),
                 items: [
                   for (final value in SupportTicketStatusFilter.values)
@@ -124,6 +126,8 @@ class _SupportTicketFilters extends StatelessWidget {
               const SizedBox(height: 12),
               DropdownButtonFormField<SupportTicketCategoryFilter>(
                 initialValue: controller.categoryFilter,
+                isExpanded: true,
+                itemHeight: null,
                 decoration: const InputDecoration(labelText: 'Category'),
                 items: [
                   for (final value in SupportTicketCategoryFilter.values)

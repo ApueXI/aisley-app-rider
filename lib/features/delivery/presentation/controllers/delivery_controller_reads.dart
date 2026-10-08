@@ -46,7 +46,7 @@ extension DeliveryControllerReads on DeliveryController {
         return;
       }
       loadStatus = DeliveryLoadStatus.secureStorageFailure;
-      errorMessage = 'Secure session storage is unavailable. Delivery work cannot be loaded.';
+      errorMessage = 'Your saved sign-in could not be accessed. Close and reopen the app, then try loading Delivery work again.';
       _notifyDeliveryListeners();
     } on ApiContractException {
       if (epoch != _loadEpoch) {
@@ -54,7 +54,7 @@ extension DeliveryControllerReads on DeliveryController {
       }
       loadStatus = DeliveryLoadStatus.failed;
       errorMessage =
-          'The delivery service returned an unexpected response. Please retry.';
+          'Delivery work could not be loaded. Please retry in a moment.';
       _notifyDeliveryListeners();
     } finally {
       if (epoch == _loadEpoch) {
@@ -93,12 +93,11 @@ extension DeliveryControllerReads on DeliveryController {
       await _setContextError(taskId, error);
     } on TokenStorageException {
       contextStatuses[taskId] = DeliveryLoadStatus.secureStorageFailure;
-      contextErrors[taskId] = 'Secure session storage is unavailable. Delivery details cannot be loaded.';
+      contextErrors[taskId] = 'Your saved sign-in could not be accessed. Close and reopen the app, then try loading this delivery again.';
       _notifyDeliveryListeners();
     } on ApiContractException {
       contextStatuses[taskId] = DeliveryLoadStatus.failed;
-      contextErrors[taskId] =
-          'The delivery details response was not understood. Please retry.';
+      contextErrors[taskId] = 'Delivery details could not be loaded. Refresh the task and try again.';
       _notifyDeliveryListeners();
     }
 
@@ -134,11 +133,11 @@ extension DeliveryControllerReads on DeliveryController {
       await _setCompletionError(taskId, error);
     } on TokenStorageException {
       completionStatuses[taskId] = DeliveryLoadStatus.secureStorageFailure;
-      completionErrors[taskId] = 'Secure session storage is unavailable. Completion status cannot be loaded.';
+      completionErrors[taskId] = 'Your saved sign-in could not be accessed. Close and reopen the app, then check the delivery review status again.';
       _notifyDeliveryListeners();
-    } on ApiContractException catch (error) {
+    } on ApiContractException {
       completionStatuses[taskId] = DeliveryLoadStatus.failed;
-      completionErrors[taskId] = _contractFailureMessage(error);
+      completionErrors[taskId] = 'The delivery review status could not be loaded. Refresh the task to check whether Logistics has confirmed delivery.';
       _notifyDeliveryListeners();
     }
   }

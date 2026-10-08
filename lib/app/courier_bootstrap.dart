@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import '../core/config/app_config.dart';
 import '../core/networking/api_client.dart';
 import '../core/security/token_storage.dart';
+import '../core/security/courier_map_security.dart';
+import '../shared/route_map/route_map_scope.dart';
+import '../features/delivery_route/data/delivery_route_repository.dart';
+import '../features/delivery_route/presentation/delivery_route_controller.dart';
 import '../features/account/data/account_repository.dart';
 import '../features/account/presentation/controllers/account_controller.dart';
 import '../features/auth/data/auth_repository.dart';
@@ -52,11 +56,19 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
   DashboardPreviewController? _dashboardPreviewController;
   VehicleController? _vehicleController;
   bool _hasStartupError = false;
+  CourierMapSecurity? _mapSecurity;
 
   @override
   void initState() {
     super.initState();
     unawaited(_bootstrap());
+  }
+
+  @override
+  void dispose() {
+    _mapSecurity?.dispose();
+    _batchController?.routeController?.dispose();
+    super.dispose();
   }
 
   Future<void> _bootstrap() async {
@@ -70,6 +82,8 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
       const config = AppConfig.fromEnvironment;
       final tokenStorage = SecureTokenStorage();
       final apiClient = ApiClient(config: config, tokenStorage: tokenStorage);
+      final mapSecurity = CourierMapSecurity(client: apiClient, config: config);
+      _mapSecurity = mapSecurity;
       late final AccountController accountController;
       late final FinalMileBatchController batchController;
       late final PolicyController policyController;
@@ -88,6 +102,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
         ),
         dashboardRepository: ApiDashboardRepository(client: apiClient),
         onSessionEnded: () {
+          mapSecurity.invalidate();
           accountController.clear();
           batchController.clear();
           policyController.clear();
@@ -140,6 +155,10 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
         onAuthFailure: authController.handlePickupAuthFailure,
       );
       batchController = FinalMileBatchController(
+        routeController: DeliveryRouteController(
+          repository: ApiDeliveryRouteRepository(client: apiClient),
+          onAuthFailure: authController.handleDeliveryAuthFailure,
+        ),
         repository: ApiFinalMileBatchRepository(client: apiClient),
         onAuthFailure: authController.handlePickupAuthFailure,
         onBatchAccepted: () async {
@@ -193,19 +212,22 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
   Widget build(BuildContext context) {
     final authController = _authController;
     if (authController != null) {
-      return CourierApp(
-        authController: authController,
-        accountController: _accountController,
-        batchController: _batchController,
-        policyController: _policyController,
-        pickupController: _pickupController,
-        deliveryController: _deliveryController,
-        historyController: _historyController,
-        notificationController: _notificationController,
-        chatController: _chatController,
-        supportTicketController: _supportTicketController,
-        dashboardPreviewController: _dashboardPreviewController,
-        vehicleController: _vehicleController,
+      return RouteMapScope(
+        security: _mapSecurity!,
+        child: CourierApp(
+          authController: authController,
+          accountController: _accountController,
+          batchController: _batchController,
+          policyController: _policyController,
+          pickupController: _pickupController,
+          deliveryController: _deliveryController,
+          historyController: _historyController,
+          notificationController: _notificationController,
+          chatController: _chatController,
+          supportTicketController: _supportTicketController,
+          dashboardPreviewController: _dashboardPreviewController,
+          vehicleController: _vehicleController,
+        ),
       );
     }
 

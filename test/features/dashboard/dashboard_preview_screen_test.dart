@@ -52,8 +52,12 @@ void main() {
     expect(find.textContaining('12 min estimate'), findsOneWidget);
     expect(find.textContaining('private network detail'), findsNothing);
     expect(find.text('Accept'), findsNothing);
-    await tester.scrollUntilVisible(find.text('Summary unavailable'), 150);
-    expect(find.text('Summary unavailable'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.textContaining('are not available yet'),
+      150,
+    );
+    expect(find.textContaining('are not available yet'), findsOneWidget);
+    expect(find.textContaining('aggregate'), findsNothing);
     expect(find.text('No items available'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -165,9 +169,7 @@ void main() {
     auth.dispose();
   });
 
-  testWidgets('app resume refetches independent task previews', (
-    tester,
-  ) async {
+  testWidgets('app resume refetches independent task previews', (tester) async {
     final repository = _TaskRepository();
     final preview = DashboardPreviewController(repository: repository);
     final auth = _auth();

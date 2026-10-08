@@ -69,11 +69,12 @@ extension AuthControllerState on AuthController {
       return;
     }
 
-    if (fromSession && error.isNetworkError) {
+    if (fromSession) {
       _invalidateDashboardRequest();
       status = AuthStatus.recoverableNetworkFailure;
       errorMessage = _messageForAuthError(error);
       retryAfter = null;
+      if (error.statusCode == 429) _startSessionCooldown(error.retryAfter);
       isSigningOut = false;
       _notify();
       return;
@@ -82,7 +83,7 @@ extension AuthControllerState on AuthController {
     _invalidateDashboardRequest();
     status = AuthStatus.signedOut;
     errorMessage = _messageForAuthError(error);
-    retryAfter = error.retryAfter;
+    if (error.statusCode == 429) _startLoginCooldown(error.retryAfter);
     isSigningOut = false;
     _notify();
   }
@@ -105,6 +106,8 @@ extension AuthControllerState on AuthController {
       courier = null;
       dashboard = null;
       dashboardStatus = DashboardLoadStatus.idle;
+      dashboardErrorMessage = null;
+      retryAfter = null;
       errorMessage = _messageForAuthError(error);
       isSigningOut = false;
       _onSessionEnded?.call();
@@ -142,7 +145,7 @@ extension AuthControllerState on AuthController {
 
   void _becomeStorageFailure() {
     _becomeStorageSafeFailure(
-      'Secure session storage is unavailable. Your session was not changed.',
+      'The app cannot safely read or update your stored session. Access is blocked until secure storage is available.',
     );
   }
 
@@ -158,6 +161,8 @@ extension AuthControllerState on AuthController {
     status = AuthStatus.secureStorageFailure;
     courier = null;
     dashboard = null;
+    dashboardStatus = DashboardLoadStatus.idle;
+    dashboardErrorMessage = null;
     errorMessage = message;
     isSigningOut = false;
     _onSessionEnded?.call();
@@ -190,6 +195,10 @@ extension AuthControllerState on AuthController {
         'This Courier account is not currently allowed to sign in.',
       'POLICY_CONSENT_REQUIRED' => 'Review and accept the current Terms of Service and Privacy Policy to continue.',
       'THROTTLED' => 'Too many attempts. Please wait and try again.',
+      _
+          when error.isNetworkError &&
+              error.networkFailure == ApiNetworkFailure.timeout =>
+        'The request timed out. Please retry when you are ready.',
       _ when error.isNetworkError =>
         'Could not reach the service. Check your connection and retry.',
       _ => 'We could not complete sign-in. Please try again.',

@@ -116,7 +116,10 @@ class RetrySessionScreen extends StatelessWidget {
       title: 'Connection unavailable',
       message: authController.errorMessage ?? 'We could not check your Courier session. Your access was not changed.',
       actionLabel: 'Retry',
-      onAction: authController.retry,
+      onAction: authController.canRetrySession ? authController.retry : null,
+      waitingMessage: authController.canRetrySession
+          ? null
+          : 'Please wait before checking your session again.',
     );
   }
 }
@@ -149,13 +152,15 @@ class _StatusMessageScreen extends StatelessWidget {
     required this.message,
     required this.actionLabel,
     required this.onAction,
+    this.waitingMessage,
   });
 
   final IconData icon;
   final String title;
   final String message;
   final String actionLabel;
-  final VoidCallback onAction;
+  final VoidCallback? onAction;
+  final String? waitingMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +205,10 @@ class _StatusMessageScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 28),
+                  if (waitingMessage != null) ...[
+                    Semantics(liveRegion: true, child: Text(waitingMessage!)),
+                    const SizedBox(height: 12),
+                  ],
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(

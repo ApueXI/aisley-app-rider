@@ -105,6 +105,7 @@ class _FirstMilePickupRepository {
     final response = await client.get(
       '/courier/pickup-schedules/${_pathSegment(scheduleId)}/route-manifest',
       authenticated: true,
+      headers: const {'Cache-Control': 'no-store'},
     );
     final payload = _decodeObject(response.body, 'pickup.manifest');
     return PickupRouteManifest.fromResponse(payload);

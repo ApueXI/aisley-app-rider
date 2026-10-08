@@ -140,6 +140,10 @@ String _messageForRegistrationError(ApiException error) {
     }
     return 'Too many registration attempts. Please wait before trying again.';
   }
+  if (error.isNetworkError &&
+      error.networkFailure == ApiNetworkFailure.timeout) {
+    return 'The registration request timed out. Your form is preserved; retry only when you are ready.';
+  }
   if (error.isNetworkError) {
     return 'Could not reach the service. Your form is preserved; retry only when you are ready.';
   }

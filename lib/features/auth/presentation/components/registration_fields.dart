@@ -59,13 +59,22 @@ extension _RegistrationFields on _RegistrationScreenState {
     TextInputType? keyboardType,
     int? maxLength,
     List<TextInputFormatter>? inputFormatters,
+    TextInputAction textInputAction = TextInputAction.next,
   }) {
     return TextFormField(
+      key: serverKey == null ? null : _fieldNavigation.fieldKey(serverKey),
+      focusNode: serverKey == null
+          ? null
+          : _fieldNavigation.focusNode(serverKey),
       controller: controller,
       enabled: !_isSubmitting,
       keyboardType: keyboardType,
       maxLength: maxLength,
       inputFormatters: inputFormatters,
+      textInputAction: textInputAction,
+      onFieldSubmitted: textInputAction == TextInputAction.done
+          ? (_) => _submit()
+          : null,
       decoration: _decoration(
         label,
         hint: hint,
@@ -82,17 +91,41 @@ extension _RegistrationFields on _RegistrationScreenState {
     required String serverKey,
     bool confirmation = false,
   }) {
+    final obscure = confirmation
+        ? _obscurePasswordConfirmation
+        : _obscurePassword;
     return TextFormField(
+      key: _fieldNavigation.fieldKey(serverKey),
+      focusNode: _fieldNavigation.focusNode(serverKey),
       controller: controller,
       enabled: !_isSubmitting,
-      obscureText: true,
+      obscureText: obscure,
+      autocorrect: false,
+      enableSuggestions: false,
+      textInputAction: TextInputAction.next,
       autofillHints: confirmation
-          ? const <String>[AutofillHints.password]
+          ? const <String>[AutofillHints.newPassword]
           : const <String>[AutofillHints.newPassword],
       decoration: _decoration(
         label,
         icon: Icons.lock_outline,
         errorText: _serverError(serverKey),
+        suffixIcon: IconButton(
+          tooltip: '${obscure ? 'Show' : 'Hide'} ${label.toLowerCase()}',
+          onPressed: _isSubmitting
+              ? null
+              : () => _updateState(() {
+                  if (confirmation) {
+                    _obscurePasswordConfirmation =
+                        !_obscurePasswordConfirmation;
+                  } else {
+                    _obscurePassword = !_obscurePassword;
+                  }
+                }),
+          icon: Icon(
+            obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          ),
+        ),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -118,12 +151,14 @@ extension _RegistrationFields on _RegistrationScreenState {
     String? hint,
     IconData? icon,
     String? errorText,
+    Widget? suffixIcon,
   }) {
     return InputDecoration(
       labelText: label,
       hintText: hint,
       prefixIcon: icon == null ? null : Icon(icon),
       errorText: errorText,
+      suffixIcon: suffixIcon,
     );
   }
 

@@ -155,43 +155,47 @@ class _DeliveryPhotoCameraScreenState extends State<DeliveryPhotoCameraScreen>
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Photograph the delivered parcel or approved drop-off area. Avoid unrelated people, rooms, and documents.',
-                        ),
-                        if (_failure != null) ...[
-                          const SizedBox(height: 12),
-                          _CameraFailureNotice(failure: _failure!),
-                        ],
-                        const SizedBox(height: 16),
-                        FilledButton.icon(
-                          onPressed: _capturing ? null : _takePhoto,
-                          icon: _capturing
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.camera_alt_outlined),
-                          label: Text(
-                            _capturing ? 'Capturing photo…' : 'Take POD photo',
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Photograph the delivered parcel or approved drop-off area. Avoid unrelated people, rooms, and documents.',
                           ),
-                        ),
-                        TextButton(
-                          onPressed: _capturing
-                              ? null
-                              : () => Navigator.of(context).pop(
-                                  const DeliveryPhotoCaptureResult.cancelled(),
-                                ),
-                          child: const Text('Cancel'),
-                        ),
-                      ],
+                          if (_failure != null) ...[
+                            const SizedBox(height: 12),
+                            _CameraFailureNotice(failure: _failure!),
+                          ],
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            onPressed: _capturing ? null : _takePhoto,
+                            icon: _capturing
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.camera_alt_outlined),
+                            label: Text(
+                              _capturing
+                                  ? 'Capturing photo…'
+                                  : 'Take POD photo',
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _capturing
+                                ? null
+                                : () => Navigator.of(context).pop(
+                                    const DeliveryPhotoCaptureResult.cancelled(),
+                                  ),
+                            child: const Text('Cancel'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

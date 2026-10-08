@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../../auth/domain/auth_models.dart';
 import '../../auth/presentation/controllers/auth_controller.dart';
+import '../../../shared/presentation/form_field_navigation.dart';
+import '../../../shared/presentation/unsaved_changes_guard.dart';
 import '../../policy/presentation/controllers/policy_controller.dart';
 import '../../policy/presentation/policy_screen.dart';
 import '../domain/account_models.dart';
@@ -18,6 +20,7 @@ part 'components/account_screen_profile_photo.dart';
 part 'components/account_screen_profile_photo_view.dart';
 part 'components/account_screen_security.dart';
 part 'components/account_screen_widgets.dart';
+part 'components/account_screen_interaction.dart';
 
 const _maxProfilePhotoBytes = 10 * 1024 * 1024;
 const _profilePhotoTypeGroup = XTypeGroup(
@@ -46,6 +49,8 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   final _profileFormKey = GlobalKey<FormState>();
   final _passwordFormKey = GlobalKey<FormState>();
+  final _leaveGuardKey = GlobalKey<UnsavedChangesGuardState>();
+  final _fieldNavigation = FormFieldNavigation();
   final _firstNameController = TextEditingController();
   final _middleNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -61,10 +66,18 @@ class _AccountScreenState extends State<AccountScreen> {
   String? _profilePhotoSelectionError;
   bool _isPickingProfilePhoto = false;
   VoidCallback? _cancelProfilePhotoUpload;
+  bool _isClosingForSession = false;
+  String? _sessionCourierId;
 
   @override
   void initState() {
     super.initState();
+    _sessionCourierId = widget.authController.courier?.id;
+    widget.authController.addListener(_onAccountScopeChanged);
+    widget.accountController.addListener(_onAccountScopeChanged);
+    for (final controller in _textControllers) {
+      controller.addListener(_onDraftChanged);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadAccount();
@@ -74,13 +87,14 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _middleNameController.dispose();
-    _lastNameController.dispose();
-    _contactNumberController.dispose();
-    _currentPasswordController.dispose();
-    _newPasswordController.dispose();
-    _passwordConfirmationController.dispose();
+    widget.authController.removeListener(_onAccountScopeChanged);
+    widget.accountController.removeListener(_onAccountScopeChanged);
+    _cancelProfilePhotoUpload?.call();
+    _fieldNavigation.dispose();
+    for (final controller in _textControllers) {
+      controller.removeListener(_onDraftChanged);
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -94,14 +108,30 @@ class _AccountScreenState extends State<AccountScreen> {
       animation: widget.accountController,
       builder: (context, child) {
         final account = widget.accountController.account;
-        return Scaffold(
-          appBar: AppBar(title: const Text('Account')),
-          body: account == null
-              ? _buildAccountState(context)
-              : RefreshIndicator(
-                  onRefresh: _refreshAccount,
-                  child: _buildAccountForm(context, account),
-                ),
+        return UnsavedChangesGuard(
+          key: _leaveGuardKey,
+          hasUnsavedChanges: _hasUnsavedChanges,
+          isBusy: _hasPendingAccountMutation,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Account'),
+              leading: Navigator.of(context).canPop()
+                  ? IconButton(
+                      tooltip: 'Back',
+                      onPressed: _hasPendingAccountMutation
+                          ? null
+                          : () => _leaveGuardKey.currentState?.requestLeave(),
+                      icon: const Icon(Icons.arrow_back),
+                    )
+                  : null,
+            ),
+            body: account == null
+                ? _buildAccountState(context)
+                : RefreshIndicator(
+                    onRefresh: _refreshAccount,
+                    child: _buildAccountForm(context, account),
+                  ),
+          ),
         );
       },
     );
@@ -126,7 +156,7 @@ class _AccountScreenState extends State<AccountScreen> {
         controller.status != AccountStatus.signedOut &&
         controller.status != AccountStatus.forbidden;
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),

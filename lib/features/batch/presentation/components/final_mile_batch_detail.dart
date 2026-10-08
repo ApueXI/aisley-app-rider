@@ -72,6 +72,22 @@ class _FinalMileBatchDetailScreenState
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
               children: [
                 _BatchSummary(batch: batch),
+                if (batch.isAccepted && controller.routeController != null)
+                  TextButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => DeliveryRouteScreen(
+                          batch: batch,
+                          controller: controller.routeController!,
+                          onOpenPolicies: widget.policyController == null
+                              ? null
+                              : _openPolicies,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('View delivery route'),
+                  ),
                 if (_isBatchBlocking(detailStatus) &&
                     controller.detailError(widget.scheduleId) != null) ...[
                   const SizedBox(height: 12),
@@ -115,6 +131,7 @@ class _FinalMileBatchDetailScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('Accept this entire batch?'),
         content: Text(
           'You will accept responsibility for all ${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'} in ${batch.reference}. This does not record hub pickup.',
@@ -173,18 +190,13 @@ class _BatchSummary extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    batch.reference,
-                    style: Theme.of(context).textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                ),
-                _BatchStatusChip(status: batch.status),
-              ],
+            Text(
+              batch.reference,
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w800),
             ),
+            const SizedBox(height: 8),
+            _BatchStatusChip(status: batch.status),
             const SizedBox(height: 12),
             Text(
               '${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'}',

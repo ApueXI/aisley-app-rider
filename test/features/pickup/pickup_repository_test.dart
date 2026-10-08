@@ -248,6 +248,10 @@ void main() {
         'pickup',
       ]);
       expect(manifest.geoJson?['type'], 'FeatureCollection');
+      expect(manifest.stops.last.taskIds, ['task-1']);
+      expect(manifest.stops.last.orderReferences, ['ORD-100']);
+      expect(manifest.stops.last.legDistanceMeters, 1250);
+      expect(manifest.stops.last.legTimeSeconds, 300);
     },
   );
 }
@@ -385,8 +389,11 @@ const _manifestResponse = <String, dynamic>{
       <String, dynamic>{
         'sequence': 1,
         'kind': 'pickup',
-        'task_ids': <String>['task-1'],
-        'order_references': <String>['ORD-100'],
+        'tasks': <Map<String, dynamic>>[
+          {'task_id': 'task-1', 'order_reference': 'ORD-100'},
+        ],
+        'leg_distance_metres': 1250,
+        'leg_duration_seconds': 300,
         'address_summary': 'Poblacion, Makati',
         'reachable': true,
       },

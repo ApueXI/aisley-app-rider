@@ -116,15 +116,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Courier dashboard'), findsOneWidget);
-    expect(find.text('Available work'), findsOneWidget);
-    expect(find.text('Summary unavailable'), findsNWidgets(3));
+    expect(find.text('Available work'), findsNothing);
+    expect(find.text('Summary unavailable'), findsNothing);
     expect(
       find.text(
-        'Dashboard summaries are not available yet. Open the work screens for current tasks.',
+        'Notification, available work and active work summaries are not available yet. Open Notifications, Pickup orders or Delivery work to check current updates.',
       ),
       findsOneWidget,
     );
-    expect(find.text('Notification summary'), findsOneWidget);
+    expect(find.text('Notification summary'), findsNothing);
     await tester.scrollUntilVisible(find.text('Refresh dashboard'), 300);
     expect(find.text('Refresh dashboard'), findsOneWidget);
   });
@@ -146,7 +146,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('unexpected response'), findsOneWidget);
+    expect(
+      find.textContaining('summaries could not be loaded'),
+      findsOneWidget,
+    );
     expect(find.text('Nothing to show'), findsNothing);
     expect(find.text('Summary unavailable'), findsNothing);
     expect(find.text('Retry'), findsOneWidget);

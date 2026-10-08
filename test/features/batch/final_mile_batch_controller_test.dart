@@ -1,11 +1,40 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aisley_app/core/networking/api_client.dart';
+import 'package:aisley_app/core/networking/api_contract_exception.dart';
 import 'package:aisley_app/features/batch/data/final_mile_batch_repository.dart';
 import 'package:aisley_app/features/batch/domain/final_mile_batch_models.dart';
 import 'package:aisley_app/features/batch/presentation/controllers/final_mile_batch_controller.dart';
 
 void main() {
+  test(
+    'invalid acceptance response stays unconfirmed and suggests refresh',
+    () async {
+      final repository = _FakeBatchRepository()
+        ..acceptError = const ApiContractException('batch.accept.status');
+      final controller = FinalMileBatchController(repository: repository);
+      addTearDown(controller.dispose);
+      await controller.load();
+
+      expect(await controller.accept('schedule-1'), isFalse);
+      expect(controller.batchById('schedule-1')?.isAccepted, isFalse);
+      expect(
+        controller.actionStatus('schedule-1'),
+        FinalMileBatchActionStatus.failed,
+      );
+      expect(
+        controller.actionError('schedule-1'),
+        contains('Refresh its details'),
+      );
+      expect(
+        controller.actionError('schedule-1'),
+        isNot(contains('batch.accept.status')),
+      );
+      expect(controller.actionError('schedule-1'), isNot(contains('API')));
+      expect(repository.acceptCalls, 1);
+    },
+  );
+
   test(
     'loads offers and refreshes dependent work after atomic acceptance',
     () async {

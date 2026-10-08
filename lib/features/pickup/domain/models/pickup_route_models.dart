@@ -111,22 +111,27 @@ class PickupRouteStop {
     return PickupRouteStop(
       sequence: _nullableInt(json['sequence']) ?? fallbackSequence,
       kind: _nullableString(json['kind']) ?? 'unknown',
-      taskIds: _stringList(json['task_ids'], fallback: json['task_id']),
-      orderReferences: _stringList(
-        json['order_references'],
-        fallback: json['order_reference'],
-      ),
-      waybillReferences: _stringList(
-        json['waybill_references'],
-        fallback: json['waybill_reference'],
-      ),
+      taskIds: _routeTaskStrings(json, 'task_id'),
+      orderReferences: _routeTaskStrings(json, 'order_reference'),
+      waybillReferences: _routeTaskStrings(json, 'waybill_reference'),
       addressSummary: _addressSummary(json),
       latitude: _nullableDouble(json['latitude']),
       longitude: _nullableDouble(json['longitude']),
       coordinateSource: _nullableString(json['coordinate_source']),
-      legDistanceMeters: _nullableDouble(json['leg_distance_meters']),
-      legTimeSeconds: _nullableInt(json['leg_time_seconds']),
+      legDistanceMeters: _nullableDouble(json['leg_distance_metres']),
+      legTimeSeconds: _nullableInt(json['leg_duration_seconds']),
       reachable: json['reachable'] is bool ? json['reachable'] as bool : null,
     );
   }
+}
+
+List<String> _routeTaskStrings(Map<String, dynamic> json, String key) {
+  final tasks = json['tasks'];
+  if (tasks is! List) return const [];
+  return List.unmodifiable(
+    tasks
+        .whereType<Map>()
+        .map((t) => _nullableString(t[key]))
+        .whereType<String>(),
+  );
 }

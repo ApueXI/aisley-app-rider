@@ -75,7 +75,7 @@ void main() {
     expect(find.text('Policy information unavailable'), findsOneWidget);
     expect(
       find.text(
-        'The policy consent endpoint is unavailable on this API. Deploy the policy routes and retry.',
+        'Policy information is unavailable right now. Try again later.',
       ),
       findsOneWidget,
     );

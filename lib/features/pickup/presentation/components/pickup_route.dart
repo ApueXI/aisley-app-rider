@@ -5,26 +5,81 @@ class PickupRouteScreen extends StatefulWidget {
     required this.pickupController,
     required this.scheduleId,
     this.schedule,
+    this.onOpenPolicies,
     super.key,
   });
 
   final PickupController pickupController;
   final String scheduleId;
   final PickupSchedule? schedule;
+  final VoidCallback? onOpenPolicies;
 
   @override
   State<PickupRouteScreen> createState() => _PickupRouteScreenState();
 }
 
 class _PickupRouteScreenState extends State<PickupRouteScreen> {
+  int _mapVersion = 0;
+  bool _mapFailed = false;
+  @override
+  void dispose() {
+    widget.pickupController.releaseRouteManifest(widget.scheduleId);
+    super.dispose();
+  }
+
+  Future<void> _refresh() async {
+    if (!widget.pickupController.canRetryRateLimit) return;
+    setState(() {
+      _mapFailed = false;
+      _mapVersion++;
+    });
+    await widget.pickupController.loadRouteManifest(
+      widget.scheduleId,
+      refresh: true,
+    );
+  }
+
+  Future<void> _mapFailure(ApiException? error) async {
+    setState(() => _mapFailed = true);
+    await widget.pickupController.loadRouteManifest(
+      widget.scheduleId,
+      refresh: true,
+    );
+    if (mounted &&
+        error?.statusCode == 429 &&
+        widget.pickupController.routeStatuses.containsKey(widget.scheduleId)) {
+      widget.pickupController.holdRouteRetry(error!.retryAfter);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _load();
+  }
+
+  void _load() {
+    final id = widget.scheduleId;
+    final controller = widget.pickupController;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        widget.pickupController.loadRouteManifest(widget.scheduleId);
+      if (mounted &&
+          widget.scheduleId == id &&
+          widget.pickupController == controller) {
+        controller.loadRouteManifest(id);
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(PickupRouteScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.scheduleId != widget.scheduleId ||
+        oldWidget.pickupController != widget.pickupController) {
+      oldWidget.pickupController.releaseRouteManifest(oldWidget.scheduleId);
+      _mapFailed = false;
+      _mapVersion++;
+      _load();
+    }
   }
 
   @override
@@ -38,43 +93,66 @@ class _PickupRouteScreenState extends State<PickupRouteScreen> {
             PickupSectionStatus.idle;
         final manifest = controller.routeManifests[widget.scheduleId];
         final error = controller.routeErrors[widget.scheduleId];
-        return Scaffold(
-          appBar: AppBar(title: const Text('Pickup route order')),
-          body: RefreshIndicator(
-            onRefresh: () async {
-              controller.routeStatuses.remove(widget.scheduleId);
-              await controller.loadRouteManifest(widget.scheduleId);
-            },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-              children: [
-                _RouteSummary(schedule: widget.schedule, manifest: manifest),
-                const SizedBox(height: 16),
-                if (status == PickupSectionStatus.loading && manifest == null)
-                  const _PickupLoadingState()
-                else if (manifest == null && error != null)
-                  _PickupErrorState(
-                    message: error,
-                    status: status,
-                    onRetry: () =>
-                        controller.loadRouteManifest(widget.scheduleId),
-                    onOpenPolicies: () {},
-                    showPolicyAction: false,
-                  )
-                else if (manifest != null) ...[
-                  _RouteStatusBanner(manifest: manifest),
+        return RouteSessionBoundary(
+          child: Scaffold(
+            appBar: AppBar(title: const Text('Pickup route order')),
+            body: RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                children: [
+                  _RouteSummary(schedule: widget.schedule, manifest: manifest),
                   const SizedBox(height: 16),
-                  if (manifest.stops.isEmpty)
-                    const _PickupEmptyState(title: 'route stops')
-                  else
-                    ..._routeStopWidgets(context, manifest.stops),
-                  if (error != null) ...[
-                    const SizedBox(height: 8),
-                    Text(error),
+                  if (status == PickupSectionStatus.loading && manifest == null)
+                    const _PickupLoadingState()
+                  else if (manifest == null && error != null)
+                    _PickupErrorState(
+                      message: error,
+                      status: status,
+                      onRetry: () =>
+                          controller.loadRouteManifest(widget.scheduleId),
+                      onOpenPolicies: widget.onOpenPolicies ?? () {},
+                      showPolicyAction: widget.onOpenPolicies != null,
+                    )
+                  else if (manifest != null) ...[
+                    if (status == PickupSectionStatus.loading)
+                      const LinearProgressIndicator(),
+                    _RouteStatusBanner(manifest: manifest),
+                    if (_mapFailed)
+                      const Text(
+                        'Map could not be loaded. Route stops remain available below.',
+                      )
+                    else if (manifest.status == RouteManifestStatus.ready ||
+                        manifest.status == RouteManifestStatus.unavailable)
+                      RouteMapView(
+                        key: ValueKey(_mapVersion),
+                        data: _pickupMapData(manifest),
+                        onFailure: _mapFailure,
+                      ),
+                    const SizedBox(height: 16),
+                    if (manifest.stops.isEmpty)
+                      const _PickupEmptyState(title: 'route stops')
+                    else
+                      ..._routeStopWidgets(context, manifest.stops),
+                    if (error != null) ...[
+                      const SizedBox(height: 8),
+                      Text(error),
+                    ],
                   ],
+                  TextButton.icon(
+                    onPressed:
+                        status == PickupSectionStatus.loading ||
+                            !controller.canRetryRateLimit
+                        ? null
+                        : _refresh,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh route'),
+                  ),
+                  if (!controller.canRetryRateLimit)
+                    const Text('Wait before retrying the route.'),
                 ],
-              ],
+              ),
             ),
           ),
         );
@@ -135,7 +213,9 @@ class _RouteStatusBanner extends StatelessWidget {
         Icons.hourglass_top_outlined,
       ),
       RouteManifestStatus.ready => (
-        'The server provided an ordered route. This screen keeps the stop list available without requiring map tiles.',
+        manifest.stops.any((s) => s.reachable == false)
+            ? 'Partial route — some stops are unreachable. All authorized stops are listed below.'
+            : 'The server provided an ordered pickup route returning to the hub.',
         Icons.route_outlined,
       ),
       RouteManifestStatus.unavailable => (
@@ -163,6 +243,29 @@ class _RouteStatusBanner extends StatelessWidget {
   }
 }
 
+RouteMapData _pickupMapData(PickupRouteManifest manifest) {
+  var number = 0;
+  return RouteMapData.sanitized(
+    geoJson: manifest.geoJson,
+    markers: [
+      for (final stop in manifest.stops)
+        if (stop.isHub || stop.kind == 'pickup') ...[
+          if (!stop.isHub)
+            ..._pickupMarker(stop, '${++number}')
+          else
+            ..._pickupMarker(stop, 'H'),
+        ],
+    ],
+  );
+}
+
+List<RouteMarker> _pickupMarker(PickupRouteStop stop, String label) {
+  final position = RoutePosition.parse(stop.longitude, stop.latitude);
+  return position == null
+      ? []
+      : [RouteMarker(position: position, label: label, isHub: stop.isHub)];
+}
+
 List<Widget> _routeStopWidgets(
   BuildContext context,
   List<PickupRouteStop> stops,
@@ -180,14 +283,19 @@ List<Widget> _routeStopWidgets(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(radius: 18, child: Text('${stop.sequence + 1}')),
+                CircleAvatar(
+                  radius: 18,
+                  child: Text(stop.isHub ? 'H' : '${stop.sequence}'),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        stop.isHub ? 'Logistics hub' : 'Pickup stop',
+                        stop.isHub
+                            ? 'Logistics hub (${stop.sequence == 0 ? 'start' : 'return'})'
+                            : 'Pickup stop ${stop.sequence}',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
@@ -224,7 +332,9 @@ List<Widget> _routeStopWidgets(
 String _routeStopSemantics(PickupRouteStop stop) {
   final label = stop.isHub ? 'Logistics hub' : 'Pickup stop';
   return [
-    '$label ${stop.sequence + 1}',
+    stop.isHub
+        ? '$label ${stop.sequence == 0 ? 'start' : 'return'}'
+        : '$label ${stop.sequence}',
     if (stop.addressSummary != null) stop.addressSummary!,
     if (stop.orderReferences.isNotEmpty)
       'Orders ${stop.orderReferences.join(', ')}',

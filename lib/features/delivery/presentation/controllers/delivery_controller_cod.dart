@@ -45,7 +45,7 @@ extension DeliveryControllerCod on DeliveryController {
       if (context.paymentMethod != 'cod') {
         _setLocalValidationError(
           task,
-          'This delivery has no supported COD payment method. Refresh the task; completion is unavailable.',
+          'Cash collection information is unavailable for this delivery. Refresh the task before continuing.',
         );
         return null;
       }
@@ -53,7 +53,7 @@ extension DeliveryControllerCod on DeliveryController {
       if (collection == null) {
         _setLocalValidationError(
           task,
-          'The Order payable total, currency, or pending payment status is unavailable. Refresh delivery details before confirming cash collection.',
+          'The cash amount to collect could not be confirmed. Refresh delivery details before confirming cash collection.',
         );
         return null;
       }
@@ -61,11 +61,13 @@ extension DeliveryControllerCod on DeliveryController {
       _notifyDeliveryListeners();
       return collection;
     } on ApiException catch (error) {
-      if (epoch == _loadEpoch) await _setActionError(task, error);
+      if (epoch == _loadEpoch) {
+        await _setActionError(task, error, submission: false);
+      }
     } on TokenStorageException {
       if (epoch == _loadEpoch) _setStorageActionError(task);
-    } on ApiContractException catch (error) {
-      if (epoch == _loadEpoch) _setContractActionError(task, error);
+    } on ApiContractException {
+      if (epoch == _loadEpoch) _setContractActionError(task, submission: false);
     }
     return null;
   }

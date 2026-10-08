@@ -166,46 +166,51 @@ extension _RegistrationData on _RegistrationScreenState {
   }
 
   bool _validatePsgcAddress() {
-    if (_useManualAddress) {
-      return true;
-    }
+    if (_useManualAddress) return true;
     if (_isLoadingPsgc || _isLoadingPsgcRegion) {
-      _updateState(() {
-        _submissionError = 'Wait for the address directory to finish loading, or choose manual address entry.';
-      });
-      return false;
+      return _addressValidationError(
+        'address.region',
+        'Wait for the address directory to finish loading, or choose manual address entry.',
+      );
     }
     if (_psgcRegion == null || _psgcRegionTree == null) {
-      _updateState(() {
-        _submissionError = 'Select a region from the address directory.';
-      });
-      return false;
+      return _addressValidationError(
+        'address.region',
+        'Select a region from the address directory.',
+      );
     }
     if (_psgcProvinceOptions.isNotEmpty && _psgcProvince == null) {
-      _updateState(() {
-        _submissionError = 'Select a province from the address directory.';
-      });
-      return false;
+      return _addressValidationError(
+        'address.province',
+        'Select a province from the address directory.',
+      );
     }
     if (_provinceController.text.trim().isEmpty) {
-      _updateState(() {
-        _submissionError = 'Enter the province for this address.';
-      });
-      return false;
+      return _addressValidationError(
+        'address.province',
+        'Enter the province for this address.',
+      );
     }
     if (_psgcCity == null) {
-      _updateState(() {
-        _submissionError =
-            'Select a city or municipality from the address directory.';
-      });
-      return false;
+      return _addressValidationError(
+        'address.city_municipality',
+        'Select a city or municipality from the address directory.',
+      );
     }
     if (_psgcBarangay == null) {
-      _updateState(() {
-        _submissionError = 'Select a barangay from the address directory.';
-      });
-      return false;
+      return _addressValidationError(
+        'address.barangay',
+        'Select a barangay from the address directory.',
+      );
     }
     return true;
+  }
+
+  bool _addressValidationError(String field, String message) {
+    _fieldErrors = {
+      ..._fieldErrors,
+      field: [message],
+    };
+    return false;
   }
 }

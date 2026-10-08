@@ -57,7 +57,7 @@ extension AuthControllerDashboard on AuthController {
       }
       dashboardStatus = DashboardLoadStatus.failed;
       dashboardErrorMessage =
-          'The dashboard returned an unexpected response. Please retry.';
+          'Dashboard summaries could not be loaded. Please retry in a moment.';
       _notify();
     }
   }
@@ -81,7 +81,7 @@ extension AuthControllerDashboard on AuthController {
       return 'Too many dashboard requests. Try again after $seconds seconds.';
     }
     return switch (error.code) {
-      'NOT_FOUND' => 'The dashboard service is not available yet.',
+      'NOT_FOUND' => 'Dashboard summaries are unavailable right now. Open a work screen to check current tasks.',
       _ when error.isNetworkError =>
         'Could not refresh the dashboard. Check your connection and retry.',
       _ => 'The dashboard could not be loaded. Please retry.',

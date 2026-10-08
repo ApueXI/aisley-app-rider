@@ -11,9 +11,11 @@ status: Active inbox/dashboard previews; photo/COD intent, private POD review, a
 
 ## Scope
 
+The supplied documentation baseline is `4c3f504` (Auth v2.6); Flutter implementation evidence remains recorded against `d7df220`, with Auth v2.6 response integration now verified by local tests against `4c3f504`; authenticated acceptance remains outstanding.
+
 This guide applies to the external Flutter Courier application on Android and to local browser testing of that same app through Flutter `web-server`. It does not define the separate webapp's Customer storefront or React Admin, Seller, or Logistics dashboards. Laravel remains authoritative for identity, approval, ownership, and operational state.
 
-The current API supports Logistics discovery, Courier registration, approval-gated login, `me`, logout, generic password-recovery acknowledgement, account management, policy consent, notifications, support tickets, first-mile identifier pickup, task-bound final-mile hub handoff, batch routes, final-mile movement, private photo POD, Logistics-reviewed completion, delivered history, and task-scoped chat with Logistics, Seller, and Buyer. Flutter implements the notification inbox, private support-ticket flow, separate read-only first-/final-mile dashboard task previews, atomic final-mile batch acceptance, Android/web QR/Code 128 candidates, Android rear-camera POD plus browser file fallback, photo upload and completion intent with COD cash confirmation, authenticated in-memory POD review for active/rejected/history detail, and Logistics/Seller/Buyer task chat. Batch-route rendering, failed-attempt submission, and linehaul trip screens remain unadopted. Authenticated support-ticket/batch API and COD/Logistics validation, live chat exchange, and installed-device/browser acceptance remain unverified. The Laravel dashboard aggregate remains unavailable. Background push, live route telemetry, signature proof, earnings, and offline mutations remain deferred.
+The current API supports Logistics discovery, Courier registration, approval-gated login, `me`, logout, an explicit password-recovery unavailability response, account management, policy consent, notifications, support tickets, first-mile identifier pickup, task-bound final-mile hub handoff, batch routes, final-mile movement, private photo POD, Logistics-reviewed completion, delivered history, and task-scoped chat with Logistics, Seller, and Buyer. Flutter implements the notification inbox, private support-ticket flow, separate read-only first-/final-mile dashboard task previews, atomic final-mile batch acceptance, Android/web QR/Code 128 candidates, Android rear-camera POD plus browser file fallback, photo upload and completion intent with COD cash confirmation, authenticated in-memory POD review for active/rejected/history detail, Logistics/Seller/Buyer task chat, and read-only pickup/delivery MapLibre routes against map baseline `51d9694`. Failed-attempt submission and linehaul trip screens remain unadopted. Authenticated support-ticket/batch/map API and COD/Logistics validation, live chat exchange, and installed-device/browser acceptance remain unverified. The Laravel dashboard aggregate remains unavailable. Background push, live route telemetry, signature proof, earnings, and offline mutations remain deferred.
 
 ## Frontend authority
 
@@ -49,9 +51,9 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 
 ### Brand colors
 
-- Primary accent: `#E6007A`.
-- Secondary/deep purple: `#4C1268`.
-- Error: `#FF3B30`.
+- Brand accent: `#E6007A`. Readable semantic primary uses `#C00065` in light mode and `#FF85BD` in dark mode, with white/black foregrounds respectively.
+- Secondary/deep purple: `#4C1268` in light mode; `#DCB0F1` in dark mode, with white/black foregrounds respectively.
+- Error family: `#FF3B30`; readable semantic error uses `#B3261E` in light mode and `#FFB4AB` in dark mode, with white/black foregrounds respectively.
 - Warning: `#FF8800`.
 - Use a neutral background and readable foreground for the majority of the screen; accents should guide attention, not fill every surface.
 - Use neutral surfaces with restrained accents. Any 60/30/10 color balance is optional guidance; readable contrast, status meaning, and clear action priority take precedence.
@@ -109,7 +111,7 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 - Login requires email, password, and a device name. Never display role, ability, hub, or reviewer fields as editable inputs.
 - Use explicit states for checking session, signed out, authenticated, pending, rejected, suspended/deactivated, invalid affiliation, and recoverable network failure.
 - The current `/me` endpoint is protected and succeeds only for an approved active Courier. Do not use it as a pending-status endpoint; cross-device approval refresh requires a future backend contract.
-- The current forgot-password response is generic and does not complete a reset flow. Do not present a reset form until the backend endpoint and notification contract exist.
+- The current forgot-password API returns HTTP 200 with `{"message":"Courier password recovery is not available yet."}` for every valid email; it sends no reset instructions and does not complete a reset flow. Flutter has no forgot-password flow; integration of this newer Auth v2.6 behavior remains outstanding. Do not present a reset form until the backend endpoint and notification contract exist.
 
 ### Account management
 
@@ -118,6 +120,8 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 - Allow profile-photo selection only when the server capability flag is true. Show the JPEG/JPG/PNG/WebP and strict under-10-MiB policy before opening the picker, keep the local preview separate from the saved private photo, and show upload progress, cancellation, retry, missing-photo fallback, and server rejection states.
 - Fetch the saved profile photo through the authenticated private URL with the bearer token; never use a browser-style public URL, raw storage path, or unauthenticated network image widget. Confirm success only after the server response and private refresh succeed.
 - Confirm photo removal and reconcile uncertain upload/removal responses with a fresh account/photo read. Do not queue photo writes offline or expose the original filename as storage identity.
+- Registration and Account reuse the same Material **Discard unsaved changes?** dialog with **Keep editing** as the default focused action and **Discard** as the secondary choice. Only user-initiated exits that lose drafts require it; account-scope loss clears private state immediately.
+- The implemented forms use labelled password visibility controls, logical keyboard actions, and scroll/focus to the first local/server invalid control in form order, including registration selectors/uploads. Widget checks cover large text and dialog semantics; installed-device/browser and assistive-technology acceptance remain separate.
 - Use the same photo and independent OR/CR document controls on Android and local web-server. Browser selection, upload cancellation, CORS failure, and authenticated private preview need explicit feedback; keep Android's existing picker/upload behavior and verify both targets before marking web uploads supported.
 - Require current password confirmation before a password change. Clear password fields after every attempt and explain that a successful change revokes all sessions and returns to sign-in.
 
@@ -130,13 +134,15 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 - **Scan** opens the camera only when selected, works in the installed Android release APK and in the same Flutter app at `http://localhost:8765` through the fixed-port web-server run, and displays a visible manual-input control. Show permission denied, unavailable, busy, unsupported, and insecure-origin states with a manual alternative; release the stream when leaving the screen or switching tasks. Linux remains manual-input only.
 - Decode QR payload as `qr` and the waybill Code 128 tracking ID as `tracking_id` for **first-mile** verification; do not route tracking IDs through the QR-only resolver. Suppress repeated-frame candidates and show the matched task before explicit Seller pickup. The implemented final-mile hub-handoff control uses the accepted task and revision without QR/reference input. Do not log decoded values.
 - Use the documented idempotency key for physical first-mile confirmation and preserve the same key and identifier after an uncertain response. Final-mile hub evidence must remain visibly “Awaiting Logistics validation” until the server reports validated custody.
-- Present the schedule route manifest as an ordered, accessible stop list. It is not a Buyer delivery route, and the client does not add map credentials, provider calls, or turn-by-turn navigation.
+- Present the pickup map above its ordered accessible stop list. Show the hub start/return, numbered pickups, visible server geometry, and explicit road/straight-line fallback labels. Missing coordinates never create markers; unreachable stops retain readable warnings.
+- Maps reuse Material **Fit route**, labelled zoom controls, visible attribution, and **Refresh route**. Keep labels and Back stable, allow controls/attribution to wrap at large text, and retain text independently of tiles or platform rendering. Linux retains the list fallback.
 
 ### Delivery work
 
 - Show only server-returned final-mile tasks. Keep `delivery_assigned`/`delivery_accepted` visibly separate from hub custody; accepting an offer does not mean the parcel was picked up.
 - After the server records `picked_up_from_hub`, show one explicit movement action at a time: `in_transit`, then `out_for_delivery`. Each action confirms the server-authorized transition and revision; it never writes an Order status locally.
-- Show the authorized hub, destination, recipient contact, instructions, and server-provided advisory metrics. The backend now offers a schedule-scoped batch route, but the supplied Flutter snapshot does not verify its map UI. Missing route geometry or metrics remain visibly unavailable; do not fabricate distance, ETA, or coordinates.
+- Show the authorized hub, destination, recipient contact, instructions, and advisory metrics. Accepted/in-progress batch detail has a secondary **View delivery route** action leading to a read-only screen; offered batches have no route action. Preserve server delivery order and label local receipt time **Last refreshed**; missing geometry/metrics/coordinates remain visibly unavailable.
+- Show pending, partial, unavailable, unsupported, offline, timeout, forbidden, throttled, and retry states with text. A map failure stops tile loads and revalidates through the API while keeping currently authorized stops usable; confirmed auth/policy failures follow existing session handling. Refresh obeys `Retry-After`.
 - At `out_for_delivery`, the backend requires a private JPEG/PNG/WebP **photo POD** tied to the task. Show pending review after upload and Delivered intent; only Logistics validation may mark delivered. The implemented COD screen refetches `data.order.payment_method`, `payment_status`, `payable_total`, and `currency`, requires explicit acknowledgment of the displayed cash due, and rechecks it before sending `cod_collected: true`. Missing, unsupported, or changed payment data blocks the intent; Flutter never submits an amount or marks payment paid.
 - On Android, **Open camera for POD** uses the rear camera for still capture, then shows preview, retake, file replacement, removal, and upload actions. Local web-server and unsupported targets use **Choose photo** without invoking the camera plugin. First-mile barcode capture stays separate. Physical-device/browser acceptance remains required.
 - Completion is an explicit intent followed by a fresh completion read. Display delivered only when the server returns the committed `delivered` projection.
@@ -166,6 +172,7 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 - Store Sanctum bearer tokens only in platform secure storage (Keychain/Keystore or the approved Flutter secure-storage implementation).
 - Never put tokens, passwords, private evidence, full addresses, or raw API payloads in logs, analytics, crash reports, URLs, clipboard data, or ordinary preferences.
 - Redact sensitive fields from debug tooling and disable verbose network logging in release builds.
+- MapLibre 0.27.1 has global Android header storage and an unimplemented web header setter. The approved transport exception uses authenticated `ApiClient` reads and per-map in-memory raster images, with no SDK bearer headers, redirects, downloads, or route persistence. Reject unexpected style resource URLs before rendering; see [route-map integration](courier-route-maps.md). This changes transport, while retaining familiar Material interactions.
 - Keep notification previews and screenshots privacy-conscious. Sensitive delivery details require an explicit approved product decision.
 - Use HTTPS in every non-local environment and retain normal platform certificate validation.
 
@@ -176,11 +183,14 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 - Keep focus order logical, labels associated with fields, and errors adjacent to the field or action they explain.
 - Do not communicate state through animation, color, or icons alone; include readable text.
 
+- Reported automated registration, account, batch-detail, POD/camera and support tests use the production themes at 320×640/390×844, 1×/2× text and light/dark. Scroll through complete screens and check Android/iOS touch targets, labels and text contrast; test keyboard actions, menus/dialogs, draft preservation, loading/recovery and pending review. These widget checks do not establish installed-device, browser or TalkBack/VoiceOver acceptance.
+- Keep interactive card paragraphs and actions independently readable in the semantics tree; allow evidence actions and selector options to wrap, and keep confirmations, camera controls and recovery messages scrollable at large text sizes.
+
 ## Testing and implementation notes
 
 - For every frontend change, review the affected screens against the familiar-patterns and focused-decisions rules. Record which existing component/interaction is reused, the current step's primary action, discoverability of secondary choices, and any unresolved deviations.
 - Verify that Back/Cancel, selection, and focus behave consistently; large text and keyboard navigation retain required controls; loading/offline/error states preserve context; pending review never offers an unauthorized next mutation. Add or update relevant behavior/accessibility tests when UI code changes.
-- Keep contract terminology in developer documentation. Courier-facing messages should explain the work and recovery action in plain language rather than expose DTO, aggregate, endpoint, or idempotency implementation details.
+- Keep contract terminology in developer documentation. Courier-facing messages should explain the work and recovery action in plain language rather than expose DTO, aggregate, endpoint, or idempotency implementation details. Dashboard summaries now share one notice only for matching confirmed unavailable states; technical response errors in Dashboard, Delivery, Policy, Notifications, Task messages, Support tickets, and batch acceptance use workflow-specific recovery wording.
 - Centralize API calls in a client/repository layer and map responses into immutable Dart models and explicit authentication states.
 - Unit-test validation, multipart field names, PSGC cascading behavior, JSON parsing, status mapping, secure-storage failures, and theme semantics.
 - Run integration/contract tests against the Laravel API for Logistics options, registration, login, `/me`, logout, role isolation, status denial, upload limits, and error codes. Mocks may support deterministic widget tests but cannot replace contract verification.

@@ -28,6 +28,7 @@ class ApiClient {
     bool authenticated = false,
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
+    bool followRedirects = true,
   }) {
     return _request(
       method: 'GET',
@@ -35,6 +36,7 @@ class ApiClient {
       authenticated: authenticated,
       queryParameters: queryParameters,
       requestHeaders: headers,
+      followRedirects: followRedirects,
     );
   }
 
@@ -231,6 +233,7 @@ class ApiClient {
     String? body,
     Map<String, String>? queryParameters,
     Map<String, String>? requestHeaders,
+    bool followRedirects = true,
   }) async {
     final uri = _config.endpoint(path, queryParameters);
     return _requestUri(
@@ -239,6 +242,7 @@ class ApiClient {
       authenticated: authenticated,
       body: body,
       requestHeaders: requestHeaders,
+      followRedirects: followRedirects,
     );
   }
 
@@ -248,6 +252,7 @@ class ApiClient {
     required bool authenticated,
     String? body,
     Map<String, String>? requestHeaders,
+    bool followRedirects = true,
   }) async {
     final headers = <String, String>{
       'Accept': 'application/json',
@@ -270,25 +275,39 @@ class ApiClient {
     }
 
     try {
-      final response = switch (method) {
-        'GET' =>
-          await _client.get(uri, headers: headers).timeout(requestTimeout),
-        'POST' =>
-          await _client
-              .post(uri, headers: headers, body: body)
-              .timeout(requestTimeout),
-        'PATCH' =>
-          await _client
-              .patch(uri, headers: headers, body: body)
-              .timeout(requestTimeout),
-        'PUT' =>
-          await _client
-              .put(uri, headers: headers, body: body)
-              .timeout(requestTimeout),
-        'DELETE' =>
-          await _client.delete(uri, headers: headers).timeout(requestTimeout),
-        _ => throw StateError('Unsupported HTTP method: $method'),
-      };
+      final response = !followRedirects
+          ? await http.Response.fromStream(
+              await _client
+                  .send(
+                    http.Request(method, uri)
+                      ..headers.addAll(headers)
+                      ..followRedirects = false,
+                  )
+                  .timeout(requestTimeout),
+            ).timeout(requestTimeout)
+          : switch (method) {
+              'GET' =>
+                await _client
+                    .get(uri, headers: headers)
+                    .timeout(requestTimeout),
+              'POST' =>
+                await _client
+                    .post(uri, headers: headers, body: body)
+                    .timeout(requestTimeout),
+              'PATCH' =>
+                await _client
+                    .patch(uri, headers: headers, body: body)
+                    .timeout(requestTimeout),
+              'PUT' =>
+                await _client
+                    .put(uri, headers: headers, body: body)
+                    .timeout(requestTimeout),
+              'DELETE' =>
+                await _client
+                    .delete(uri, headers: headers)
+                    .timeout(requestTimeout),
+              _ => throw StateError('Unsupported HTTP method: $method'),
+            };
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return response;
@@ -389,9 +408,7 @@ class ApiException implements Exception {
     final responseCode = payload?['code'];
     final responseMessage = payload?['message'];
     final errors = _decodeFieldErrors(payload?['errors']);
-    final retryAfterSeconds = int.tryParse(
-      response.headers['retry-after'] ?? '',
-    );
+    final retryAfter = _retryAfter(response.headers['retry-after']);
 
     return ApiException(
       statusCode: response.statusCode,
@@ -400,9 +417,7 @@ class ApiException implements Exception {
           ? responseMessage
           : _defaultMessage(response.statusCode),
       fieldErrors: errors,
-      retryAfter: retryAfterSeconds == null
-          ? null
-          : Duration(seconds: retryAfterSeconds),
+      retryAfter: retryAfter,
     );
   }
 
@@ -434,6 +449,44 @@ class ApiException implements Exception {
       _ => 'The service returned an error.',
     };
   }
+}
+
+Duration? _retryAfter(String? value) {
+  if (value == null) return null;
+  final seconds = int.tryParse(value.trim());
+  if (seconds != null) return Duration(seconds: seconds);
+  // IMF-fixdate, the HTTP Retry-After date form (RFC 9110).
+  final match = RegExp(
+    r'^[A-Za-z]{3}, (\d{2}) ([A-Za-z]{3}) (\d{4}) (\d{2}):(\d{2}):(\d{2}) GMT$',
+  ).firstMatch(value.trim());
+  if (match == null) return null;
+  final month =
+      [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ].indexOf(match[2]!) +
+      1;
+  if (month == 0) return null;
+  final date = DateTime.utc(
+    int.parse(match[3]!),
+    month,
+    int.parse(match[1]!),
+    int.parse(match[4]!),
+    int.parse(match[5]!),
+    int.parse(match[6]!),
+  );
+  final delay = date.difference(DateTime.now().toUtc());
+  return delay.isNegative ? Duration.zero : delay;
 }
 
 Map<String, dynamic>? _decodeObject(String body) {

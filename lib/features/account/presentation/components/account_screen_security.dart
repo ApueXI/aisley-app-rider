@@ -2,8 +2,9 @@ part of '../account_screen.dart';
 
 extension _AccountScreenSecurity on _AccountScreenState {
   Future<void> _changePassword() async {
-    if (widget.accountController.isBusy ||
-        !_passwordFormKey.currentState!.validate()) {
+    if (widget.accountController.isBusy || _isClosingForSession) return;
+    if (!_passwordFormKey.currentState!.validate()) {
+      await _revealAccountError(_passwordFieldOrder);
       return;
     }
 
@@ -11,9 +12,11 @@ extension _AccountScreenSecurity on _AccountScreenState {
       context: context,
       builder: (context) {
         return AlertDialog(
+          scrollable: true,
           title: const Text('Change password?'),
-          content: const Text(
-            'Changing your password signs you out on every device. You will need to sign in again.',
+          content: Text(
+            'Changing your password signs you out on every device. You will need to sign in again.'
+            '${_profileHasLocalEdits() || _pendingProfilePhoto != null ? ' Unsaved profile changes and selected photos will be lost.' : ''}',
           ),
           actions: [
             TextButton(
@@ -29,7 +32,7 @@ extension _AccountScreenSecurity on _AccountScreenState {
       },
     );
 
-    if (shouldChange != true || !mounted) {
+    if (shouldChange != true || !mounted || _isClosingForSession) {
       return;
     }
 
@@ -52,10 +55,15 @@ extension _AccountScreenSecurity on _AccountScreenState {
 
     if (mounted) {
       await _closeIfSessionEnded();
+      if (!_isClosingForSession &&
+          widget.accountController.fieldErrors.isNotEmpty) {
+        await _revealAccountError(_passwordFieldOrder);
+      }
     }
   }
 
   void _clearPasswordFields() {
+    if (!mounted) return;
     _currentPasswordController.clear();
     _newPasswordController.clear();
     _passwordConfirmationController.clear();
@@ -88,6 +96,8 @@ extension _AccountScreenSecurity on _AccountScreenState {
               child: Column(
                 children: [
                   _PasswordField(
+                    fieldKey: _fieldNavigation.fieldKey('current_password'),
+                    focusNode: _fieldNavigation.focusNode('current_password'),
                     controller: _currentPasswordController,
                     enabled: !controller.isBusy,
                     label: 'Current password',
@@ -101,6 +111,8 @@ extension _AccountScreenSecurity on _AccountScreenState {
                   ),
                   const SizedBox(height: 14),
                   _PasswordField(
+                    fieldKey: _fieldNavigation.fieldKey('password'),
+                    focusNode: _fieldNavigation.focusNode('password'),
                     controller: _newPasswordController,
                     enabled: !controller.isBusy,
                     label: 'New password',
@@ -114,6 +126,14 @@ extension _AccountScreenSecurity on _AccountScreenState {
                   ),
                   const SizedBox(height: 14),
                   _PasswordField(
+                    fieldKey: _fieldNavigation.fieldKey(
+                      'password_confirmation',
+                    ),
+                    focusNode: _fieldNavigation.focusNode(
+                      'password_confirmation',
+                    ),
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _changePassword(),
                     controller: _passwordConfirmationController,
                     enabled: !controller.isBusy,
                     label: 'Confirm new password',

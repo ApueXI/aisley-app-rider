@@ -58,6 +58,8 @@ class _ProofAndCompletionCard extends StatelessWidget {
         (evidenceId == null || proofRejected);
 
     return Card(
+      // Keep each paragraph and action independently readable when scrolled.
+      semanticContainer: false,
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
@@ -172,13 +174,14 @@ class _ProofAndCompletionCard extends StatelessWidget {
                   icon: const Icon(Icons.policy_outlined),
                   label: const Text('Review policies'),
                 ),
-              if (actionStatus == DeliveryActionStatus.conflict)
+              if (_canRetry(actionStatus) ||
+                  actionStatus == DeliveryActionStatus.validationError)
                 TextButton.icon(
                   onPressed: busy || !controller.canRetryRateLimit
                       ? null
                       : () => controller.loadDetails(task),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh task before retrying'),
+                  label: const Text('Refresh task'),
                 ),
               if (_canRetry(actionStatus) &&
                   actionStatus != DeliveryActionStatus.conflict &&
@@ -297,6 +300,7 @@ class _ProofAndCompletionCard extends StatelessWidget {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
+          scrollable: true,
           title: const Text('Confirm COD collection'),
           content: SingleChildScrollView(
             child: Column(

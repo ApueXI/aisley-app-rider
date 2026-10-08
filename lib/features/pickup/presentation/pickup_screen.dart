@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/networking/api_client.dart';
+
 import '../../../core/scanning/barcode_scan_candidate.dart';
 import '../../../core/scanning/barcode_scanner_screen.dart';
+import '../../../shared/route_map/route_map_data.dart';
+import '../../../shared/route_map/route_map_view.dart';
+import '../../../shared/route_map/route_session_boundary.dart';
 import '../../auth/presentation/controllers/auth_controller.dart';
 import '../../chat/presentation/controllers/chat_controller.dart';
 import '../../chat/presentation/chat_thread_screen.dart';
@@ -103,6 +108,7 @@ class _PickupScreenState extends State<PickupScreen> {
           pickupController: widget.pickupController,
           scheduleId: scheduleId,
           schedule: task.schedule,
+          onOpenPolicies: _openPolicies,
         ),
       ),
     );

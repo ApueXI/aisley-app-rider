@@ -11,7 +11,9 @@ extension _RegistrationForm on _RegistrationScreenState {
       appBar: AppBar(
         leading: IconButton(
           tooltip: 'Return to sign in',
-          onPressed: _isSubmitting ? null : widget.onSignIn,
+          onPressed: _isSubmitting || _isPickingEvidence
+              ? null
+              : _leaveRegistration,
           icon: const Icon(Icons.arrow_back),
         ),
         title: const Text('Courier registration'),
@@ -73,9 +75,11 @@ extension _RegistrationForm on _RegistrationScreenState {
                     const SizedBox(height: 14),
                     _twoColumn(
                       DropdownButtonFormField<String>(
-                        key: ValueKey<String?>('sex-$_sex'),
+                        key: _fieldNavigation.fieldKey('sex'),
+                        focusNode: _fieldNavigation.focusNode('sex'),
                         initialValue: _sex,
                         isExpanded: true,
+                        itemHeight: null,
                         decoration: _decoration(
                           'Sex',
                           icon: Icons.wc_outlined,
@@ -103,9 +107,12 @@ extension _RegistrationForm on _RegistrationScreenState {
                             value == null ? 'Select your sex.' : null,
                       ),
                       TextFormField(
+                        key: _fieldNavigation.fieldKey('contact_number'),
+                        focusNode: _fieldNavigation.focusNode('contact_number'),
                         controller: _contactNumberController,
                         enabled: !_isSubmitting,
                         keyboardType: TextInputType.phone,
+                        textInputAction: TextInputAction.next,
                         maxLength: 32,
                         decoration: _decoration(
                           'Contact number',
@@ -119,24 +126,35 @@ extension _RegistrationForm on _RegistrationScreenState {
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
+                      key: _fieldNavigation.fieldKey('birth_date'),
+                      focusNode: _fieldNavigation.focusNode('birth_date'),
                       controller: _birthDateController,
                       enabled: !_isSubmitting,
                       readOnly: true,
+                      textInputAction: TextInputAction.next,
                       onTap: _isSubmitting ? null : _pickBirthDate,
                       decoration: _decoration(
                         'Birth date',
                         hint: 'YYYY-MM-DD',
                         icon: Icons.calendar_today_outlined,
                         errorText: _serverError('birth_date'),
+                        suffixIcon: IconButton(
+                          tooltip: 'Select birth date',
+                          onPressed: _isSubmitting ? null : _pickBirthDate,
+                          icon: const Icon(Icons.calendar_today_outlined),
+                        ),
                       ),
                       validator: (_) =>
                           _birthDate == null ? 'Select your birth date.' : null,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
+                      key: _fieldNavigation.fieldKey('email'),
+                      focusNode: _fieldNavigation.focusNode('email'),
                       controller: _emailController,
                       enabled: !_isSubmitting,
                       keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
                       autofillHints: const <String>[AutofillHints.email],
                       decoration: _decoration(
                         'Email',
@@ -166,7 +184,12 @@ extension _RegistrationForm on _RegistrationScreenState {
                       'Logistics affiliation',
                       'Choose the active Logistics organization you want to apply under. Its hub is assigned by the server.',
                     ),
-                    _buildOrganizationField(context),
+                    KeyedSubtree(
+                      key: _fieldNavigation.anchorKey(
+                        'logistics_organization_id',
+                      ),
+                      child: _buildOrganizationField(context),
+                    ),
                     const SizedBox(height: 28),
                     _sectionHeading(
                       context,
@@ -209,33 +232,38 @@ extension _RegistrationForm on _RegistrationScreenState {
                       'Registration creates one initial active vehicle for your Courier application.',
                     ),
                     _twoColumn(
-                      DropdownButtonFormField<String>(
+                      KeyedSubtree(
                         key: ValueKey<String?>('vehicle-$_vehicleType'),
-                        initialValue: _vehicleType,
-                        isExpanded: true,
-                        decoration: _decoration(
-                          'Vehicle type',
-                          icon: Icons.two_wheeler_outlined,
-                          errorText: _serverError('vehicle_type'),
+                        child: DropdownButtonFormField<String>(
+                          key: _fieldNavigation.fieldKey('vehicle_type'),
+                          focusNode: _fieldNavigation.focusNode('vehicle_type'),
+                          initialValue: _vehicleType,
+                          isExpanded: true,
+                          itemHeight: null,
+                          decoration: _decoration(
+                            'Vehicle type',
+                            icon: Icons.two_wheeler_outlined,
+                            errorText: _serverError('vehicle_type'),
+                          ),
+                          items: const <DropdownMenuItem<String>>[
+                            DropdownMenuItem(
+                              value: 'motorcycle',
+                              child: Text('Motorcycle'),
+                            ),
+                            DropdownMenuItem(value: 'car', child: Text('Car')),
+                            DropdownMenuItem(value: 'van', child: Text('Van')),
+                            DropdownMenuItem(
+                              value: 'truck',
+                              child: Text('Truck'),
+                            ),
+                          ],
+                          onChanged: _isSubmitting
+                              ? null
+                              : (value) =>
+                                    _updateState(() => _vehicleType = value),
+                          validator: (value) =>
+                              value == null ? 'Select a vehicle type.' : null,
                         ),
-                        items: const <DropdownMenuItem<String>>[
-                          DropdownMenuItem(
-                            value: 'motorcycle',
-                            child: Text('Motorcycle'),
-                          ),
-                          DropdownMenuItem(value: 'car', child: Text('Car')),
-                          DropdownMenuItem(value: 'van', child: Text('Van')),
-                          DropdownMenuItem(
-                            value: 'truck',
-                            child: Text('Truck'),
-                          ),
-                        ],
-                        onChanged: _isSubmitting
-                            ? null
-                            : (value) =>
-                                  _updateState(() => _vehicleType = value),
-                        validator: (value) =>
-                            value == null ? 'Select a vehicle type.' : null,
                       ),
                       _textField(
                         controller: _plateNumberController,
@@ -245,6 +273,7 @@ extension _RegistrationForm on _RegistrationScreenState {
                         validator: (value) =>
                             _required(value, 'Enter your plate number.'),
                         serverKey: 'plate_number',
+                        textInputAction: TextInputAction.done,
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -272,6 +301,15 @@ extension _RegistrationForm on _RegistrationScreenState {
                           _updateState(() => _vehicleRegistration = null),
                     ),
                     const SizedBox(height: 26),
+                    if (!widget.authController.canRegister) ...[
+                      Semantics(
+                        liveRegion: true,
+                        child: const Text(
+                          'Please wait before submitting your registration again.',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     if (_isSubmitting) ...[
                       const LinearProgressIndicator(),
                       const SizedBox(height: 10),
@@ -292,9 +330,12 @@ extension _RegistrationForm on _RegistrationScreenState {
                     ] else ...[
                       Semantics(
                         button: true,
+                        enabled: widget.authController.canRegister,
                         label: 'Submit Courier registration',
                         child: FilledButton.icon(
-                          onPressed: _submit,
+                          onPressed: widget.authController.canRegister
+                              ? _submit
+                              : null,
                           icon: const Icon(Icons.send_outlined),
                           label: const Text('Submit registration'),
                         ),
@@ -302,7 +343,9 @@ extension _RegistrationForm on _RegistrationScreenState {
                     ],
                     const SizedBox(height: 14),
                     TextButton(
-                      onPressed: _isSubmitting ? null : widget.onSignIn,
+                      onPressed: _isSubmitting || _isPickingEvidence
+                          ? null
+                          : _leaveRegistration,
                       child: const Text('Already registered? Sign in'),
                     ),
                     const SizedBox(height: 8),

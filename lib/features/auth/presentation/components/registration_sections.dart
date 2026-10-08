@@ -93,9 +93,11 @@ extension _RegistrationSections on _RegistrationScreenState {
     }
 
     return DropdownButtonFormField<LogisticsOption>(
-      key: ValueKey<String?>('organization-${_organization?.id}'),
+      key: _fieldNavigation.fieldKey('logistics_organization_id'),
+      focusNode: _fieldNavigation.focusNode('logistics_organization_id'),
       initialValue: _organization,
       isExpanded: true,
+      itemHeight: null,
       decoration: _decoration(
         'Logistics organization',
         icon: Icons.business_outlined,
@@ -127,6 +129,7 @@ extension _RegistrationSections on _RegistrationScreenState {
   }) {
     final scheme = Theme.of(context).colorScheme;
     return InputDecorator(
+      key: _fieldNavigation.anchorKey(fieldKey),
       decoration: _decoration(label, errorText: _serverError(fieldKey)),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -166,8 +169,9 @@ extension _RegistrationSections on _RegistrationScreenState {
               ),
             ],
           );
-          final actions = Row(
-            mainAxisSize: MainAxisSize.min,
+          final actions = Wrap(
+            spacing: 8,
+            runSpacing: 4,
             children: [
               if (upload != null)
                 IconButton(
@@ -176,7 +180,8 @@ extension _RegistrationSections on _RegistrationScreenState {
                   icon: const Icon(Icons.close),
                 ),
               OutlinedButton(
-                onPressed: _isSubmitting ? null : onPick,
+                focusNode: _fieldNavigation.focusNode(fieldKey),
+                onPressed: _isSubmitting || _isPickingEvidence ? null : onPick,
                 child: Text(upload == null ? 'Choose' : 'Replace'),
               ),
             ],

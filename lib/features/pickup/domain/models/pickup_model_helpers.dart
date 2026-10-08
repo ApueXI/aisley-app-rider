@@ -28,17 +28,6 @@ String? _addressSummary(Map<String, dynamic> json) {
   return null;
 }
 
-List<String> _stringList(Object? value, {Object? fallback}) {
-  if (value is List) {
-    return value
-        .whereType<String>()
-        .where((item) => item.isNotEmpty)
-        .toList(growable: false);
-  }
-  final one = _nullableString(fallback);
-  return one == null ? const <String>[] : <String>[one];
-}
-
 Map<String, dynamic>? _nullableMap(Object? value) {
   return value is Map ? Map<String, dynamic>.from(value) : null;
 }

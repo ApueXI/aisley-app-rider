@@ -43,9 +43,13 @@ extension DeliveryControllerErrors on DeliveryController {
     }
   }
 
-  Future<void> _setActionError(PickupTask task, ApiException error) async {
+  Future<void> _setActionError(
+    PickupTask task,
+    ApiException error, {
+    bool submission = true,
+  }) async {
     _actionStatuses[task.id] = _actionStateFor(error);
-    _actionErrors[task.id] = _messageForError(error);
+    _actionErrors[task.id] = _messageForError(error, submission: submission);
     _actionRetryAfter[task.id] = error.retryAfter;
     if (_actionStatuses[task.id] == DeliveryActionStatus.rateLimited) {
       _startRetryDelay(error.retryAfter);
@@ -66,22 +70,16 @@ extension DeliveryControllerErrors on DeliveryController {
 
   void _setStorageActionError(PickupTask task) {
     _actionStatuses[task.id] = DeliveryActionStatus.secureStorageFailure;
-    _actionErrors[task.id] =
-        'Secure session storage is unavailable. The action was not submitted.';
+    _actionErrors[task.id] = 'Your saved sign-in could not be accessed. Close and reopen the app, then refresh the task before trying again.';
     _notifyDeliveryListeners();
   }
 
-  void _setContractActionError(PickupTask task, ApiContractException error) {
+  void _setContractActionError(PickupTask task, {bool submission = true}) {
     _actionStatuses[task.id] = DeliveryActionStatus.failed;
-    _actionErrors[task.id] = _contractFailureMessage(error);
+    _actionErrors[task.id] = submission
+        ? 'We could not confirm the result of this delivery update. Refresh the task before retrying the same action.'
+        : 'Delivery information could not be loaded. Refresh the task and try again.';
     _notifyDeliveryListeners();
-  }
-
-  String _contractFailureMessage(ApiContractException error) {
-    final field = error.field == 'delivery.completion.completion_status'
-        ? 'data.completion_status'
-        : error.field;
-    return 'The delivery response does not match the documented API contract ($field). Please retry.';
   }
 
   Future<void> _notifyAuthFailure(ApiException error) async {
@@ -152,7 +150,7 @@ extension DeliveryControllerErrors on DeliveryController {
     return DeliveryActionStatus.failed;
   }
 
-  String _messageForError(ApiException error) {
+  String _messageForError(ApiException error, {bool submission = false}) {
     if (error.code == 'POLICY_CONSENT_REQUIRED') {
       return 'Accept the current Terms of Service and Privacy Policy before delivery actions are available.';
     }
@@ -160,13 +158,13 @@ extension DeliveryControllerErrors on DeliveryController {
       return 'The parcel for this delivery task was not found. Refresh the task before trying again.';
     }
     if (error.code == 'TASK_STATE_CONFLICT') {
-      return 'The task state or revision changed. Refresh the task before trying again.';
+      return 'This delivery changed. Refresh the task and review its current status before trying again.';
     }
     if (error.code == 'COMPLETION_STATE_CONFLICT') {
-      return 'The completion state changed. Refresh the task before trying again.';
+      return 'The delivery review status changed. Refresh the task before trying again.';
     }
     if (error.code == 'COD_COLLECTION_REQUIRED') {
-      return 'Confirm the full Order payable total was collected before submitting Delivered intent.';
+      return 'Confirm that you collected the full cash amount shown for this delivery before sending it to Logistics for review.';
     }
     if (error.statusCode == 404) {
       return 'This delivery is no longer available. Refresh to see current work.';
@@ -178,26 +176,42 @@ extension DeliveryControllerErrors on DeliveryController {
       return 'This delivery changed on the server. Refresh before trying again.';
     }
     if (error.statusCode == 422) {
-      return error.message.isEmpty
-          ? 'Check the submitted delivery information and try again.'
-          : error.message;
+      final fields = error.fieldErrors.keys.toSet();
+      if (fields.contains('expected_revision') || fields.contains('status')) {
+        return 'Refresh the task and check its current status before trying again.';
+      }
+      if (fields.contains('photo')) {
+        return 'Choose a JPEG, PNG or WebP delivery photo smaller than 10 MiB, then try again.';
+      }
+      if (fields.contains('evidence_id')) {
+        return 'Upload a delivery photo for this task before sending it to Logistics for review.';
+      }
+      if (fields.contains('cod_collected') || fields.contains('confirmed')) {
+        return 'Confirm that you collected the full cash amount shown for this delivery before sending it to Logistics for review.';
+      }
+      return 'Check the delivery information and try again. If the problem continues, refresh the task.';
     }
     if (error.statusCode == 429) {
       return 'Too many requests. Wait before trying again.';
     }
     if (error.isNetworkError) {
+      if (submission) {
+        return error.networkFailure == ApiNetworkFailure.timeout
+            ? 'The request timed out, so your update is not confirmed. Refresh the task before retrying the same action.'
+            : 'Check your connection. Your update is not confirmed; reconnect and refresh the task before retrying the same action.';
+      }
       return error.networkFailure == ApiNetworkFailure.timeout
-          ? 'The request timed out. Keep the same attempt and retry.'
-          : 'The service is unreachable. Reconnect and retry.';
+          ? 'Loading delivery information took too long. Check your connection and retry.'
+          : 'Delivery information could not be loaded. Check your connection and retry.';
     }
     if (error.statusCode == 401) {
-      return 'Your Courier session is no longer valid.';
+      return 'Your session has expired. Please sign in again.';
     }
     if (error.statusCode == 403) {
-      return error.message.isEmpty
-          ? 'This delivery is not available to your Courier account.'
-          : error.message;
+      return 'This delivery is not available to your Courier account. Contact your Logistics organization if you need help.';
     }
-    return 'The delivery service could not complete the request. Please retry.';
+    return submission
+        ? 'We could not confirm your delivery update. Refresh the task before retrying the same action.'
+        : 'Delivery information could not be loaded. Please retry in a moment.';
   }
 }

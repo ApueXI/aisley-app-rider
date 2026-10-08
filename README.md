@@ -2,13 +2,15 @@
 
 Aisley Courier is the external Flutter/Dart application for Aisley Couriers. It is a Courier client, not a Customer, Seller, Admin, or Logistics dashboard.
 
-The current app provides Courier authentication, account and vehicle management, policy consent, notifications, first-mile pickup, atomic final-mile dispatch-batch acceptance, task-bound final-mile hub handoff, Android rear-camera POD/browser file fallback, photo upload/COD completion intent, delivery history, and Logistics/Seller task chat. The dashboard has separate read-only task previews while its backend aggregate remains a scaffold; Buyer chat is read-only. Barcode scanning is implemented for Android and local Flutter web-server testing; Linux remains manual-input only for barcodes. Live batch/API, Logistics validation, and device/browser acceptance remain unverified. See [docs/README.md](docs/README.md) and [docs/PROGRESS.md](docs/PROGRESS.md) for the current boundary.
+The current app provides Courier authentication, account and vehicle management, policy consent, notifications, first-mile pickup, atomic final-mile dispatch-batch acceptance, task-bound final-mile hub handoff, Android rear-camera POD/browser file fallback, photo upload/COD completion intent, delivery history, and Logistics/Seller/Buyer task chat. The dashboard has separate read-only task previews while its backend aggregate remains a scaffold. Buyer composition is implemented for eligible accepted final-mile tasks; ended or denied threads remain read-only. Personal-vehicle selectors include `truck`, Seller pickups have bounded schedule filtering, registration/account forms protect unsaved changes, and Dashboard/delivery messages use plain-language recovery. Barcode scanning is implemented for Android and local Flutter web-server testing; Linux remains manual-input only for barcodes. Live batch/API, Logistics validation, and device/browser acceptance remain unverified. See [docs/README.md](docs/README.md) and [docs/PROGRESS.md](docs/PROGRESS.md) for the current boundary.
+
+The supplied backend documentation baseline is `4c3f504`, including Auth v2.6; Flutter implementation evidence remains recorded against `d7df220`. Flutter has no forgot-password flow, and Auth v2.6 integration remains outstanding. Documentation synchronization and local regression checks do not establish live backend or installed-device acceptance.
 
 Frontend work follows the shared [Courier design guide](docs/design-courier.md): familiar Material interactions, consistent labels and navigation, and focused decisions based on Jakob's Law and Hick's Law. [AGENTS.md](AGENTS.md) requires review of changed screens against those rules; feature specs continue to define the authorized workflow.
 
 ## Requirements
 
-- Flutter SDK compatible with the lockfile (Flutter >= 3.38.4, Dart >= 3.13.2).
+- Flutter SDK compatible with the lockfile (Flutter >= 3.44.0, Dart >= 3.13.2 and < 4.0.0). The verified local and CI baseline is stable Flutter 3.47.2 / Dart 3.13.2.
 - Git.
 - A reachable Laravel API implementing the versioned `/api/v1` Courier contract.
 - A platform toolchain for the target you want to run.
@@ -159,6 +161,20 @@ flutter build windows --release
 ```
 
 ## Useful development commands
+
+[Courier quality checks](.github/workflows/flutter-quality.yml) runs on every push and pull request, with no branch or path filters, and supports manual dispatch from GitHub Actions. Its single `quality` job uses Ubuntu 24.04, a 15-minute timeout, read-only repository permissions, and cancellation of superseded runs on the same ref. It caches the Flutter SDK and dependencies; the dependency cache key includes the lockfile hash.
+
+Run the same checks locally, in order:
+
+```bash
+flutter pub get --enforce-lockfile
+flutter analyze --no-pub
+flutter test --no-pub
+```
+
+Any failed command fails CI. [Lockfile enforcement](https://dart.dev/tools/pub/cmd/pub-get#enforce-lockfile) rejects an invalid dependency resolution or changed hosted-package hashes instead of silently updating dependencies. Formatting is excluded from CI. The existing mocked tests require no credentials or running Laravel API; passing CI does not establish live backend or installed-device acceptance. The hosted workflow remains unverified until it runs on GitHub.
+
+Other local commands:
 
 ```bash
 flutter analyze

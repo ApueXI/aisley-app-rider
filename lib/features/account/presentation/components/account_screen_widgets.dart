@@ -199,6 +199,10 @@ class _PasswordField extends StatelessWidget {
     required this.onToggle,
     this.serverError,
     this.validator,
+    this.fieldKey,
+    this.focusNode,
+    this.textInputAction = TextInputAction.next,
+    this.onFieldSubmitted,
   });
 
   final TextEditingController controller;
@@ -208,21 +212,30 @@ class _PasswordField extends StatelessWidget {
   final VoidCallback onToggle;
   final String? serverError;
   final String? Function(String?)? validator;
+  final GlobalKey<FormFieldState<dynamic>>? fieldKey;
+  final FocusNode? focusNode;
+  final TextInputAction textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      key: fieldKey,
+      focusNode: focusNode,
       controller: controller,
       enabled: enabled,
       obscureText: obscureText,
-      textInputAction: TextInputAction.next,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
+      autocorrect: false,
+      enableSuggestions: false,
       autofillHints: const <String>[AutofillHints.password],
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(Icons.lock_outline),
         errorText: serverError,
         suffixIcon: IconButton(
-          onPressed: onToggle,
+          onPressed: enabled ? onToggle : null,
           tooltip: obscureText ? 'Show password' : 'Hide password',
           icon: Icon(
             obscureText

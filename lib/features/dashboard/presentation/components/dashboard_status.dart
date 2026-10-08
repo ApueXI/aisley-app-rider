@@ -2,31 +2,29 @@ part of '../dashboard_screen.dart';
 
 class _UnavailableNotice extends StatelessWidget {
   const _UnavailableNotice({
-    required this.freshness,
     required this.isLoading,
     required this.hasRefreshError,
   });
 
-  final DashboardFreshness? freshness;
   final bool isLoading;
   final bool hasRefreshError;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isScaffold = freshness?.state == DashboardFreshnessState.scaffold;
-    final text = hasRefreshError
-        ? 'The last dashboard refresh failed. The summary below is from an earlier request; open a work screen to check current tasks.'
-        : isLoading
-        ? 'Refreshing from the server…'
-        : isScaffold
-        ? 'Dashboard summaries are unavailable. The notification inbox and work screens fetch their own current data.'
-        : 'The dashboard summary could not be loaded. Open a work screen to check current tasks.';
+    const availability =
+        'Notification, available work and active work summaries '
+        'are not available yet. Open Notifications, Pickup orders or Delivery work '
+        'to check current updates.';
+    final text = isLoading
+        ? 'Refreshing dashboard summaries… $availability'
+        : hasRefreshError
+        ? 'Showing summary availability from the last successful refresh. $availability'
+        : availability;
 
     return Semantics(
       liveRegion: true,
       container: true,
-      label: text,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -61,37 +59,43 @@ class _DashboardErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.cloud_off_outlined, color: scheme.onErrorContainer),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(message, style: TextStyle(color: scheme.onErrorContainer)),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: onRetry,
-                    child: Text(
-                      'Retry',
-                      style: TextStyle(color: scheme.onErrorContainer),
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: scheme.errorContainer,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.cloud_off_outlined, color: scheme.onErrorContainer),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message,
+                    style: TextStyle(color: scheme.onErrorContainer),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: onRetry,
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(color: scheme.onErrorContainer),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

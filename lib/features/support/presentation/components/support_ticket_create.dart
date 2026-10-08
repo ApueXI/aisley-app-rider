@@ -75,6 +75,7 @@ class _SupportTicketCreateScreenState extends State<SupportTicketCreateScreen> {
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('Discard ticket draft?'),
         content: const Text(
           'Your unsent ticket text and any pending exact retry will be cleared.',
@@ -141,6 +142,8 @@ class _SupportTicketCreateScreenState extends State<SupportTicketCreateScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _category,
+                  isExpanded: true,
+                  itemHeight: null,
                   decoration: const InputDecoration(labelText: 'Category'),
                   items: const [
                     DropdownMenuItem(value: 'general', child: Text('General')),

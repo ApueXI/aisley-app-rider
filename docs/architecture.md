@@ -5,7 +5,8 @@ type: Client Architecture
 platform: Flutter / Dart
 role: Courier / Rider
 status: Flutter inbox, support tickets, dashboard previews, final-mile batch acceptance, photo-POD/COD intent, and Logistics/Seller/Buyer chat implemented; live acceptance remains open
-backend_contract_commit: d7df220 (copied Laravel documentation baseline; Flutter adoption varies by feature)
+backend_contract_commit: 4c3f504 (supplied documentation baseline; Flutter runtime adoption remains recorded against d7df220)
+map_contract_commit: 51d96947569d1603fdfb6d264ebd2a04bf866280
 ---
 
 # Scope
@@ -14,7 +15,9 @@ This document describes the external Flutter application used by Couriers. Andro
 
 The Laravel API remains the source of truth for identity, approval, role access, organization and hub ownership, order status, task assignment, and delivery state. The Flutter app renders server responses and submits only fields allowed by the versioned API contract.
 
-Flutter implements the notification inbox, private support-ticket list/create/detail/reply/read flow, separate read-only dashboard task previews, final-mile batch list/detail/atomic acceptance with state reconciliation, Android rear-camera POD/browser file fallback, photo upload and completion intent with COD cash confirmation, and a task-chat inbox with Logistics/Seller/Buyer messaging. Buyer starts revalidate the Courier final-mile task; existing replies require refreshed server sendability. No Seller/Customer Order-context route is called by Flutter. Installed-device/browser acceptance, authenticated support-ticket/batch/API and COD/Logistics validation, and live chat exchange remain unverified. Batch-route rendering, failed-attempt submission, and linehaul trip screens remain unadopted. See `docs/PROGRESS.md` for dated implementation evidence; Laravel remains authoritative for operational state.
+Flutter implements the notification inbox, private support-ticket list/create/detail/reply/read flow, separate read-only dashboard task previews, final-mile batch list/detail/atomic acceptance with state reconciliation, Android rear-camera POD/browser file fallback, photo upload and completion intent with COD cash confirmation, a task-chat inbox with Logistics/Seller/Buyer messaging, and read-only pickup/delivery MapLibre routes. Buyer starts revalidate the Courier final-mile task; existing replies require refreshed server sendability. No Seller/Customer Order-context route is called by Flutter. Installed-device/browser acceptance, authenticated support-ticket/batch/map API and COD/Logistics validation, and live chat exchange remain unverified. Failed-attempt submission and linehaul trip screens remain unadopted. See `docs/PROGRESS.md` for dated implementation evidence; Laravel remains authoritative for operational state.
+
+Auth v2.6 in the supplied `4c3f504` snapshot defines credential/account/affiliation error precedence, exact duplicate-email handling, and explicit recovery unavailability. Flutter has no forgot-password flow; newer Auth integration remains outstanding. Local truck selection, first-mile schedule filtering, registration/account discard protection, keyboard/error focus, and plain-language recovery have implementation evidence against `d7df220`.
 
 ## Current implementation boundary
 
@@ -23,7 +26,7 @@ The backend currently exposes Courier authentication, account and vehicle manage
 - `GET /api/v1/courier/auth/logistics-options`
 - `POST /api/v1/courier/auth/register`
 - `POST /api/v1/courier/auth/login`
-- `POST /api/v1/courier/auth/forgot-password` (generic response only)
+- `POST /api/v1/courier/auth/forgot-password` (explicit recovery-unavailable response; no reset delivery)
 - `GET /api/v1/courier/auth/me` (authenticated)
 - `POST /api/v1/courier/auth/logout` (authenticated)
 - `GET /api/v1/courier/account` (authenticated)
@@ -56,6 +59,8 @@ The backend currently exposes Courier authentication, account and vehicle manage
 - `GET /api/v1/courier/tasks/{task}/delivery` (authenticated accepted-task delivery context)
 - `POST /api/v1/courier/final-mile-tasks/{task}/status` (authenticated revision-checked movement)
 - `GET /api/v1/courier/final-mile-batches/{schedule}/route` (authenticated advisory delivery route)
+- `GET /api/v1/courier/map-style` (authenticated raw MapLibre raster style)
+- `GET /api/v1/courier/map-tiles/{z}/{x}/{y}.png` (authenticated private raster pixels)
 - `POST /api/v1/courier/tasks/{task}/proof-of-delivery` (authenticated private multipart photo POD; Android camera and selected-file upload implemented in Flutter)
 - `GET /api/v1/courier/delivery-proofs/{proof}/photo` (authenticated private proof read)
 - `POST /api/v1/courier/final-mile-tasks/{task}/failed-attempts` (authenticated nonterminal attempt record)
@@ -65,7 +70,7 @@ The backend currently exposes Courier authentication, account and vehicle manage
 - `GET /api/v1/courier/notifications/unread-count` (authenticated unread count)
 - `GET /api/v1/courier/notifications/{notification}` (authenticated notification detail)
 - `POST /api/v1/courier/notifications/{notification}/read` (authenticated idempotent mark-read)
-- `/api/v1/courier/operational-conversations` with authenticated list/start, detail, paginated messages, send, and read actions for task-scoped Logistics, Seller, and Buyer threads (Flutter Logistics/Seller sending implemented; Buyer read-only)
+- `/api/v1/courier/operational-conversations` with authenticated list/start, detail, paginated messages, send, and read actions for task-scoped Logistics, Seller, and Buyer threads (Flutter Logistics/Seller/Buyer sending reported implemented locally; live acceptance unverified)
 - `GET /api/v1/courier/linehaul-trips` (authenticated assigned company-truck trips; client screen not verified)
 
 The dashboard aggregate remains a read-only scaffold. Flutter separately reads the task-list APIs for bounded first-/final-mile previews and the notification API for its inbox badge; opening a preview navigates without mutating a task. QR/Code 128 candidates serve first-mile pickup, final-mile hub handoff is task-bound, and delivery proof is photo-only. Photo/intent and COD confirmation have local implementation and test coverage, while authenticated Logistics validation remains unverified. Backend API availability does not establish Flutter adoption or live acceptance. Background push/WebSockets, live route telemetry, signature proof, earnings, and offline synchronization remain unavailable. Logistics Linehaul/Sort plan mutations are not Courier endpoints; the separate Courier trip read is real.
@@ -83,6 +88,17 @@ The dashboard aggregate remains a read-only scaffold. Flutter separately reads t
 - The supplied Flutter progress records platform-safe multipart transport for registration evidence, account photo, and vehicle OR/CR: selected bytes on web and readable paths on Android/native. Analyzer, tests, web build, and APK build pass; live browser CORS/private-read and installed-device upload acceptance remain unverified.
 - Follow [`flutter-file-uploads.md`](flutter-file-uploads.md) for the transport and Android regression boundary. Keep exact Laravel multipart parts and server-side validation; do not create web-only endpoints, a second Flutter codebase, or a React upload page. Flutter adopted Android rear-camera/file-fallback delivery photo POD, but authenticated Logistics validation and installed-device/browser upload acceptance remain unverified; signature remains deferred.
 - The fixed `http://localhost:8765` origin needs backend CORS for upload `POST`, private-image `GET`, and applicable `OPTIONS` preflight with bearer/idempotency headers. The same secure session and authenticated private-read rules apply on web; browser upload acceptance and installed-APK regression remain verification tasks.
+
+## Route-map targets
+
+Pickup and accepted final-mile route reads have independent repositories/controllers.
+Shared `route_map/` widgets receive sanitized geometry and numbered markers.
+`CourierMapSecurity` validates the raw style and fetches bounded, no-store raster
+images through `ApiClient`; the SDK receives no bearer headers. This avoids the
+resolved plugin's global Android header storage and unimplemented web setter.
+Maps and route data are released on disposal or session invalidation; pushed route
+screens also return to the identity gate. Linux retains readable stop lists.
+See [the map integration guide](courier-route-maps.md) for contracts and limits.
 
 ## Client structure
 
@@ -112,9 +128,10 @@ lib/
 │   ├── dashboard/       # Scaffold plus independent read-only task previews
 │   ├── notification/    # Authorized inbox, unread count, and mark-read
 │   ├── policy/          # Published policies and explicit consent
-│   ├── chat/            # Task inbox/history and Logistics message sending
+│   ├── chat/            # Task inbox/history and Logistics/Seller/Buyer sending
 │   ├── support/         # Private Admin support ticket list, history, replies, and reads
 │   ├── batch/           # Final-mile dispatch-batch list, detail, and atomic acceptance
+│   ├── delivery_route/  # Independent accepted-batch read-only route workflow
 │   ├── pickup/
 │   │   ├── data/         # Pickup task, manifest, and handoff repositories
 │   │   ├── domain/       # Server status, task, manifest, and handoff models
@@ -136,7 +153,9 @@ test/
 
 The exact state-management, routing, networking, and secure-storage packages are project decisions. Inspect `pubspec.yaml` and reuse existing choices before adding a dependency.
 
-Operational chat is implemented in `lib/features/chat/` using the existing bearer client and the versioned Courier conversation actions in `features/courier/chat-messaging/api-handoff.md`. Logistics/Seller sending is enabled; Buyer threads remain read-only pending counterpart adoption and verification. Keep message bodies in session-bound memory and recheck task eligibility on the server.
+The imported Flutter project reports that `DeliveryController` keeps task/action state and pending attempts in one library. Its movement, photo-submission, and completion parts each own their workflow's validation, submission, and retry. COD reads, private photo reads, reconciliation, and error handling remain separate parts. The workflow split preserves revision checks, exact pending payloads/idempotency keys after uncertain responses, and Logistics authority over final delivery; repositories continue to own HTTP transport.
+
+Operational chat is implemented in `lib/features/chat/` using the existing bearer client and the versioned Courier conversation actions in `features/courier/chat-messaging/api-handoff.md`. Logistics/Seller/Buyer sending is reported enabled for eligible tasks; ended or denied threads remain read-only and live cross-role acceptance remains unverified. Keep message bodies in session-bound memory and recheck task eligibility on the server.
 
 Courier support tickets are implemented separately in `lib/features/support/` against `courier-support-tickets-v1`. The controller keeps bounded list/history state and uncertain mutation keys only in session memory, polls only the visible support route, and clears private drafts and transcripts when authentication or authorization is lost.
 

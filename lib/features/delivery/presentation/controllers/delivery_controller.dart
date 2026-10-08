@@ -13,7 +13,9 @@ import '../../domain/delivery_models.dart';
 import '../../domain/delivery_proof_photo.dart';
 
 part 'delivery_controller_reads.dart';
-part 'delivery_controller_actions.dart';
+part 'delivery_controller_movement.dart';
+part 'delivery_controller_proof_submission.dart';
+part 'delivery_controller_completion.dart';
 part 'delivery_controller_errors.dart';
 part 'delivery_controller_reconciliation.dart';
 part 'delivery_controller_attempts.dart';
