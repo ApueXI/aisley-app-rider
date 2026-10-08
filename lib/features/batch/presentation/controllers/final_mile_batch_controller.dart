@@ -7,6 +7,7 @@ import '../../../../core/networking/api_contract_exception.dart';
 import '../../../../core/security/token_storage.dart';
 import '../../data/final_mile_batch_repository.dart';
 import '../../domain/final_mile_batch_models.dart';
+import '../../../delivery_route/presentation/delivery_route_controller.dart';
 
 part 'final_mile_batch_controller_actions.dart';
 part 'final_mile_batch_controller_reads.dart';
@@ -54,9 +55,11 @@ class FinalMileBatchController extends ChangeNotifier {
     required this.repository,
     this.onAuthFailure,
     this.onBatchAccepted,
+    this.routeController,
   });
 
   final FinalMileBatchRepository repository;
+  final DeliveryRouteController? routeController;
   final BatchAuthFailureHandler? onAuthFailure;
   final BatchAcceptedHandler? onBatchAccepted;
 
@@ -108,6 +111,7 @@ class FinalMileBatchController extends ChangeNotifier {
   }
 
   void clear() {
+    routeController?.clear();
     _epoch++;
     _listInFlight = false;
     _authFailureNotified = false;

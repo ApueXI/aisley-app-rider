@@ -72,6 +72,22 @@ class _FinalMileBatchDetailScreenState
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
               children: [
                 _BatchSummary(batch: batch),
+                if (batch.isAccepted && controller.routeController != null)
+                  TextButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => DeliveryRouteScreen(
+                          batch: batch,
+                          controller: controller.routeController!,
+                          onOpenPolicies: widget.policyController == null
+                              ? null
+                              : _openPolicies,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('View delivery route'),
+                  ),
                 if (_isBatchBlocking(detailStatus) &&
                     controller.detailError(widget.scheduleId) != null) ...[
                   const SizedBox(height: 12),

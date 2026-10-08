@@ -91,6 +91,8 @@ class PickupController extends ChangeNotifier {
   final Map<String, PickupSectionStatus> routeStatuses =
       <String, PickupSectionStatus>{};
   final Map<String, String?> routeErrors = <String, String?>{};
+  final Map<String, int> _routeRequests = <String, int>{};
+  bool _disposed = false;
 
   final Map<String, PickupTaskActionStatus> _actionStatuses =
       <String, PickupTaskActionStatus>{};
@@ -177,6 +179,7 @@ class PickupController extends ChangeNotifier {
     routeManifests.clear();
     routeStatuses.clear();
     routeErrors.clear();
+    _routeRequests.clear();
     _actionStatuses.clear();
     _actionErrors.clear();
     _actionRetryAfter.clear();
@@ -188,13 +191,20 @@ class PickupController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    routeManifests.clear();
+    routeStatuses.clear();
+    routeErrors.clear();
+    _routeRequests.clear();
     _loadEpoch++;
     _firstMileRequestId++;
     _retryTimer?.cancel();
     super.dispose();
   }
 
-  void _notifyPickupListeners() => notifyListeners();
+  void _notifyPickupListeners() {
+    if (!_disposed) notifyListeners();
+  }
 
   static bool _validIdentifier(String type, String identifier) {
     return (type == 'qr' || type == 'tracking_id' || type == 'order_id') &&

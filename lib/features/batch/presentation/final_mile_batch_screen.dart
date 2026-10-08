@@ -4,6 +4,7 @@ import '../../auth/presentation/controllers/auth_controller.dart';
 import '../../policy/presentation/controllers/policy_controller.dart';
 import '../../policy/presentation/policy_screen.dart';
 import '../domain/final_mile_batch_models.dart';
+import '../../delivery_route/presentation/delivery_route_screen.dart';
 import 'controllers/final_mile_batch_controller.dart';
 
 part 'components/final_mile_batch_list.dart';
