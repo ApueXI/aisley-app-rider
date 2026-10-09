@@ -9,6 +9,7 @@ class PickupTaskDetailScreen extends StatefulWidget {
     this.onOpenDelivery,
     this.onOpenBatches,
     this.chatController,
+    this.onRefresh,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class PickupTaskDetailScreen extends StatefulWidget {
   final VoidCallback? onOpenDelivery;
   final VoidCallback? onOpenBatches;
   final ChatController? chatController;
+  final Future<void> Function()? onRefresh;
 
   @override
   State<PickupTaskDetailScreen> createState() => _PickupTaskDetailScreenState();
@@ -58,10 +60,49 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
       animation: widget.pickupController,
       builder: (context, child) {
         final task = widget.pickupController.taskWithId(widget.task);
+        final scoped = widget.pickupController.isTargeted;
+        final tasks = task.isFirstMile
+            ? widget.pickupController.firstMileTasks
+            : widget.pickupController.finalMileTasks;
+        final status = task.isFirstMile
+            ? widget.pickupController.firstMileStatus
+            : widget.pickupController.finalMileStatus;
+        if (scoped &&
+            (status != PickupSectionStatus.loaded ||
+                !tasks.any((current) => current.id == task.id))) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Pickup order')),
+            body: RefreshIndicator(
+              onRefresh: widget.onRefresh ?? widget.pickupController.load,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                children: [
+                  if (status == PickupSectionStatus.loading)
+                    const _PickupLoadingState()
+                  else
+                    _PickupErrorState(
+                      message:
+                          (task.isFirstMile
+                              ? widget.pickupController.firstMileErrorMessage
+                              : widget
+                                    .pickupController
+                                    .finalMileErrorMessage) ??
+                          'The related work is no longer available. Return to the notification for its history.',
+                      status: status,
+                      onRetry: widget.pickupController.load,
+                      onOpenPolicies: _openPolicies,
+                      showPolicyAction: widget.policyController != null,
+                    ),
+                ],
+              ),
+            ),
+          );
+        }
         return Scaffold(
           appBar: AppBar(title: const Text('Pickup order')),
           body: RefreshIndicator(
-            onRefresh: widget.pickupController.load,
+            onRefresh: widget.onRefresh ?? widget.pickupController.load,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),

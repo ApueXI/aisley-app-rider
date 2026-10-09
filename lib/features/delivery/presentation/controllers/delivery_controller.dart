@@ -106,6 +106,7 @@ class DeliveryController extends ChangeNotifier {
   bool _loadInFlight = false;
   bool _authFailureNotified = false;
   Timer? _retryTimer;
+  bool _disposed = false;
 
   bool get isLoading => loadStatus == DeliveryLoadStatus.loading;
 
@@ -222,11 +223,28 @@ class DeliveryController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    _loadEpoch++;
+    clearAllProofPhotos(notify: false);
     _retryTimer?.cancel();
     super.dispose();
   }
 
-  void _notifyDeliveryListeners() => notifyListeners();
+  void _notifyDeliveryListeners() {
+    if (!_disposed) notifyListeners();
+  }
+
+  /// Invalidates private reads while preserving uncertain action attempts.
+  void invalidateDetails() {
+    _loadEpoch++;
+    contexts.clear();
+    contextStatuses.clear();
+    contextErrors.clear();
+    completions.clear();
+    completionStatuses.clear();
+    completionErrors.clear();
+    clearAllProofPhotos(notify: false);
+  }
 
   static bool _isDefinitiveMutationError(ApiException error) {
     return error.statusCode == 404 ||

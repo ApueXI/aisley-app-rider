@@ -18,6 +18,18 @@ class NotificationDetailScreen extends StatefulWidget {
 }
 
 class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
+  bool _openingTarget = false;
+
+  Future<void> _openTarget(CourierNotification notification) async {
+    if (_openingTarget) return;
+    setState(() => _openingTarget = true);
+    try {
+      await widget.onOpenTarget?.call(notification);
+    } finally {
+      if (mounted) setState(() => _openingTarget = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -41,8 +53,8 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
         final readStatus = widget.controller.readStatusFor(notification.id);
         final readError = widget.controller.readErrorFor(notification.id);
         final canOpenTarget =
-            detailStatus != NotificationLoadStatus.unavailable &&
-            notification.hasDestination &&
+            detailStatus == NotificationLoadStatus.loaded &&
+            NotificationTarget.resolve(notification) != null &&
             widget.onOpenTarget != null;
 
         return Scaffold(
@@ -65,13 +77,14 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                     detailError: detailError,
                     readStatus: readStatus,
                     readError: readError,
+                    openingTarget: _openingTarget,
                     onMarkRead:
                         notification.isRead ||
                             readStatus == NotificationReadStatus.reading
                         ? null
                         : () => widget.controller.markRead(notification.id),
                     onOpenTarget: canOpenTarget
-                        ? () => widget.onOpenTarget!(notification)
+                        ? () => _openTarget(notification)
                         : null,
                   ),
               ],
@@ -92,6 +105,7 @@ class _NotificationDetailCard extends StatelessWidget {
     required this.readError,
     this.onMarkRead,
     this.onOpenTarget,
+    this.openingTarget = false,
   });
 
   final CourierNotification notification;
@@ -101,6 +115,7 @@ class _NotificationDetailCard extends StatelessWidget {
   final String? readError;
   final VoidCallback? onMarkRead;
   final VoidCallback? onOpenTarget;
+  final bool openingTarget;
 
   @override
   Widget build(BuildContext context) {
@@ -166,12 +181,12 @@ class _NotificationDetailCard extends StatelessWidget {
         const SizedBox(height: 16),
         if (onOpenTarget != null) ...[
           OutlinedButton.icon(
-            onPressed: onOpenTarget,
+            onPressed: openingTarget ? null : onOpenTarget,
             icon: const Icon(Icons.open_in_new),
             label: const Text('Open related work'),
           ),
           const SizedBox(height: 12),
-        ] else if (notification.hasDestination || isUnavailable) ...[
+        ] else ...[
           _NotificationInlineMessage(
             message: isUnavailable
                 ? 'The related work is no longer available. The notification remains read-only.'

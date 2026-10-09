@@ -55,10 +55,21 @@ enum PickupTaskActionStatus {
 }
 
 class PickupController extends ChangeNotifier {
-  PickupController({required this.pickupRepository, this.onAuthFailure});
+  PickupController({
+    required this.pickupRepository,
+    this.onAuthFailure,
+    this.targetScheduleId,
+    this.targetFinalMileTaskId,
+  }) : assert(targetScheduleId == null || targetFinalMileTaskId == null),
+       _firstMileScheduleId = targetScheduleId;
 
   final PickupRepository pickupRepository;
   final PickupAuthFailureHandler? onAuthFailure;
+  final String? targetScheduleId;
+  final String? targetFinalMileTaskId;
+
+  bool get isTargeted =>
+      targetScheduleId != null || targetFinalMileTaskId != null;
 
   PickupSectionStatus firstMileStatus = PickupSectionStatus.idle;
   PickupSectionStatus finalMileStatus = PickupSectionStatus.idle;

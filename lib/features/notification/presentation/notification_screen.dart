@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../domain/notification_models.dart';
+import '../domain/notification_target.dart';
 import 'controllers/notification_controller.dart';
 
 part 'components/notification_list.dart';

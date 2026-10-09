@@ -4,7 +4,7 @@ feature: courier-delivery-order
 title: Deliver Order
 system: AISLEY
 type: Feature Specification
-version: 1.7
+version: 1.8
 status: Implemented final-mile task, batch route, movement, and delivery-context API
 implementation_status: Final-mile tasks, batch acceptance, hub pickup evidence, movement, delivery context, and advisory Geoapify route are implemented
 flutter_status: Delivery context/movement and accepted-batch MapLibre routes implemented locally; live API and installed-device/browser map acceptance remain unverified
@@ -165,7 +165,7 @@ accepted final-mile task
 
 ### Flutter handoff and navigation
 
-- The active screen shows the accepted task, destination, current state, distance/ETA freshness, route availability, and a clear next action.
+- Notification entry first reauthorizes its ID through the scoped final-mile task-detail read, including offers absent from loaded lists. Current offers use batch review, accepted tasks use hub handoff, and picked-up/transit tasks use delivery context; terminal/unknown states are read-only. Refresh repeats the scoped read before rendering actions and never falls back to a withdrawn snapshot. The active delivery screen shows authorized destination, current state, advisory freshness, and one next action; Back returns to notification details without marking read or mutating work.
 - Accepted/in-progress batch detail offers secondary **View delivery route**, opening a read-only screen with hub start, numbered stops, road/fallback labels, attribution, zoom controls, and **Fit route**. Offered batches have no route action.
 - Returning from external navigation triggers a fresh task/route read rather than trusting a background callback.
 - Permission denial, GPS disabled, route unavailable, stale metrics, reassignment, and destination reached are distinct accessible states.

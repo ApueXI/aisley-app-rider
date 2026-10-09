@@ -33,6 +33,7 @@ class PickupScreen extends StatefulWidget {
     this.onOpenDelivery,
     this.onOpenBatches,
     this.chatController,
+    this.scheduleId,
     super.key,
   });
 
@@ -42,34 +43,72 @@ class PickupScreen extends StatefulWidget {
   final VoidCallback? onOpenDelivery;
   final VoidCallback? onOpenBatches;
   final ChatController? chatController;
+  final String? scheduleId;
 
   @override
   State<PickupScreen> createState() => _PickupScreenState();
 }
 
 class _PickupScreenState extends State<PickupScreen> {
+  late final PickupController _controller;
+
   @override
   void initState() {
     super.initState();
+    _controller = widget.scheduleId == null
+        ? widget.pickupController
+        : PickupController(
+            pickupRepository: widget.pickupController.pickupRepository,
+            onAuthFailure: widget.pickupController.onAuthFailure,
+            targetScheduleId: widget.scheduleId,
+          );
+    widget.authController.addListener(_handleAuthState);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        widget.pickupController.load();
+        _controller.load();
       }
     });
+  }
+
+  void _handleAuthState() {
+    if (widget.scheduleId != null &&
+        widget.authController.status == AuthStatus.policyConsentRequired) {
+      _controller.clear();
+      _controller.firstMileStatus = PickupSectionStatus.consentRequired;
+      _controller.firstMileErrorMessage =
+          'Review the current policies before opening pickup work.';
+      return;
+    }
+    if (widget.scheduleId == null ||
+        widget.authController.status == AuthStatus.authenticated ||
+        widget.authController.status == AuthStatus.policyConsentRequired) {
+      return;
+    }
+    _controller.clear();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.authController.removeListener(_handleAuthState);
+    if (widget.scheduleId != null) _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.pickupController,
+      animation: _controller,
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Pickup orders')),
           body: RefreshIndicator(
-            onRefresh: widget.pickupController.load,
+            onRefresh: _controller.load,
             child: _PickupListBody(
               authController: widget.authController,
-              pickupController: widget.pickupController,
+              pickupController: _controller,
               policyController: widget.policyController,
               onOpenTask: _openTask,
               onOpenRoute: _openRoute,
@@ -86,7 +125,7 @@ class _PickupScreenState extends State<PickupScreen> {
       MaterialPageRoute<void>(
         builder: (_) => PickupTaskDetailScreen(
           authController: widget.authController,
-          pickupController: widget.pickupController,
+          pickupController: _controller,
           policyController: widget.policyController,
           task: task,
           onOpenDelivery: widget.onOpenDelivery,
@@ -105,7 +144,7 @@ class _PickupScreenState extends State<PickupScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => PickupRouteScreen(
-          pickupController: widget.pickupController,
+          pickupController: _controller,
           scheduleId: scheduleId,
           schedule: task.schedule,
           onOpenPolicies: _openPolicies,
@@ -128,7 +167,7 @@ class _PickupScreenState extends State<PickupScreen> {
       ),
     );
     if (mounted) {
-      await widget.pickupController.load();
+      await _controller.load();
     }
   }
 }

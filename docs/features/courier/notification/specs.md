@@ -4,9 +4,9 @@ feature: courier-notification
 title: Courier Notifications
 system: AISLEY
 type: Feature Specification
-version: 1.1
+version: 1.2
 status: Laravel Courier inbox API and external Flutter inbox implemented; dashboard aggregate remains scaffold-only
-implementation_status: Scoped list, detail, unread-count, and mark-read routes plus pickup/final-mile/linehaul producers implemented; Flutter inbox adopted against courier-notifications-v1, linehaul navigation unverified
+implementation_status: Scoped inbox routes and pickup/final-mile/linehaul producers implemented; Flutter inbox and targeted pickup/final-mile navigation adopted against courier-notifications-v1; linehaul navigation deferred
 canonical: true
 copied_backend_checkout: 4c3f504
 scope: Laravel Courier API and external Flutter mobile application
@@ -192,6 +192,11 @@ Logistics action commits → durable recipient alert → Courier inbox/count
 - Only bounded in-memory items are retained. The dashboard's possible 15-minute encrypted snapshot does not authorize persistent notification or task caches here.
 - The inbox shows unread/read labels with text and semantics, not color alone; it supports large text, 44-pixel touch targets, screen-reader order, light/dark themes, and safe notification previews.
 - A tap opens detail/current target when available; the explicit mark-read action is separate. A stale or removed target leaves the historical alert readable.
+- **Open related work** requires a successful notification-detail read, a supported resource type, a nonempty single-segment `resource_id`, and an exact matching internal destination. Supported paths are `/pickup-schedules/{id}` and `/delivery-tasks/{id}`; `delivery_task` and `final_mile_task` map only to final-mile work. Missing, mismatched, external, unknown, and linehaul targets remain readable with a safe unavailable message.
+- Pickup entry fetches `GET /api/v1/courier/first-mile-tasks?pickup_schedule_id={id}&per_page=50` even when the schedule is absent from the ordinary dropdown options. Its route-owned filter stays fixed, refresh/retry repeat that read, and it does not load final-mile work or change normal pickup selection. An empty authorized result means no current work, not proof of cancellation or reassignment.
+- Final-mile entry fetches `GET /api/v1/courier/final-mile-tasks/{id}` without depending on a loaded list. `delivery_assigned` uses offer review and existing whole-batch acceptance navigation; `delivery_accepted` uses hub handoff; picked-up/transit/out-for-delivery states use delivery. It never requests accepted-task delivery context for an offer. Terminal/unknown states remain read-only.
+- Owning reads reauthorize every entry/refresh. A missing, reassigned, or foreign target cannot fall back to an old task snapshot. Session loss, disposal, and newer reads invalidate obsolete responses; `401/403`, consent, secure-storage failures, `404`, throttling, timeout, and offline remain distinct safe states.
+- Back returns to the same notification detail. Opening/refresh/retry/Back send no acceptance, rejection, pickup, proof, completion, or mark-read writes; only the explicit **Mark as read** action changes read state. Duplicate Open taps cannot push another work route.
 - Offline mode shows an explicitly stale in-memory list but cannot mark read or change tasks; the controller reconciles on reconnect.
 - Background push, OS notification permission, device-token registration, WebSockets, and deep links from external push remain out of scope.
 

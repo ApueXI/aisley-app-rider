@@ -157,29 +157,54 @@ mixin _DashboardNavigation on State<DashboardScreen> {
         ),
       ),
     );
-    if (mounted) {
+    if (mounted && widget.authController.status == AuthStatus.authenticated) {
       notificationController.startPolling();
     }
   }
 
   Future<void> _openNotificationTarget(CourierNotification notification) async {
-    switch (notification.resourceType) {
-      case 'pickup_schedule':
-        await _openPickups();
-      case 'delivery_task':
-      case 'final_mile_task':
-        await _openDeliveries();
-      default:
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'The related work type is not available in this app yet.',
-              ),
-            ),
-          );
-        }
+    if (!mounted || widget.authController.status != AuthStatus.authenticated) {
+      return;
     }
+    final target = NotificationTarget.resolve(notification);
+    final pickup = widget.pickupController;
+    final delivery = widget.deliveryController;
+    if (target == null ||
+        pickup == null ||
+        (target.kind == NotificationTargetKind.finalMileTask &&
+            delivery == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'The related work is not currently available to this Courier.',
+          ),
+        ),
+      );
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => target.kind == NotificationTargetKind.pickupSchedule
+            ? PickupScreen(
+                authController: widget.authController,
+                pickupController: pickup,
+                scheduleId: target.resourceId,
+                policyController: widget.policyController,
+                chatController: widget.chatController,
+              )
+            : FinalMileTaskEntryScreen(
+                taskId: target.resourceId,
+                authController: widget.authController,
+                pickupController: pickup,
+                deliveryController: delivery!,
+                policyController: widget.policyController,
+                chatController: widget.chatController,
+                onOpenBatches: widget.batchController == null
+                    ? null
+                    : _openBatches,
+              ),
+      ),
+    );
   }
 
   Future<void> _openMessages() async {
