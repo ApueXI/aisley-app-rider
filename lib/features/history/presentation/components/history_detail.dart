@@ -19,11 +19,16 @@ class HistoryDetailScreen extends StatefulWidget {
 }
 
 class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
+  late final int _accountScopeGeneration;
+
   @override
   void initState() {
     super.initState();
+    _accountScopeGeneration = widget.historyController.accountScopeGeneration;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
+      if (mounted &&
+          _accountScopeGeneration ==
+              widget.historyController.accountScopeGeneration) {
         widget.historyController.loadDetail(widget.item.taskId);
       }
     });
@@ -41,6 +46,17 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
       animation: widget.historyController,
       builder: (context, child) {
         final controller = widget.historyController;
+        if (_accountScopeGeneration != controller.accountScopeGeneration) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Delivery record')),
+            body: const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'This delivery record is no longer available to your Courier session.',
+              ),
+            ),
+          );
+        }
         final loaded = controller.detail?.taskId == widget.item.taskId
             ? controller.detail
             : null;

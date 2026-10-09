@@ -25,60 +25,74 @@ class _HistoryListBody extends StatelessWidget {
         status != HistoryLoadStatus.loaded &&
         status != HistoryLoadStatus.empty;
 
-    return ListView(
+    return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-      children: [
-        Text(
-          'Completed deliveries',
-          style: Theme.of(context).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Read-only records of final-mile deliveries completed under your Courier assignment.',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 20),
-        if ((status == HistoryLoadStatus.idle ||
-                status == HistoryLoadStatus.loading) &&
-            items.isEmpty)
-          const _HistoryLoadingCard()
-        else if (blocking && items.isEmpty)
-          _HistoryErrorCard(
-            message:
-                controller.errorMessage ?? 'Delivery history is unavailable.',
-            status: status,
-            onRetry: onRetry,
-            onOpenPolicies: onOpenPolicies,
-            showPolicyAction: showPolicyAction,
-          )
-        else if (status == HistoryLoadStatus.empty || items.isEmpty)
-          const _HistoryEmptyCard()
-        else ...[
-          for (final item in items) ...[
-            _HistoryItemCard(item: item, onTap: () => onOpenItem(item)),
-            const SizedBox(height: 10),
-          ],
-          if (controller.errorMessage != null)
-            _HistoryInlineError(
-              message: controller.errorMessage!,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Completed deliveries',
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Read-only records of final-mile deliveries completed under your Courier assignment.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _HistoryReferenceSearch(controller: controller),
+          const SizedBox(height: 20),
+          if ((status == HistoryLoadStatus.idle ||
+                  status == HistoryLoadStatus.loading) &&
+              items.isEmpty)
+            const _HistoryLoadingCard()
+          else if (blocking && items.isEmpty)
+            _HistoryErrorCard(
+              message:
+                  controller.errorMessage ?? 'Delivery history is unavailable.',
+              status: status,
               onRetry: onRetry,
-            ),
-          if (controller.hasMore) ...[
-            const SizedBox(height: 12),
-            Text(
-              controller.nextCursor == null
-                  ? 'More history is available on the server, but the response did not provide a usable cursor.'
-                  : 'More history is available, but this client does not request an undocumented cursor.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              canRetry: controller.canRetryRateLimit,
+              onOpenPolicies: onOpenPolicies,
+              showPolicyAction: showPolicyAction,
+            )
+          else if (status == HistoryLoadStatus.empty || items.isEmpty)
+            _HistoryEmptyCard(filtered: controller.activeReference != null)
+          else ...[
+            if (status == HistoryLoadStatus.loading) ...[
+              Semantics(
+                liveRegion: true,
+                label: 'Refreshing delivery history',
+                child: const LinearProgressIndicator(),
               ),
-            ),
+              const SizedBox(height: 12),
+            ],
+            for (final item in items) ...[
+              _HistoryItemCard(item: item, onTap: () => onOpenItem(item)),
+              const SizedBox(height: 10),
+            ],
+            if (controller.errorMessage != null)
+              _HistoryInlineError(
+                message: controller.errorMessage!,
+                onRetry: onRetry,
+                canRetry: controller.canRetryRateLimit,
+              ),
+            if (controller.hasMore) ...[
+              const SizedBox(height: 12),
+              Text(
+                'More completed deliveries may be available. Search by the full order reference.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ],
         ],
-      ],
+      ),
     );
   }
 }

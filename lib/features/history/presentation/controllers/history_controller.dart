@@ -10,6 +10,7 @@ import '../../data/history_repository.dart';
 import '../../domain/history_models.dart';
 
 part 'history_controller_proof_photo.dart';
+part 'history_controller_list.dart';
 
 typedef HistoryAuthFailureHandler = Future<void> Function(ApiException error);
 
@@ -49,52 +50,32 @@ class HistoryController extends ChangeNotifier {
   String? detailProofPhotoError;
 
   Timer? _retryTimer;
-  bool _loading = false;
   bool _authFailureNotified = false;
+  bool _disposed = false;
+  String? _activeReference;
+  int _listEpoch = 0;
+  int _accountScopeGeneration = 0;
   int _detailEpoch = 0;
   int _detailProofPhotoEpoch = 0;
 
   bool get canRetryRateLimit => _retryTimer == null;
+  String? get activeReference => _activeReference;
+  int get accountScopeGeneration => _accountScopeGeneration;
+  bool get canSearch =>
+      !_disposed &&
+      canRetryRateLimit &&
+      !_isAccessBlocked &&
+      status != HistoryLoadStatus.consentRequired;
+
+  bool get _isAccessBlocked =>
+      status == HistoryLoadStatus.unauthorized ||
+      status == HistoryLoadStatus.forbidden ||
+      status == HistoryLoadStatus.secureStorageFailure;
 
   void _notifyHistoryListeners() => notifyListeners();
 
-  Future<void> load({String? reference}) async {
-    if (_loading || !canRetryRateLimit) {
-      return;
-    }
-    _loading = true;
-    _authFailureNotified = false;
-    status = HistoryLoadStatus.loading;
-    errorMessage = null;
-    retryAfter = null;
-    notifyListeners();
-    try {
-      final page = await historyRepository.fetchHistory(reference: reference);
-      items = List<DeliveryHistoryItem>.unmodifiable(page.items);
-      hasMore = page.hasMore;
-      nextCursor = page.nextCursor;
-      status = page.items.isEmpty
-          ? HistoryLoadStatus.empty
-          : HistoryLoadStatus.loaded;
-      errorMessage = null;
-      notifyListeners();
-    } on ApiException catch (error) {
-      await _setListError(error);
-    } on TokenStorageException {
-      status = HistoryLoadStatus.secureStorageFailure;
-      errorMessage = 'Secure session storage is unavailable. Delivery history cannot be loaded.';
-      notifyListeners();
-    } on ApiContractException {
-      status = HistoryLoadStatus.failed;
-      errorMessage =
-          'The delivery history response was not understood. Please retry.';
-      notifyListeners();
-    } finally {
-      _loading = false;
-    }
-  }
-
   Future<void> loadDetail(String taskId) async {
+    if (_disposed) return;
     final epoch = ++_detailEpoch;
     _clearDetailProofPhoto(notify: false);
     detailStatus = HistoryLoadStatus.loading;
@@ -118,7 +99,11 @@ class HistoryController extends ChangeNotifier {
         _startRetryDelay(error.retryAfter);
       }
       notifyListeners();
-      if (error.statusCode == 401) {
+      if (_isAccessLoss(error)) {
+        _clearAccountHistory();
+        status = _stateFor(error);
+        errorMessage = _messageForError(error);
+        notifyListeners();
         await _notifyAuthFailure(error);
       }
     } on TokenStorageException {
@@ -141,13 +126,9 @@ class HistoryController extends ChangeNotifier {
     _retryTimer?.cancel();
     _retryTimer = null;
     status = HistoryLoadStatus.idle;
-    items = const <DeliveryHistoryItem>[];
-    hasMore = false;
-    nextCursor = null;
     errorMessage = null;
     retryAfter = null;
-    _detailEpoch++;
-    _clearDetail(notify: false);
+    _clearAccountHistory();
     notifyListeners();
   }
 
@@ -166,21 +147,48 @@ class HistoryController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _retryTimer?.cancel();
+    _clearAccountHistory();
     super.dispose();
   }
 
   Future<void> _setListError(ApiException error) async {
     status = _stateFor(error);
     errorMessage = _messageForError(error);
+    if (_isAccessLoss(error)) {
+      _clearAccountHistory();
+    } else if (status == HistoryLoadStatus.consentRequired) {
+      _resetList();
+      _detailEpoch++;
+      _clearDetail(notify: false);
+    }
     if (status == HistoryLoadStatus.rateLimited) {
       _startRetryDelay(error.retryAfter);
     }
     notifyListeners();
-    if (error.statusCode == 401) {
-      _clearDetailProofPhoto(notify: false);
+    if (_isAccessLoss(error)) {
       await _notifyAuthFailure(error);
     }
+  }
+
+  bool _isAccessLoss(ApiException error) =>
+      error.statusCode == 401 ||
+      (error.statusCode == 403 && error.code != 'POLICY_CONSENT_REQUIRED');
+
+  void _clearAccountHistory() {
+    _listEpoch++;
+    _accountScopeGeneration++;
+    _activeReference = null;
+    _resetList();
+    _detailEpoch++;
+    _clearDetail(notify: false);
+  }
+
+  void _resetList() {
+    items = const <DeliveryHistoryItem>[];
+    hasMore = false;
+    nextCursor = null;
   }
 
   Future<void> _notifyAuthFailure(ApiException error) async {

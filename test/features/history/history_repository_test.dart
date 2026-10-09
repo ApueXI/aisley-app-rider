@@ -10,6 +10,48 @@ import 'package:aisley_app/core/security/token_storage.dart';
 import 'package:aisley_app/features/history/data/history_repository.dart';
 
 void main() {
+  test(
+    'reference preserves case and internal characters through URI encoding',
+    () async {
+      late http.Request request;
+      final repository = _repository((incoming) async {
+        request = incoming;
+        return http.Response(jsonEncode(_historyResponse), 200);
+      });
+      await repository.fetchHistory(reference: '  Order / +?&=42  ');
+      expect(request.url.queryParameters, {
+        'reference': 'Order / +?&=42',
+        'limit': '20',
+      });
+    },
+  );
+
+  test('empty references omit the query and limits remain bounded', () async {
+    final requests = <http.Request>[];
+    final repository = _repository((incoming) async {
+      requests.add(incoming);
+      return http.Response(jsonEncode(_historyResponse), 200);
+    });
+    for (final reference in [null, '', '   ']) {
+      await repository.fetchHistory(reference: reference);
+    }
+    await repository.fetchHistory(limit: 1);
+    await repository.fetchHistory(limit: 50);
+    expect(
+      requests.take(3).map((request) => request.url.queryParameters),
+      everyElement({'limit': '20'}),
+    );
+    expect(requests[3].url.queryParameters, {'limit': '1'});
+    expect(requests[4].url.queryParameters, {'limit': '50'});
+    for (final limit in [0, 51]) {
+      await expectLater(
+        repository.fetchHistory(limit: limit),
+        throwsArgumentError,
+      );
+    }
+    expect(requests.length, 5);
+  });
+
   test('reads private delivered history with the documented query', () async {
     late http.Request request;
     final repository = _repository((incoming) async {
