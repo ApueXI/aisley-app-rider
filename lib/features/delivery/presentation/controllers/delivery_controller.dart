@@ -10,8 +10,10 @@ import '../../../../core/security/token_storage.dart';
 import '../../../pickup/domain/pickup_models.dart';
 import '../../data/delivery_repository.dart';
 import '../../domain/delivery_models.dart';
+import '../../domain/failed_delivery_attempt.dart';
 import '../../domain/delivery_proof_photo.dart';
 
+part 'delivery_controller_failed_attempts.dart';
 part 'delivery_controller_reads.dart';
 part 'delivery_controller_movement.dart';
 part 'delivery_controller_proof_submission.dart';
@@ -100,6 +102,15 @@ class DeliveryController extends ChangeNotifier {
   final Map<String, _PendingCompletionAttempt> _pendingCompletions =
       <String, _PendingCompletionAttempt>{};
 
+  final Map<String, PendingFailedDeliveryAttempt> _pendingFailedAttempts = {};
+  final Map<String, FailedDeliveryAttemptReceipt> failedAttemptReceipts = {};
+  final Map<String, String> failedAttemptErrors = {};
+  final Map<String, Map<String, List<String>>> failedAttemptFieldErrors = {};
+  final Set<String> _failedAttemptBusy = {};
+  final Set<String> _failedAttemptBlocked = {};
+  final Set<String> _failedAttemptKeyConflicts = {};
+  final Set<String> _invalidatedProofTasks = {};
+
   int _loadEpoch = 0;
   int _proofPhotoEpochCounter = 0;
   final Map<String, int> _proofPhotoEpochs = <String, int>{};
@@ -131,7 +142,8 @@ class DeliveryController extends ChangeNotifier {
 
   bool isActionBusy(PickupTask task) {
     final status = actionStatus(task);
-    return status == DeliveryActionStatus.moving ||
+    return _failedAttemptBusy.contains(task.id) ||
+        status == DeliveryActionStatus.moving ||
         status == DeliveryActionStatus.loading ||
         status == DeliveryActionStatus.proofSubmitting ||
         status == DeliveryActionStatus.completionLoading ||
@@ -139,7 +151,9 @@ class DeliveryController extends ChangeNotifier {
   }
 
   bool canStartAction(PickupTask task) {
-    if (!canRetryRateLimit) {
+    if (!canRetryRateLimit ||
+        hasPendingFailedAttempt(task) ||
+        _failedAttemptBusy.contains(task.id)) {
       return false;
     }
     return switch (actionStatus(task)) {
@@ -215,6 +229,14 @@ class DeliveryController extends ChangeNotifier {
     _actionStatuses.clear();
     _actionErrors.clear();
     _actionRetryAfter.clear();
+    _pendingFailedAttempts.clear();
+    failedAttemptReceipts.clear();
+    failedAttemptErrors.clear();
+    failedAttemptFieldErrors.clear();
+    _failedAttemptBusy.clear();
+    _failedAttemptBlocked.clear();
+    _failedAttemptKeyConflicts.clear();
+    _invalidatedProofTasks.clear();
     _pendingMovements.clear();
     _pendingProofs.clear();
     _pendingCompletions.clear();
@@ -223,6 +245,10 @@ class DeliveryController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _pendingFailedAttempts.clear();
+    failedAttemptReceipts.clear();
+    failedAttemptErrors.clear();
+    failedAttemptFieldErrors.clear();
     _disposed = true;
     _loadEpoch++;
     clearAllProofPhotos(notify: false);
@@ -237,6 +263,7 @@ class DeliveryController extends ChangeNotifier {
   /// Invalidates private reads while preserving uncertain action attempts.
   void invalidateDetails() {
     _loadEpoch++;
+    _failedAttemptBusy.clear();
     contexts.clear();
     contextStatuses.clear();
     contextErrors.clear();

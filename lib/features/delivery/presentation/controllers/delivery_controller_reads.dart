@@ -2,7 +2,10 @@ part of 'delivery_controller.dart';
 
 extension DeliveryControllerReads on DeliveryController {
   Future<void> load() async {
-    if (_loadInFlight || !canRetryRateLimit) {
+    if (_disposed ||
+        _loadInFlight ||
+        _failedAttemptBusy.isNotEmpty ||
+        !canRetryRateLimit) {
       return;
     }
     final epoch = ++_loadEpoch;
@@ -25,6 +28,13 @@ extension DeliveryControllerReads on DeliveryController {
           .toList(growable: false);
       for (final taskId in removedTaskIds) {
         clearProofPhotosForTask(taskId, notify: false);
+        _pendingFailedAttempts.remove(taskId);
+        failedAttemptReceipts.remove(taskId);
+        failedAttemptErrors.remove(taskId);
+        failedAttemptFieldErrors.remove(taskId);
+        _failedAttemptBlocked.remove(taskId);
+        _failedAttemptKeyConflicts.remove(taskId);
+        _invalidatedProofTasks.remove(taskId);
       }
       tasks = List<PickupTask>.unmodifiable(loadedTasks);
       for (final task in loadedTasks) {
@@ -66,6 +76,7 @@ extension DeliveryControllerReads on DeliveryController {
 
   Future<void> loadDetails(PickupTask task) async {
     if (_disposed) return;
+    if (isReportingFailedAttempt(task)) return;
     final epoch = _loadEpoch;
     final taskId = task.id;
     if (contextStatuses[taskId] == DeliveryLoadStatus.loading ||
@@ -124,6 +135,7 @@ extension DeliveryControllerReads on DeliveryController {
 
   Future<void> loadCompletion(PickupTask task) async {
     if (_disposed) return;
+    if (isReportingFailedAttempt(task)) return;
     final epoch = _loadEpoch;
     final taskId = task.id;
     if (completionStatuses[taskId] == DeliveryLoadStatus.loading ||
@@ -136,7 +148,13 @@ extension DeliveryControllerReads on DeliveryController {
     try {
       final completion = await deliveryRepository.fetchCompletion(taskId);
       if (_disposed || epoch != _loadEpoch) return;
+      if (completion.taskId != taskId) {
+        throw const ApiContractException('delivery.completion.task_id');
+      }
       completions[taskId] = completion;
+      if (!_failedAttemptKeyConflicts.contains(taskId)) {
+        _failedAttemptBlocked.remove(taskId);
+      }
       completionStatuses[taskId] = DeliveryLoadStatus.loaded;
       completionErrors[taskId] = null;
       _syncTaskFromCompletion(task, completion);

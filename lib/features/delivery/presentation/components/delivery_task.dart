@@ -111,6 +111,15 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                 ),
                 const SizedBox(height: 16),
                 _buildAction(context, task, deliveryContext),
+                if (task.isFinalMile &&
+                    task.status == PickupTaskStatus.outForDelivery) ...[
+                  const SizedBox(height: 16),
+                  FailedDeliveryAttemptCard(
+                    task: task,
+                    controller: controller,
+                    authController: widget.authController,
+                  ),
+                ],
               ],
             ),
           ),

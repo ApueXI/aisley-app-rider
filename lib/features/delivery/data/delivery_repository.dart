@@ -5,9 +5,18 @@ import '../../../core/networking/api_contract_exception.dart';
 import '../../../core/networking/multipart_file_selection.dart';
 import '../../pickup/domain/pickup_models.dart';
 import '../domain/delivery_models.dart';
+import '../domain/failed_delivery_attempt.dart';
 import '../domain/delivery_proof_photo.dart';
 
 abstract interface class DeliveryRepository {
+  Future<FailedDeliveryAttemptReceipt> reportFailedAttempt({
+    required String taskId,
+    required FailedDeliveryReason reason,
+    required String? note,
+    required int expectedRevision,
+    required String idempotencyKey,
+  });
+
   Future<List<PickupTask>> fetchFinalMileTasks();
 
   Future<PickupTask> fetchFinalMileTask(String taskId);
@@ -46,6 +55,32 @@ class ApiDeliveryRepository implements DeliveryRepository {
   ApiDeliveryRepository({required this._client});
 
   final ApiClient _client;
+
+  @override
+  Future<FailedDeliveryAttemptReceipt> reportFailedAttempt({
+    required String taskId,
+    required FailedDeliveryReason reason,
+    required String? note,
+    required int expectedRevision,
+    required String idempotencyKey,
+  }) async {
+    final response = await _client.postJson(
+      '/courier/final-mile-tasks/${_pathSegment(taskId)}/failed-attempts',
+      authenticated: true,
+      headers: {'Idempotency-Key': idempotencyKey},
+      body: {
+        'reason': reason.value,
+        'note': note,
+        'expected_revision': expectedRevision,
+      },
+    );
+    if (response.statusCode != 201) {
+      throw const ApiContractException('delivery.failed_attempt.status');
+    }
+    return FailedDeliveryAttemptReceipt.fromResponse(
+      _decodeObject(response.body, 'delivery.failed_attempt'),
+    );
+  }
 
   @override
   Future<List<PickupTask>> fetchFinalMileTasks() async {

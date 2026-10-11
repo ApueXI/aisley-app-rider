@@ -257,6 +257,7 @@ void main() {
     (tester) async {
       final repository = WidgetDeliveryRepository()
         ..deliveryContext = const DeliveryContext(
+          failedAttemptCount: 0,
           taskId: 'delivery-task-1',
           status: 'out_for_delivery',
           revision: 7,

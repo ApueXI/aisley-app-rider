@@ -3,7 +3,7 @@ feature: courier-complete-delivery
 title: Complete Delivery
 system: AISLEY
 type: Feature Specification
-version: 1.6
+version: 1.7
 status: Implemented photo POD completion intent and Logistics confirmation
 implementation_status: Completion intent, Logistics proof validation, atomic delivered transition, and history records are implemented; Flutter UI is external
 flutter_status: Photo-linked COD completion intent is implemented locally in Flutter; authenticated Logistics validation, rejected-photo retry, and installed-device acceptance remain unverified
@@ -11,6 +11,7 @@ canonical: true
 role: Courier
 scope: Laravel API and external Flutter application
 backend_contract_commit: d1abeee73d0141e1fd7dda4bea0ee3fead370378
+failed_attempt_contract_commit: 4d8bfefa2a95007256e6616df415fa186d1b18eb
 backend_contract_version: courier-completion-v1-qr
 backend_contract_version_status: Historical QR baseline; the photo-POD revision below is authoritative
 ---
@@ -23,7 +24,7 @@ The Courier's **Delivered** action sends an intent linked to the current photo P
 
 ## COD confirmation revision (2026-09-23)
 
-For COD Orders, refetch the accepted-task `GET /api/v1/courier/tasks/{task}/delivery` projection and show `data.order.payable_total` with `data.order.currency` when `data.order.payment_method` is `cod`; `data.parcel.price` is merchandise subtotal, not cash due. Require an explicit confirmation that this exact amount was collected before sending `cod_collected: true`. If payment fields are absent or the cash was not collected, do not submit a successful completion intent; refetch the task. The failed-attempt API exists, but its Flutter submission UI remains unadopted. The API derives declaration amount, currency, and time from the current Order and accepts no Courier-supplied amount. Logistics confirms the declaration and proof before atomically marking delivery and COD `payment_status` as `paid`. Future prepaid Orders require their own approved read/confirmation contract.
+For COD Orders, refetch the accepted-task `GET /api/v1/courier/tasks/{task}/delivery` projection and show `data.order.payable_total` with `data.order.currency` when `data.order.payment_method` is `cod`; `data.parcel.price` is merchandise subtotal, not cash due. Require an explicit confirmation that this exact amount was collected before sending `cod_collected: true`. If payment fields are absent or the cash was not collected, do not submit a successful completion intent; refetch the task. Flutter adopts [failed-attempt reporting](../delivery-order/failed-attempts.md) and blocks Delivered intent for stale/unknown matching-photo attempt counts; source baseline `4d8bfefa2a95007256e6616df415fa186d1b18eb`, live/device acceptance remains open. The API derives declaration amount, currency, and time from the current Order and accepts no Courier-supplied amount. Logistics confirms the declaration and proof before atomically marking delivery and COD `payment_status` as `paid`. Future prepaid Orders require their own approved read/confirmation contract.
 
 ## WHAT
 
@@ -137,6 +138,7 @@ out_for_delivery
 ## HOW
 
 ### Implemented endpoints
+
 - The development-only Courier API mockup may submit completion intent after proof submission and show the GET projection while Logistics validation is pending.
 
 | Method and path                                  | Actor            | Purpose                                               |
@@ -195,9 +197,7 @@ out_for_delivery
 - Follow the first-mile migration bridge in docs/schema.md; do not replay historical fulfillment.
 - Use the shared transition service; controllers and Flutter never directly assign status.
 - Keep unavailable routes disabled until migrations and schema-health checks pass.
-- Test SQLite and PostgreSQL schema, foreign keys, uniqueness, and append-only constraints.
-- Test IDOR, role/status/affiliation denial, wrong leg, and unrelated evidence.
-- Test pending/rejected proof, premature completion, and duplicate intent.
+- Test SQLite and PostgreSQL schema, foreign keys, uniqueness, and append-only constraints. Test IDOR, role/status/affiliation denial, wrong leg, and unrelated evidence. Test pending/rejected proof, premature completion, and duplicate intent.
 - Test concurrent Logistics decisions and stale assignments without double completion.
 - Test rollback atomicity across task, Shipment, Order, event, and notification work.
 - Test that final delivery leaves Inventory unchanged; COD payment becomes `paid` only after Logistics validates proof and collection in the delivery transaction.

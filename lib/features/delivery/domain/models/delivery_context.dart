@@ -5,6 +5,8 @@ class DeliveryContext {
     required this.taskId,
     required this.status,
     this.revision,
+    this.failedAttemptCount,
+    this.failedAttempts = const [],
     this.hub,
     this.destination,
     this.recipientName,
@@ -23,6 +25,8 @@ class DeliveryContext {
   final String taskId;
   final String status;
   final int? revision;
+  final int? failedAttemptCount;
+  final List<FailedDeliveryAttempt> failedAttempts;
   final PickupLocation? hub;
   final PickupLocation? destination;
   final String? recipientName;
@@ -75,6 +79,8 @@ class DeliveryContext {
       taskId: taskId,
       status: status,
       revision: _nullableInt(source['revision']),
+      failedAttemptCount: _nonnegativeInt(source['failed_attempt_count']),
+      failedAttempts: _failedAttempts(source['failed_attempts']),
       hub: _locationFrom(
         source['hub'] ?? source['pickup_hub'] ?? source['pickup'],
       ),
@@ -125,6 +131,8 @@ class DeliveryContext {
       taskId: taskId,
       status: status ?? this.status,
       revision: revision ?? this.revision,
+      failedAttemptCount: failedAttemptCount,
+      failedAttempts: failedAttempts,
       hub: hub,
       destination: destination,
       recipientName: recipientName,
@@ -152,4 +160,18 @@ class DeliveryCodCollection {
 
   bool matches(DeliveryCodCollection other) =>
       amount == other.amount && currency == other.currency;
+}
+
+List<FailedDeliveryAttempt> _failedAttempts(Object? value) {
+  if (value == null) return const [];
+  if (value is! List || value.length > 10) {
+    throw const ApiContractException('delivery.failed_attempts');
+  }
+  return List.unmodifiable(
+    value.map(
+      (item) => FailedDeliveryAttempt.fromJson(
+        _requiredMap(item, 'delivery.failed_attempt'),
+      ),
+    ),
+  );
 }

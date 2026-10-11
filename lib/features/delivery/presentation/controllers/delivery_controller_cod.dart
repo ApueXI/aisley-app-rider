@@ -1,7 +1,7 @@
 part of 'delivery_controller.dart';
 
 extension DeliveryControllerCod on DeliveryController {
-  Future<DeliveryCodCollection?> prepareCodCompletion(PickupTask task) {
+  Future<DeliveryCodCollection?> prepareCodCompletion(PickupTask task) async {
     final proofId =
         proofs[task.id]?.proofId ?? completions[task.id]?.evidenceId;
     if (!task.isFinalMile ||
@@ -10,9 +10,19 @@ extension DeliveryControllerCod on DeliveryController {
         evidenceStatusFor(task) == 'rejected' ||
         isCompletionPending(task) ||
         !canStartAction(task)) {
-      return Future<DeliveryCodCollection?>.value(null);
+      return null;
     }
-    return _readCodCollection(task);
+    final collection = await _readCodCollection(task);
+    if (collection == null) return null;
+    if (!hasFreshProof(task)) await loadCompletion(task);
+    if (!hasFreshProof(task)) {
+      _setLocalValidationError(
+        task,
+        'Take a new photo after a failed visit, or refresh to confirm photo freshness.',
+      );
+      return null;
+    }
+    return collection;
   }
 
   Future<DeliveryCodCollection?> _readCodCollection(PickupTask task) async {
