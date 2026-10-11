@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/networking/api_client.dart';
 import '../../../../core/networking/api_contract_exception.dart';
 import '../../../../core/security/token_storage.dart';
+import '../../../../core/chat_media/draft_controller.dart';
 import '../../data/chat_repository.dart';
 import '../../domain/chat_models.dart';
 import '../../domain/chat_task_context.dart';
@@ -51,6 +52,7 @@ class ChatSendAttempt {
     required this.taskId,
     required this.counterpartyRole,
     this.threadId,
+    this.attachmentIds = const [],
   });
 
   final String body;
@@ -59,16 +61,27 @@ class ChatSendAttempt {
   final String taskId;
   final String counterpartyRole;
   final String? threadId;
+  final List<String> attachmentIds;
 }
 
 class ChatController extends ChangeNotifier {
-  ChatController({required this.repository, this.onAuthFailure});
+  ChatController({required this.repository, this.onAuthFailure, this.media});
 
   static const pollInterval = Duration(seconds: 30);
   static const maxInMemoryThreads = 100;
   static const maxInMemoryMessages = 100;
 
   final ChatRepository repository;
+  final ChatMediaDraftController? media;
+  bool unresolvedSend = false;
+  Map<String, Object?> get mediaContext => activeThread != null
+      ? {'conversation_id': activeThread!.id}
+      : {
+          'channel': 'operational',
+          'leg': activeTask?.leg,
+          'task_id': activeTask?.taskId,
+          'counterparty_role': activeTask?.counterpartyRole,
+        };
   final ChatAuthFailureHandler? onAuthFailure;
 
   List<ChatThread> threads = const [];
@@ -129,6 +142,8 @@ class ChatController extends ChangeNotifier {
   }
 
   void clear() {
+    media?.clear();
+    unresolvedSend = false;
     _epoch++;
     _inboxRequestId++;
     _threadRequestId++;
@@ -157,6 +172,7 @@ class ChatController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    media?.dispose();
     stopPolling();
     _retryTimer?.cancel();
     super.dispose();

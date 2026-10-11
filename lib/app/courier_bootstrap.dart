@@ -1,3 +1,6 @@
+import '../core/chat_media/api_repository.dart';
+import '../core/chat_media/draft_controller.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -142,7 +145,19 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
         notificationRepository: ApiNotificationRepository(client: apiClient),
         onAuthFailure: authController.handleNotificationAuthFailure,
       );
+      late final ChatMediaDraftController chatMedia;
+      chatMedia = ChatMediaDraftController(
+        ApiChatMediaRepository(
+          apiClient,
+          generation: () => chatMedia.generation,
+          onDenial: (error) async {
+            chatController.clear();
+            await authController.handleChatAuthFailure(error);
+          },
+        ),
+      );
       chatController = ChatController(
+        media: chatMedia,
         repository: ApiChatRepository(client: apiClient),
         onAuthFailure: authController.handleChatAuthFailure,
       );

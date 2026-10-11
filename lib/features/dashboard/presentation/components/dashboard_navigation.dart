@@ -80,8 +80,10 @@ mixin _DashboardNavigation on State<DashboardScreen> {
     );
     if (mounted && widget.authController.status == AuthStatus.authenticated) {
       unawaited(
-        widget.dashboardPreviewController?.refreshFirstMile() ??
-            Future<void>.value(),
+        widget.authController.dashboard?.operational == true
+            ? widget.authController.loadDashboard()
+            : widget.dashboardPreviewController?.refreshFirstMile() ??
+                  Future<void>.value(),
       );
     }
   }
@@ -98,6 +100,9 @@ mixin _DashboardNavigation on State<DashboardScreen> {
         ),
       ),
     );
+    if (mounted && widget.authController.status == AuthStatus.authenticated) {
+      await widget.authController.loadDashboard();
+    }
   }
 
   Future<void> _openDeliveries() async {
@@ -119,8 +124,10 @@ mixin _DashboardNavigation on State<DashboardScreen> {
     );
     if (mounted && widget.authController.status == AuthStatus.authenticated) {
       unawaited(
-        widget.dashboardPreviewController?.refreshFinalMile() ??
-            Future<void>.value(),
+        widget.authController.dashboard?.operational == true
+            ? widget.authController.loadDashboard()
+            : widget.dashboardPreviewController?.refreshFinalMile() ??
+                  Future<void>.value(),
       );
     }
   }

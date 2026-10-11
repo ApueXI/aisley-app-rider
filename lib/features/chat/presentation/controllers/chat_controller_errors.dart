@@ -35,6 +35,7 @@ extension ChatControllerErrors on ChatController {
         threads = threads
             .where((thread) => thread.id != unavailableId)
             .toList(growable: false);
+        media?.clear();
         pendingAttempt = null;
         stopPolling();
         activeThread = null;

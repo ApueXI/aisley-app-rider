@@ -1,4 +1,5 @@
 import '../../../core/networking/api_contract_exception.dart';
+part 'dashboard_response.dart';
 
 class DashboardSnapshot {
   const DashboardSnapshot({
@@ -11,7 +12,7 @@ class DashboardSnapshot {
   final DashboardFreshness freshness;
   final String? generatedAt;
 
-  /// The current API exposes a scaffold, not an operational task feed.
+  /// Validate the legacy default-v1 scaffold separately from operational v2.
   /// Fail closed if that contract changes instead of showing invented queues.
   factory DashboardSnapshot.fromScaffoldResponse(Map<String, dynamic> json) {
     final data = json['data'];
@@ -86,6 +87,35 @@ class DashboardSnapshot {
     );
   }
 
+  factory DashboardSnapshot.fromResponse(Map<String, dynamic> json) =>
+      parseDashboardResponse(json);
+
+  bool get operational =>
+      freshness.state == DashboardFreshnessState.fresh ||
+      freshness.state == DashboardFreshnessState.partial;
+
+  DashboardSnapshot retainingFailedSections(DashboardSnapshot? previous) {
+    if (previous == null || !operational || !previous.operational) return this;
+    return DashboardSnapshot(
+      sections: {
+        for (final entry in sections.entries)
+          entry.key:
+              entry.value.state == DashboardSectionState.failed &&
+                  previous.section(entry.key).items.isNotEmpty
+              ? DashboardSection(
+                  state: DashboardSectionState.stale,
+                  reason: entry.value.reason,
+                  items: previous.section(entry.key).items,
+                  generatedAt: previous.section(entry.key).generatedAt,
+                  hasMore: previous.section(entry.key).hasMore,
+                )
+              : entry.value,
+      },
+      freshness: freshness,
+      generatedAt: generatedAt,
+    );
+  }
+
   DashboardSection section(String key) {
     return sections[key] ??
         const DashboardSection(state: DashboardSectionState.unknown);
@@ -106,11 +136,15 @@ class DashboardSection {
     required this.state,
     this.reason,
     this.items = const <Map<String, dynamic>>[],
+    this.generatedAt,
+    this.hasMore = false,
   });
 
   final DashboardSectionState state;
   final String? reason;
   final List<Map<String, dynamic>> items;
+  final String? generatedAt;
+  final bool hasMore;
 
   factory DashboardSection.fromJson(Map<String, dynamic> json) {
     final rawItems = json['data'];
@@ -124,12 +158,14 @@ class DashboardSection {
     return DashboardSection(
       state: _parseSectionState(json['state']),
       reason: json['reason']?.toString(),
+      generatedAt: json['generated_at']?.toString(),
+      hasMore: json['has_more'] == true,
       items: items,
     );
   }
 }
 
-enum DashboardFreshnessState { fresh, stale, scaffold, unknown }
+enum DashboardFreshnessState { fresh, partial, stale, scaffold, unknown }
 
 class DashboardFreshness {
   const DashboardFreshness({
@@ -165,6 +201,7 @@ DashboardSectionState _parseSectionState(Object? value) {
 DashboardFreshnessState _parseFreshnessState(Object? value) {
   return switch (value) {
     'fresh' => DashboardFreshnessState.fresh,
+    'partial' => DashboardFreshnessState.partial,
     'stale' => DashboardFreshnessState.stale,
     'scaffold' => DashboardFreshnessState.scaffold,
     _ => DashboardFreshnessState.unknown,

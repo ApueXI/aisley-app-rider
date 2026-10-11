@@ -77,6 +77,12 @@ extension ChatControllerReads on ChatController {
   }
 
   Future<void> openThread(ChatThread thread) async {
+    if (pendingAttempt != null &&
+        (pendingAttempt!.taskId != thread.taskId ||
+            pendingAttempt!.counterpartyRole != thread.counterpartyRole)) {
+      return;
+    }
+    if (pendingAttempt == null) media?.clear();
     _epoch++;
     _threadRequestId++;
     activeThread = thread;
@@ -97,6 +103,12 @@ extension ChatControllerReads on ChatController {
   }
 
   Future<void> openTask(ChatTaskContext task) async {
+    if (pendingAttempt != null &&
+        (pendingAttempt!.taskId != task.taskId ||
+            pendingAttempt!.counterpartyRole != task.counterpartyRole)) {
+      return;
+    }
+    if (pendingAttempt == null) media?.clear();
     _epoch++;
     _threadRequestId++;
     activeThread = null;

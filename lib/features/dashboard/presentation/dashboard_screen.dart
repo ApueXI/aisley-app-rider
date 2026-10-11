@@ -33,6 +33,7 @@ import 'controllers/dashboard_preview_controller.dart';
 
 part 'components/dashboard_body.dart';
 part 'components/dashboard_cards.dart';
+part 'components/dashboard_aggregate.dart';
 part 'components/dashboard_status.dart';
 part 'components/dashboard_task_previews.dart';
 part 'components/dashboard_navigation.dart';
@@ -121,10 +122,11 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _refreshDashboard({bool refreshNotifications = true}) async {
     if (widget.authController.status != AuthStatus.authenticated) return;
+    await widget.authController.loadDashboard();
     await Future.wait<void>([
-      widget.authController.loadDashboard(),
-      if (widget.dashboardPreviewController case final controller?)
-        controller.refreshAll(),
+      if (widget.authController.dashboard?.operational != true)
+        if (widget.dashboardPreviewController case final controller?)
+          controller.refreshAll(),
       if (refreshNotifications && widget.notificationController != null)
         widget.notificationController!.refresh(silent: true),
     ]);
@@ -273,6 +275,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     historyController: widget.historyController,
                     onOpenDeliveries: _openDeliveries,
                     onOpenHistory: _openHistory,
+                    onOpenBatches: widget.batchController == null
+                        ? null
+                        : _openBatches,
                     onOpenNotifications: widget.notificationController == null
                         ? null
                         : _openNotifications,
@@ -295,6 +300,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                       historyController: widget.historyController,
                       onOpenDeliveries: _openDeliveries,
                       onOpenHistory: _openHistory,
+                      onOpenBatches: widget.batchController == null
+                          ? null
+                          : _openBatches,
                       onOpenNotifications: widget.notificationController == null
                           ? null
                           : _openNotifications,

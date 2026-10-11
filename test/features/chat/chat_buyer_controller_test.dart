@@ -363,6 +363,7 @@ class _Repo implements ChatRepository {
     required String counterpartyRole,
     required String body,
     required String idempotencyKey,
+    List<String> attachmentIds = const [],
   }) async {
     keys.add(idempotencyKey);
     bodies.add(body);
@@ -376,6 +377,7 @@ class _Repo implements ChatRepository {
     required String id,
     required String body,
     required String idempotencyKey,
+    List<String> attachmentIds = const [],
   }) async {
     keys.add(idempotencyKey);
     bodies.add(body);

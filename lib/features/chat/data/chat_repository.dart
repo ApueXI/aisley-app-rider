@@ -24,11 +24,13 @@ abstract interface class ChatRepository {
     required String counterpartyRole,
     required String body,
     required String idempotencyKey,
+    List<String> attachmentIds = const [],
   });
   Future<ChatSendResult> send({
     required String id,
     required String body,
     required String idempotencyKey,
+    List<String> attachmentIds = const [],
   });
   Future<ChatThread> markRead(String id, int lastReadSequence);
 }
@@ -100,6 +102,7 @@ class ApiChatRepository implements ChatRepository {
     required String counterpartyRole,
     required String body,
     required String idempotencyKey,
+    List<String> attachmentIds = const [],
   }) async {
     if (!chatLegs.contains(leg) || !chatRoles.contains(counterpartyRole)) {
       throw ArgumentError('Invalid chat context');
@@ -139,6 +142,7 @@ class ApiChatRepository implements ChatRepository {
         'task_id': taskId,
         'counterparty_role': counterpartyRole,
         'body': body,
+        if (attachmentIds.isNotEmpty) 'attachment_ids': attachmentIds,
       },
     );
     return _sendEnvelope(response.body, 'chat.start');
@@ -149,12 +153,16 @@ class ApiChatRepository implements ChatRepository {
     required String id,
     required String body,
     required String idempotencyKey,
+    List<String> attachmentIds = const [],
   }) async {
     final response = await _client.postJson(
       '$_base/${_segment(id)}/messages',
       authenticated: true,
       headers: {'Idempotency-Key': idempotencyKey},
-      body: {'body': body},
+      body: {
+        'body': body,
+        if (attachmentIds.isNotEmpty) 'attachment_ids': attachmentIds,
+      },
     );
     return _sendEnvelope(response.body, 'chat.send');
   }

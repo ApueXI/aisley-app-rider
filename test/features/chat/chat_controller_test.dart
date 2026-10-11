@@ -1,5 +1,9 @@
 import 'dart:async';
 
+import 'package:aisley_app/core/chat_media/draft_controller.dart';
+
+import '../../support/chat_media_fake.dart';
+
 import 'package:aisley_app/core/networking/api_client.dart';
 import 'package:aisley_app/features/auth/data/auth_repository.dart';
 import 'package:aisley_app/features/auth/presentation/controllers/auth_controller.dart';
@@ -12,6 +16,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'image-only Courier send freezes attachment IDs and key after timeout',
+    () async {
+      final repository = _ChatRepository()..failFirstStart = true;
+      final media = ChatMediaDraftController(MediaFake());
+      final controller = ChatController(repository: repository, media: media);
+      await controller.openTask(
+        const ChatTaskContext(leg: 'first_mile', taskId: 'task-1'),
+      );
+      await media.add(controller.mediaContext);
+      expect(await controller.sendMessage(''), isFalse);
+      expect(controller.pendingAttempt!.attachmentIds, [assetId]);
+      final key = controller.pendingAttempt!.key;
+      controller.discardPendingAttempt();
+      expect(controller.pendingAttempt!.key, key);
+      await media.remove(media.items.single);
+      expect(media.items, hasLength(1));
+      expect(await controller.sendMessage(''), isTrue);
+      expect(repository.startKeys, [key, key]);
+      expect(media.items, isEmpty);
+      controller.dispose();
+    },
+  );
+
   test(
     'timeout retains exact first-send body and UUID until confirmed',
     () async {
@@ -442,6 +470,7 @@ class _ChatRepository implements ChatRepository {
     required String counterpartyRole,
     required String body,
     required String idempotencyKey,
+    List<String> attachmentIds = const [],
   }) async {
     startKeys.add(idempotencyKey);
     startBodies.add(body);
@@ -465,6 +494,7 @@ class _ChatRepository implements ChatRepository {
     required String id,
     required String body,
     required String idempotencyKey,
+    List<String> attachmentIds = const [],
   }) async {
     sendKeys.add(idempotencyKey);
     if (sendError case final error?) throw error;

@@ -7,7 +7,7 @@ extension ChatControllerSends on ChatController {
     final body = text.trim();
     if (sendStatus == ChatSendStatus.conflict) return false;
     if (task == null ||
-        body.isEmpty ||
+        (body.isEmpty && media?.hasImages != true) ||
         body.length > 2000 ||
         !task.canCompose ||
         (threadStatus != ChatLoadStatus.loaded &&
@@ -21,6 +21,7 @@ extension ChatControllerSends on ChatController {
       return false;
     }
     if (!canRetry || sendStatus == ChatSendStatus.sending) return false;
+    if (media != null && !media!.ready) return false;
     var attempt = pendingAttempt;
     if (attempt != null &&
         (attempt.body != body ||
@@ -28,6 +29,7 @@ extension ChatControllerSends on ChatController {
             attempt.taskId != task.taskId ||
             attempt.counterpartyRole != task.counterpartyRole ||
             (attempt.threadId != null && attempt.threadId != thread?.id))) {
+      unresolvedSend = true;
       sendStatus = ChatSendStatus.uncertain;
       sendError =
           'Retry the same message, or discard the pending attempt first.';
@@ -41,8 +43,10 @@ extension ChatControllerSends on ChatController {
       taskId: task.taskId,
       counterpartyRole: task.counterpartyRole,
       threadId: thread?.id,
+      attachmentIds: media?.hasImages == true ? media!.ids : const [],
     );
     pendingAttempt = attempt;
+    if (media != null) media!.locked = true;
     sendStatus = ChatSendStatus.sending;
     sendError = null;
     _notify();
@@ -59,7 +63,10 @@ extension ChatControllerSends on ChatController {
         }
         _replaceThread(current);
         if (current.sendAllowed != true) {
-          pendingAttempt = null;
+          if (!unresolvedSend) {
+            pendingAttempt = null;
+            media?.clear();
+          }
           sendStatus = ChatSendStatus.conflict;
           sendError =
               'This conversation is read-only. Replies are unavailable.';
@@ -74,11 +81,13 @@ extension ChatControllerSends on ChatController {
               counterpartyRole: attempt.counterpartyRole,
               body: attempt.body,
               idempotencyKey: attempt.key,
+              attachmentIds: attempt.attachmentIds,
             )
           : await repository.send(
               id: attempt.threadId!,
               body: attempt.body,
               idempotencyKey: attempt.key,
+              attachmentIds: attempt.attachmentIds,
             );
       if (epoch != _epoch) return false;
       if (result.thread.leg != attempt.leg ||
@@ -91,6 +100,8 @@ extension ChatControllerSends on ChatController {
       _replaceThread(result.thread);
       _mergeMessages([result.message]);
       pendingAttempt = null;
+      unresolvedSend = false;
+      media?.clear(preserveHistory: true);
       sendStatus = ChatSendStatus.saved;
       threadStatus = ChatLoadStatus.loaded;
       _notify();
@@ -108,8 +119,9 @@ extension ChatControllerSends on ChatController {
         await _readFailure(error, inbox: false);
         return false;
       }
-      if (error.statusCode == 422) {
+      if (error.statusCode == 422 && !unresolvedSend) {
         pendingAttempt = null;
+        if (media != null) media!.locked = false;
         sendStatus = ChatSendStatus.validation;
         sendError = 'The message was rejected. Check its length and retry.';
       } else if (error.statusCode == 409) {
@@ -122,6 +134,7 @@ extension ChatControllerSends on ChatController {
             : 'This conversation changed. Refresh before sending again.';
         unawaited(refreshActive());
       } else {
+        unresolvedSend = true;
         sendStatus = ChatSendStatus.uncertain;
         sendError = error.statusCode == 429
             ? 'Too many messages. Wait before retrying this exact message.'
@@ -132,6 +145,7 @@ extension ChatControllerSends on ChatController {
       return false;
     } on ApiContractException {
       if (epoch != _epoch) return false;
+      unresolvedSend = true;
       sendStatus = ChatSendStatus.uncertain;
       sendError =
           'The send response was not understood. Retry this exact message.';
@@ -148,6 +162,8 @@ extension ChatControllerSends on ChatController {
   }
 
   void discardPendingAttempt() {
+    if (unresolvedSend || sendStatus == ChatSendStatus.sending) return;
+    media?.clear();
     pendingAttempt = null;
     sendStatus = ChatSendStatus.idle;
     sendError = null;

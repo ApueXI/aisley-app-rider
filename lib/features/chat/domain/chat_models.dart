@@ -1,3 +1,4 @@
+import '../../../core/chat_media/attachment.dart';
 import '../../../core/networking/api_contract_exception.dart';
 
 const chatRoles = <String>{'logistics', 'seller', 'customer'};
@@ -108,6 +109,7 @@ class ChatMessage {
     required this.mine,
     required this.body,
     required this.createdAt,
+    this.attachments = const [],
   });
 
   final String id;
@@ -117,6 +119,7 @@ class ChatMessage {
   final bool mine;
   final String body;
   final DateTime createdAt;
+  final List<ChatAttachment> attachments;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     final mine = json['mine'];
@@ -140,6 +143,7 @@ class ChatMessage {
         'chat.message.sender_role',
       ),
       mine: mine,
+      attachments: _attachments(json['attachments']),
       body: _requiredString(json['body'], 'chat.message.body'),
       createdAt: _requiredDateTime(
         json['created_at'],
@@ -201,4 +205,12 @@ DateTime _requiredDateTime(Object? value, String field) {
 DateTime? _nullableDateTime(Object? value, String field) {
   if (value == null) return null;
   return _requiredDateTime(value, field);
+}
+
+List<ChatAttachment> _attachments(Object? raw) {
+  try {
+    return ChatAttachment.list(raw);
+  } on FormatException {
+    throw const ApiContractException('chat.attachments');
+  }
 }

@@ -18,6 +18,7 @@ class ApiDashboardRepository implements DashboardRepository {
     final response = await _client.get(
       '/courier/dashboard',
       authenticated: true,
+      queryParameters: const {'version': '2'},
     );
 
     dynamic decoded;
@@ -30,6 +31,6 @@ class ApiDashboardRepository implements DashboardRepository {
       throw const ApiContractException('dashboard.response');
     }
 
-    return DashboardSnapshot.fromScaffoldResponse(decoded);
+    return DashboardSnapshot.fromResponse(decoded);
   }
 }
