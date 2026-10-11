@@ -2,6 +2,7 @@ part of 'pickup_controller.dart';
 
 extension PickupControllerScheduleFilter on PickupController {
   Future<void> selectFirstMileSchedule(String? scheduleId) async {
+    if (isTargeted || _disposed) return;
     final normalized = scheduleId?.trim();
     final selected = normalized == null || normalized.isEmpty
         ? null
@@ -20,6 +21,12 @@ extension PickupControllerScheduleFilter on PickupController {
   }
 
   Future<void> reloadFirstMile() async {
+    if (_disposed) return;
+    if (targetScheduleId != null) {
+      _firstMileScheduleId = targetScheduleId;
+      firstMileTasks = const <PickupTask>[];
+      firstMilePage = null;
+    }
     if (!canRetryRateLimit) {
       firstMileStatus = PickupSectionStatus.rateLimited;
       firstMileErrorMessage = 'Please wait before retrying pickup work.';
@@ -35,7 +42,8 @@ extension PickupControllerScheduleFilter on PickupController {
   Future<void> _loadFirstMile(int epoch) async {
     final requestId = ++_firstMileRequestId;
     final scheduleId = _firstMileScheduleId;
-    bool current() => epoch == _loadEpoch && requestId == _firstMileRequestId;
+    bool current() =>
+        !_disposed && epoch == _loadEpoch && requestId == _firstMileRequestId;
     try {
       final page = await pickupRepository.fetchFirstMileTasks(
         pickupScheduleId: scheduleId,

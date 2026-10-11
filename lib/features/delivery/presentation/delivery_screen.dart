@@ -10,6 +10,7 @@ import '../../pickup/domain/pickup_models.dart';
 import '../domain/delivery_models.dart';
 import '../domain/delivery_proof_photo.dart';
 import 'components/delivery_proof_photo_preview.dart';
+import 'components/failed_delivery_attempt_card.dart';
 import 'controllers/delivery_controller.dart';
 import 'photo_capture/delivery_photo_capture.dart';
 import 'photo_capture/delivery_photo_capture_result.dart';

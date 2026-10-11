@@ -13,9 +13,11 @@ import '../../chat/presentation/chat_inbox_screen.dart';
 import '../../chat/presentation/controllers/chat_controller.dart';
 import '../../delivery/presentation/controllers/delivery_controller.dart';
 import '../../delivery/presentation/delivery_screen.dart';
+import '../../delivery/presentation/final_mile_task_entry_screen.dart';
 import '../../history/presentation/controllers/history_controller.dart';
 import '../../history/presentation/history_screen.dart';
 import '../../notification/domain/notification_models.dart';
+import '../../notification/domain/notification_target.dart';
 import '../../notification/presentation/controllers/notification_controller.dart';
 import '../../notification/presentation/notification_screen.dart';
 import '../../policy/presentation/controllers/policy_controller.dart';
@@ -31,6 +33,7 @@ import 'controllers/dashboard_preview_controller.dart';
 
 part 'components/dashboard_body.dart';
 part 'components/dashboard_cards.dart';
+part 'components/dashboard_aggregate.dart';
 part 'components/dashboard_status.dart';
 part 'components/dashboard_task_previews.dart';
 part 'components/dashboard_navigation.dart';
@@ -119,10 +122,11 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _refreshDashboard({bool refreshNotifications = true}) async {
     if (widget.authController.status != AuthStatus.authenticated) return;
+    await widget.authController.loadDashboard();
     await Future.wait<void>([
-      widget.authController.loadDashboard(),
-      if (widget.dashboardPreviewController case final controller?)
-        controller.refreshAll(),
+      if (widget.authController.dashboard?.operational != true)
+        if (widget.dashboardPreviewController case final controller?)
+          controller.refreshAll(),
       if (refreshNotifications && widget.notificationController != null)
         widget.notificationController!.refresh(silent: true),
     ]);
@@ -271,6 +275,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     historyController: widget.historyController,
                     onOpenDeliveries: _openDeliveries,
                     onOpenHistory: _openHistory,
+                    onOpenBatches: widget.batchController == null
+                        ? null
+                        : _openBatches,
                     onOpenNotifications: widget.notificationController == null
                         ? null
                         : _openNotifications,
@@ -293,6 +300,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                       historyController: widget.historyController,
                       onOpenDeliveries: _openDeliveries,
                       onOpenHistory: _openHistory,
+                      onOpenBatches: widget.batchController == null
+                          ? null
+                          : _openBatches,
                       onOpenNotifications: widget.notificationController == null
                           ? null
                           : _openNotifications,

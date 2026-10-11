@@ -45,6 +45,7 @@ class _ProofAndCompletionCard extends StatelessWidget {
         ? null
         : proof?.proofId ?? completion?.evidenceId;
     final proofRejected = evidenceStatus == 'rejected';
+    final proofStale = evidenceId != null && !controller.hasFreshProof(task);
     final completionPending =
         !failedNewProof && controller.isCompletionPending(task);
     final busy = controller.isActionBusy(task);
@@ -55,7 +56,7 @@ class _ProofAndCompletionCard extends StatelessWidget {
         !isPicking &&
         !controller.hasPendingProof(task) &&
         !completionPending &&
-        (evidenceId == null || proofRejected);
+        (evidenceId == null || proofRejected || proofStale);
 
     return Card(
       // Keep each paragraph and action independently readable when scrolled.
@@ -79,6 +80,12 @@ class _ProofAndCompletionCard extends StatelessWidget {
               Text(
                 'Logistics rejected the previous photo. Choose a new photo and submit a new proof.',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            if (proofStale && !completionPending) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'A fresh photo is required after a failed visit. Refresh to confirm photo freshness or submit a new photo.',
               ),
             ],
             if (canChoosePhoto && selectedPhoto == null) ...[
@@ -254,6 +261,10 @@ class _ProofAndCompletionCard extends StatelessWidget {
               const Text('Submit photo proof before sending Delivered intent.')
             else if (proofRejected)
               const Text('Submit a new photo proof after Logistics rejection.')
+            else if (proofStale)
+              const Text(
+                'Refresh or submit a fresh photo before Delivered intent.',
+              )
             else ...[
               const Text(
                 'Send a separate Delivered intent for this photo. '

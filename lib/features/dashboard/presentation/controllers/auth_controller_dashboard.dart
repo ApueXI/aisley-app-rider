@@ -20,7 +20,7 @@ extension AuthControllerDashboard on AuthController {
           isSigningOut) {
         return;
       }
-      dashboard = snapshot;
+      dashboard = snapshot.retainingFailedSections(dashboard);
       dashboardStatus = DashboardLoadStatus.loaded;
       _notify();
     } on ApiException catch (error) {

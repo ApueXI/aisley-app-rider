@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../../../core/networking/api_contract_exception.dart';
 import '../../pickup/domain/pickup_models.dart';
+import 'failed_delivery_attempt.dart';
 
 part 'models/delivery_context.dart';
 
@@ -92,6 +93,7 @@ class CompletionProjection {
     required this.taskId,
     required this.taskStatus,
     required this.completionStatus,
+    this.proofFailedAttemptCount,
     this.intentId,
     this.orderStatus,
     this.evidenceStatus,
@@ -103,6 +105,7 @@ class CompletionProjection {
   final String taskId;
   final String taskStatus;
   final String? completionStatus;
+  final int? proofFailedAttemptCount;
   final String? intentId;
   final String? orderStatus;
   final String? evidenceStatus;
@@ -133,6 +136,9 @@ class CompletionProjection {
       completionStatus: _nullableString(
         data['completion_status'],
         'delivery.completion.completion_status',
+      ),
+      proofFailedAttemptCount: _nonnegativeInt(
+        data['proof_failed_attempt_count'],
       ),
       intentId: _nullableString(data['intent_id']),
       orderStatus: _nullableString(data['order_status']),
@@ -261,4 +267,12 @@ DateTime? _nullableDateTime(Object? value) {
     throw const ApiContractException('delivery.timestamp');
   }
   return parsed.toUtc();
+}
+
+int? _nonnegativeInt(Object? value) {
+  if (value == null) return null;
+  if (value is! int || value < 0) {
+    throw const ApiContractException('delivery.attempt_count');
+  }
+  return value;
 }

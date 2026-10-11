@@ -65,13 +65,14 @@ void main() {
       onAuthFailure: (error) async => authFailure = error,
     );
 
+    await controller.search('ORDER-A');
     await controller.loadDetail('delivery-task-1');
 
     expect(controller.detailProofPhoto, isNull);
-    expect(
-      controller.detailProofPhotoStatus,
-      ProofPhotoLoadStatus.unauthorized,
-    );
+    expect(controller.detailProofPhotoStatus, ProofPhotoLoadStatus.idle);
+    expect(controller.detail, isNull);
+    expect(controller.activeReference, isNull);
+    expect(controller.items, isEmpty);
     expect(authFailure?.statusCode, 401);
   });
 }

@@ -52,6 +52,7 @@ class ApiClient {
     return _requestUri(
       method: 'GET',
       uri: _resolveServerUrl(serverUrl),
+      followRedirects: false,
       authenticated: authenticated,
       requestHeaders: const <String, String>{
         'Accept': 'image/jpeg, image/png, image/webp',

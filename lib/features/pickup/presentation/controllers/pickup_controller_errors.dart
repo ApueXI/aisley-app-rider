@@ -151,6 +151,9 @@ extension PickupControllerErrors on PickupController {
       return 'Accept the current Terms of Service and Privacy Policy before pickup actions are available.';
     }
     if (error.statusCode == 404) {
+      if (isTargeted) {
+        return 'The related work is no longer available. The notification remains readable in your inbox.';
+      }
       return 'This pickup is no longer available. Refresh to see the current work assigned to you.';
     }
     if (error.statusCode == 409) {

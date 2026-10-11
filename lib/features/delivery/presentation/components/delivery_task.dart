@@ -8,6 +8,7 @@ class DeliveryTaskScreen extends StatefulWidget {
     this.policyController,
     this.onOpenPickup,
     this.chatController,
+    this.onRefresh,
     this.photoCaptureLauncher = const CameraDeliveryPhotoCaptureLauncher(),
     super.key,
   });
@@ -18,6 +19,7 @@ class DeliveryTaskScreen extends StatefulWidget {
   final PolicyController? policyController;
   final VoidCallback? onOpenPickup;
   final ChatController? chatController;
+  final Future<void> Function()? onRefresh;
   final DeliveryPhotoCaptureLauncher photoCaptureLauncher;
 
   @override
@@ -50,6 +52,10 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
 
   void _handleAuthState() {
     if (widget.authController.status == AuthStatus.authenticated) return;
+    if (widget.onRefresh != null &&
+        widget.authController.status == AuthStatus.policyConsentRequired) {
+      return;
+    }
     _selectedPhoto = null;
     _photoSelectionError = null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -68,7 +74,7 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
         return Scaffold(
           appBar: AppBar(title: const Text('Deliver order')),
           body: RefreshIndicator(
-            onRefresh: () => controller.loadDetails(task),
+            onRefresh: widget.onRefresh ?? () => controller.loadDetails(task),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -100,10 +106,20 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                       controller.contextStatuses[task.id] ??
                       DeliveryLoadStatus.idle,
                   error: controller.contextErrors[task.id],
-                  onRetry: () => controller.loadDetails(task),
+                  onRetry:
+                      widget.onRefresh ?? () => controller.loadDetails(task),
                 ),
                 const SizedBox(height: 16),
                 _buildAction(context, task, deliveryContext),
+                if (task.isFinalMile &&
+                    task.status == PickupTaskStatus.outForDelivery) ...[
+                  const SizedBox(height: 16),
+                  FailedDeliveryAttemptCard(
+                    task: task,
+                    controller: controller,
+                    authController: widget.authController,
+                  ),
+                ],
               ],
             ),
           ),
@@ -136,6 +152,11 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
     PickupTask task,
     DeliveryContext? deliveryContext,
   ) {
+    if (widget.onRefresh != null &&
+        widget.deliveryController.contextStatuses[task.id] !=
+            DeliveryLoadStatus.loaded) {
+      return const Text('Refresh delivery details before continuing.');
+    }
     if (task.status == PickupTaskStatus.delivered) {
       return _CompletedDeliveryCard();
     }
@@ -190,7 +211,8 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
       ),
     );
     if (mounted) {
-      await widget.deliveryController.loadDetails(widget.task);
+      await (widget.onRefresh?.call() ??
+          widget.deliveryController.loadDetails(widget.task));
     }
   }
 }

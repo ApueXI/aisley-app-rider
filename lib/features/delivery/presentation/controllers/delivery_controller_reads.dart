@@ -2,7 +2,10 @@ part of 'delivery_controller.dart';
 
 extension DeliveryControllerReads on DeliveryController {
   Future<void> load() async {
-    if (_loadInFlight || !canRetryRateLimit) {
+    if (_disposed ||
+        _loadInFlight ||
+        _failedAttemptBusy.isNotEmpty ||
+        !canRetryRateLimit) {
       return;
     }
     final epoch = ++_loadEpoch;
@@ -25,6 +28,13 @@ extension DeliveryControllerReads on DeliveryController {
           .toList(growable: false);
       for (final taskId in removedTaskIds) {
         clearProofPhotosForTask(taskId, notify: false);
+        _pendingFailedAttempts.remove(taskId);
+        failedAttemptReceipts.remove(taskId);
+        failedAttemptErrors.remove(taskId);
+        failedAttemptFieldErrors.remove(taskId);
+        _failedAttemptBlocked.remove(taskId);
+        _failedAttemptKeyConflicts.remove(taskId);
+        _invalidatedProofTasks.remove(taskId);
       }
       tasks = List<PickupTask>.unmodifiable(loadedTasks);
       for (final task in loadedTasks) {
@@ -65,6 +75,9 @@ extension DeliveryControllerReads on DeliveryController {
   }
 
   Future<void> loadDetails(PickupTask task) async {
+    if (_disposed) return;
+    if (isReportingFailedAttempt(task)) return;
+    final epoch = _loadEpoch;
     final taskId = task.id;
     if (contextStatuses[taskId] == DeliveryLoadStatus.loading ||
         !canRetryRateLimit) {
@@ -76,6 +89,10 @@ extension DeliveryControllerReads on DeliveryController {
 
     try {
       final context = await deliveryRepository.fetchDeliveryContext(taskId);
+      if (_disposed || epoch != _loadEpoch) return;
+      if (context.taskId != taskId) {
+        throw const ApiContractException('delivery.context.task_identity');
+      }
       contexts[taskId] = context;
       final currentTask = taskById(taskId);
       if (currentTask != null) {
@@ -90,17 +107,25 @@ extension DeliveryControllerReads on DeliveryController {
       contextErrors[taskId] = null;
       _notifyDeliveryListeners();
     } on ApiException catch (error) {
+      if (_disposed || epoch != _loadEpoch) return;
       await _setContextError(taskId, error);
     } on TokenStorageException {
+      if (_disposed || epoch != _loadEpoch) return;
       contextStatuses[taskId] = DeliveryLoadStatus.secureStorageFailure;
       contextErrors[taskId] = 'Your saved sign-in could not be accessed. Close and reopen the app, then try loading this delivery again.';
       _notifyDeliveryListeners();
     } on ApiContractException {
+      if (_disposed || epoch != _loadEpoch) return;
       contextStatuses[taskId] = DeliveryLoadStatus.failed;
       contextErrors[taskId] = 'Delivery details could not be loaded. Refresh the task and try again.';
       _notifyDeliveryListeners();
     }
 
+    if (_disposed ||
+        epoch != _loadEpoch ||
+        contextStatuses[taskId] != DeliveryLoadStatus.loaded) {
+      return;
+    }
     final current = taskById(taskId) ?? task;
     if (current.status == PickupTaskStatus.outForDelivery ||
         current.status == PickupTaskStatus.delivered) {
@@ -109,6 +134,9 @@ extension DeliveryControllerReads on DeliveryController {
   }
 
   Future<void> loadCompletion(PickupTask task) async {
+    if (_disposed) return;
+    if (isReportingFailedAttempt(task)) return;
+    final epoch = _loadEpoch;
     final taskId = task.id;
     if (completionStatuses[taskId] == DeliveryLoadStatus.loading ||
         !canRetryRateLimit) {
@@ -119,7 +147,14 @@ extension DeliveryControllerReads on DeliveryController {
     _notifyDeliveryListeners();
     try {
       final completion = await deliveryRepository.fetchCompletion(taskId);
+      if (_disposed || epoch != _loadEpoch) return;
+      if (completion.taskId != taskId) {
+        throw const ApiContractException('delivery.completion.task_id');
+      }
       completions[taskId] = completion;
+      if (!_failedAttemptKeyConflicts.contains(taskId)) {
+        _failedAttemptBlocked.remove(taskId);
+      }
       completionStatuses[taskId] = DeliveryLoadStatus.loaded;
       completionErrors[taskId] = null;
       _syncTaskFromCompletion(task, completion);
@@ -130,12 +165,15 @@ extension DeliveryControllerReads on DeliveryController {
         await loadProofPhoto(evidenceId, force: true);
       }
     } on ApiException catch (error) {
+      if (_disposed || epoch != _loadEpoch) return;
       await _setCompletionError(taskId, error);
     } on TokenStorageException {
+      if (_disposed || epoch != _loadEpoch) return;
       completionStatuses[taskId] = DeliveryLoadStatus.secureStorageFailure;
       completionErrors[taskId] = 'Your saved sign-in could not be accessed. Close and reopen the app, then check the delivery review status again.';
       _notifyDeliveryListeners();
     } on ApiContractException {
+      if (_disposed || epoch != _loadEpoch) return;
       completionStatuses[taskId] = DeliveryLoadStatus.failed;
       completionErrors[taskId] = 'The delivery review status could not be loaded. Refresh the task to check whether Logistics has confirmed delivery.';
       _notifyDeliveryListeners();

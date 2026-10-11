@@ -44,14 +44,23 @@ class _HistoryLoadingCard extends StatelessWidget {
 }
 
 class _HistoryEmptyCard extends StatelessWidget {
-  const _HistoryEmptyCard();
+  const _HistoryEmptyCard({required this.filtered});
+
+  final bool filtered;
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
-      child: Padding(
-        padding: EdgeInsets.all(18),
-        child: Text('No completed final-mile deliveries are available.'),
+    return Semantics(
+      liveRegion: true,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Text(
+            filtered
+                ? 'No completed deliveries match this order reference.'
+                : 'No completed final-mile deliveries are available.',
+          ),
+        ),
       ),
     );
   }
@@ -64,6 +73,7 @@ class _HistoryErrorCard extends StatelessWidget {
     required this.onRetry,
     required this.onOpenPolicies,
     required this.showPolicyAction,
+    this.canRetry = true,
   });
 
   final String message;
@@ -71,6 +81,7 @@ class _HistoryErrorCard extends StatelessWidget {
   final VoidCallback onRetry;
   final VoidCallback onOpenPolicies;
   final bool showPolicyAction;
+  final bool canRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +99,7 @@ class _HistoryErrorCard extends StatelessWidget {
               children: [
                 if (_historyCanRetry(status))
                   OutlinedButton.icon(
-                    onPressed: onRetry,
+                    onPressed: canRetry ? onRetry : null,
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
                   ),
@@ -109,18 +120,26 @@ class _HistoryErrorCard extends StatelessWidget {
 }
 
 class _HistoryInlineError extends StatelessWidget {
-  const _HistoryInlineError({required this.message, required this.onRetry});
+  const _HistoryInlineError({
+    required this.message,
+    required this.onRetry,
+    required this.canRetry,
+  });
 
   final String message;
   final VoidCallback onRetry;
+  final bool canRetry;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: Text(message)),
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
+        Text(message),
+        TextButton(
+          onPressed: canRetry ? onRetry : null,
+          child: const Text('Retry'),
+        ),
       ],
     );
   }

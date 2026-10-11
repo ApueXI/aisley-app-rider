@@ -44,32 +44,40 @@ class _PickupListBody extends StatelessWidget {
           errorMessage: controller.firstMileErrorMessage,
           tasks: controller.firstMileTasks,
           page: controller.firstMilePage,
-          filter: PickupScheduleFilter(
-            selectedId: controller.firstMileScheduleId,
-            options: controller.firstMileScheduleOptions,
-            onChanged: controller.selectFirstMileSchedule,
-          ),
-          emptyMessage: controller.firstMileScheduleId == null ? null : 'No Seller pickups were returned for the selected schedule. Clear the filter to view unfiltered work.',
+          filter: controller.targetScheduleId != null
+              ? null
+              : PickupScheduleFilter(
+                  selectedId: controller.firstMileScheduleId,
+                  options: controller.firstMileScheduleOptions,
+                  onChanged: controller.selectFirstMileSchedule,
+                ),
+          emptyMessage: controller.targetScheduleId != null
+              ? 'No current pickup work is available for this schedule. The notification remains readable in your inbox.'
+              : controller.firstMileScheduleId == null
+              ? null
+              : 'No Seller pickups were returned for the selected schedule. Clear the filter to view unfiltered work.',
           onOpenTask: onOpenTask,
           onOpenRoute: onOpenRoute,
           onRetry: controller.reloadFirstMile,
           onOpenPolicies: onOpenPolicies,
           showPolicyAction: policyController != null,
         ),
-        const SizedBox(height: 24),
-        _PickupSection(
-          title: 'Hub pickups',
-          subtitle: 'Final-mile work from your Logistics hub to the Buyer.',
-          icon: Icons.local_shipping_outlined,
-          status: controller.finalMileStatus,
-          errorMessage: controller.finalMileErrorMessage,
-          tasks: controller.finalMileTasks,
-          onOpenTask: onOpenTask,
-          onOpenRoute: null,
-          onRetry: controller.load,
-          onOpenPolicies: onOpenPolicies,
-          showPolicyAction: policyController != null,
-        ),
+        if (controller.targetScheduleId == null) ...[
+          const SizedBox(height: 24),
+          _PickupSection(
+            title: 'Hub pickups',
+            subtitle: 'Final-mile work from your Logistics hub to the Buyer.',
+            icon: Icons.local_shipping_outlined,
+            status: controller.finalMileStatus,
+            errorMessage: controller.finalMileErrorMessage,
+            tasks: controller.finalMileTasks,
+            onOpenTask: onOpenTask,
+            onOpenRoute: null,
+            onRetry: controller.load,
+            onOpenPolicies: onOpenPolicies,
+            showPolicyAction: policyController != null,
+          ),
+        ],
         if (!controller.hasLoadedAnySection && !controller.isLoading) ...[
           const SizedBox(height: 8),
           Text(

@@ -3,8 +3,8 @@ feature: courier-chat-messaging
 title: Courier Operational Messaging
 system: AISLEY
 type: Feature Specification
-version: 2.3
-status: Logistics, Seller, and Buyer task-scoped API channels and Flutter clients implemented locally; live exchange pending
+version: 2.4
+status: Logistics, Seller and Buyer task-scoped text and images implemented locally; live exchange pending
 implementation_status: Courier Flutter Logistics/Seller/Buyer task chat and inbox implemented locally; Seller and Customer web counterparts implemented; live exchange unverified
 canonical: true
 role: Courier
@@ -16,7 +16,7 @@ backend_contract_version: courier-operational-messaging-v2
 
 ## WHAT
 
-- Enable a Courier to exchange private, task-linked text with the relevant Seller, Buyer
+- Enable a Courier to exchange private, task-linked text and images with the relevant Seller, Buyer
   (`customer` in API), or Logistics organization while the relationship is active.
 - First mile is Seller → the selected organization's sole hub; final mile is that hub → Buyer.
   Each leg has a separate task, and the same Courier need not perform both legs.
@@ -32,7 +32,7 @@ backend_contract_version: courier-operational-messaging-v2
   confirm a scan or delivery, change an address/route, create an Incident or SOS alert, or
   approve a Logistics action. Those features remain authoritative.
 - MVP is persisted plain text over authenticated HTTP with visible-screen polling. Masked
-  calling, files/photos, voice, live location, typing/presence, realtime transport, SMTP,
+  calling, video/documents in Flutter, voice, live location, typing/presence, realtime transport, SMTP,
   SMS, and mobile push per message are deferred.
 
 ## MUST

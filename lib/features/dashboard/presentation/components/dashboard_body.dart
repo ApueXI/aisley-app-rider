@@ -10,6 +10,7 @@ class _DashboardBody extends StatelessWidget {
     this.historyController,
     required this.onOpenDeliveries,
     required this.onOpenHistory,
+    this.onOpenBatches,
     this.onOpenNotifications,
     this.onOpenMessages,
     this.onOpenSupport,
@@ -25,6 +26,7 @@ class _DashboardBody extends StatelessWidget {
   final HistoryController? historyController;
   final VoidCallback onOpenDeliveries;
   final VoidCallback onOpenHistory;
+  final VoidCallback? onOpenBatches;
   final VoidCallback? onOpenNotifications;
   final VoidCallback? onOpenMessages;
   final VoidCallback? onOpenSupport;
@@ -51,14 +53,15 @@ class _DashboardBody extends StatelessWidget {
       children: [
         _WelcomeCard(courier: courier, profilePhoto: profilePhoto),
         const SizedBox(height: 24),
-        if (previewController case final controller?) ...[
-          _DashboardTaskPreviews(
-            controller: controller,
-            onOpenFirstMile: onOpenPickups,
-            onOpenFinalMile: onOpenDeliveries,
-          ),
-          const SizedBox(height: 24),
-        ],
+        if (snapshot?.operational != true)
+          if (previewController case final controller?) ...[
+            _DashboardTaskPreviews(
+              controller: controller,
+              onOpenFirstMile: onOpenPickups,
+              onOpenFinalMile: onOpenDeliveries,
+            ),
+            const SizedBox(height: 24),
+          ],
         Text(
           'Dashboard summaries',
           style: Theme.of(context).textTheme.titleLarge
@@ -79,7 +82,16 @@ class _DashboardBody extends StatelessWidget {
             isLoading: isLoading,
             hasRefreshError: authController.dashboardErrorMessage != null,
           )
-        else if (isLoading && snapshot == null) ...[
+        else if (snapshot?.operational == true) ...[
+          _DashboardAggregate(
+            snapshot: snapshot!,
+            stale: authController.dashboardErrorMessage != null,
+            onOpenPickups: onOpenPickups,
+            onOpenDeliveries: onOpenDeliveries,
+            onOpenBatches: onOpenBatches,
+            onOpenNotifications: onOpenNotifications,
+          ),
+        ] else if (isLoading && snapshot == null) ...[
           Semantics(
             liveRegion: true,
             child: const Text('Checking dashboard summaries…'),

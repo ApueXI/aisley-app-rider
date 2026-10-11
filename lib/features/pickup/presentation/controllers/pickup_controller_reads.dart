@@ -2,6 +2,16 @@ part of 'pickup_controller.dart';
 
 extension PickupControllerReads on PickupController {
   Future<void> load() async {
+    if (_disposed) return;
+    if (targetScheduleId != null) {
+      _firstMileScheduleId = targetScheduleId;
+      await reloadFirstMile();
+      return;
+    }
+    if (targetFinalMileTaskId != null) {
+      await _loadTargetFinalMile();
+      return;
+    }
     if (_loadInFlight || !canRetryRateLimit) {
       return;
     }
@@ -23,6 +33,41 @@ extension PickupControllerReads on PickupController {
 
     if (epoch == _loadEpoch) {
       _loadInFlight = false;
+      _notifyPickupListeners();
+    }
+  }
+
+  Future<void> _loadTargetFinalMile() async {
+    if (!canRetryRateLimit) return;
+    final epoch = ++_loadEpoch;
+    finalMileTasks = const <PickupTask>[];
+    finalMileStatus = PickupSectionStatus.loading;
+    finalMileErrorMessage = null;
+    _notifyPickupListeners();
+    try {
+      final task = await pickupRepository.fetchFinalMileTask(
+        targetFinalMileTaskId!,
+      );
+      if (_disposed || epoch != _loadEpoch) return;
+      if (task.id != targetFinalMileTaskId || !task.isFinalMile) {
+        throw const ApiContractException('pickup.final_mile.target');
+      }
+      finalMileTasks = List<PickupTask>.unmodifiable([task]);
+      finalMileStatus = PickupSectionStatus.loaded;
+      _notifyPickupListeners();
+    } on ApiException catch (error) {
+      if (_disposed || epoch != _loadEpoch) return;
+      await _setSectionError(firstMile: false, error: error, epoch: epoch);
+    } on TokenStorageException {
+      if (_disposed || epoch != _loadEpoch) return;
+      finalMileStatus = PickupSectionStatus.secureStorageFailure;
+      finalMileErrorMessage = 'Secure session storage is unavailable. Refresh the work before continuing.';
+      _notifyPickupListeners();
+    } on ApiContractException {
+      if (_disposed || epoch != _loadEpoch) return;
+      finalMileStatus = PickupSectionStatus.failed;
+      finalMileErrorMessage =
+          'The related work could not be loaded. Please retry.';
       _notifyPickupListeners();
     }
   }

@@ -4,7 +4,7 @@ feature: courier-pick-up-order
 title: Pick Up Order
 system: AISLEY
 type: Feature Specification
-version: 2.10
+version: 2.11
 status: Implemented first-mile identifier pickup and task-bound final-mile hub handoff
 implementation_status: First-mile Courier API and route-manifest API retain QR/tracking-ID/Order-reference verification; final-mile hub handoff uses an accepted task and revision without identifier entry; Flutter remains external
 flutter_status: First-mile pickup, schedule filtering, task-bound hub handoff, and Android/web MapLibre pickup routes implemented locally; live API and installed-device/browser map acceptance remain unverified
@@ -215,7 +215,7 @@ Example GeoJSON geometry (first-mile manifest only):
 
 - `src/couriermockup` implements the temporary browser contract check with `@zxing/browser` and `maplibre-gl`, both loaded only when their scanner/map state opens. It groups tasks by schedule, renders the authorized GeoJSON and numbered stops, resolves a scanned QR or manual tracking-ID/Order reference to the matching parcel in that open schedule, keeps the identifier as an untrusted candidate until the explicit confirmation call, and selects the matched task before showing the server result.
 - Flutter stores tokens only in OS secure storage and sends Bearer auth. It implements loading, empty, assigned, accepted, manifest-pending, manifest-ready, map-unavailable, permission-denied, mismatch, not-found, offline, retry, success, and stale-task states.
-- Flutter filters Seller pickups through the existing `pickup_schedule_id` query using IDs from its latest authorized unfiltered page (at most 50 choices), not a complete schedule catalog. Selection/clear/retry reload only first-mile work; full refresh retains selection. Filtered empty/error states stay distinct; obsolete responses and logout/authorization loss cannot restore private choices. First-mile QR pickup and final-mile work remain independent.
+- Ordinary Flutter schedule filtering uses at most 50 choices from its latest authorized unfiltered page. Notification entry instead carries its authorized schedule ID into a separate fixed-filter route and rechecks `pickup_schedule_id` through the same list API, including IDs outside those options. Refresh/retry retain the ID; empty/error states stay distinct, old task snapshots cannot restore removed work, and normal selection/final-mile entry remain independent. Neither navigation nor filtering mutates work.
 - The scanner requests camera permission at use time, exposes a manual-entry fallback, announces textual results, uses adequate touch targets, and never relies on camera preview/color alone.
 - Routes remain in memory only and clear on disposal/logout/denial/affiliation invalidation/account switch. Pending, unavailable, partial/unreachable, unsupported, offline, timeout, forbidden, storage-failure, and retry states retain authorized text where permitted.
 

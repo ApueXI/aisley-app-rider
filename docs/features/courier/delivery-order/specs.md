@@ -4,7 +4,7 @@ feature: courier-delivery-order
 title: Deliver Order
 system: AISLEY
 type: Feature Specification
-version: 1.7
+version: 1.9
 status: Implemented final-mile task, batch route, movement, and delivery-context API
 implementation_status: Final-mile tasks, batch acceptance, hub pickup evidence, movement, delivery context, and advisory Geoapify route are implemented
 flutter_status: Delivery context/movement and accepted-batch MapLibre routes implemented locally; live API and installed-device/browser map acceptance remain unverified
@@ -12,6 +12,7 @@ canonical: true
 copied_backend_checkout: 4c3f504
 scope: External Flutter mobile client and Laravel Courier API
 backend_contract_commit: d1abeee73d0141e1fd7dda4bea0ee3fead370378
+failed_attempt_contract_commit: 4d8bfefa2a95007256e6616df415fa186d1b18eb
 backend_contract_version: courier-delivery-v1-final-mile-task
 map_contract_commit: 51d96947569d1603fdfb6d264ebd2a04bf866280
 source_coverage: docs/requirements.md, docs/workspace.md, docs/schema.md, docs/domains/Courier.md, docs/domains/Logistics.md, docs/features/shared/shipment-fulfillment/spec.md
@@ -41,7 +42,7 @@ An accepted Courier dispatch schedule offers `GET /api/v1/courier/final-mile-bat
 
 - **Purpose:** Help an accepted final-mile Courier task travel from the sole Logistics hub to the authoritative Customer destination.
 - **Actor boundary:** Courier views task and route context in Flutter. Aisley validates task ownership and state; Logistics remains assignment/state authority; Complete Delivery owns finalization.
-- **Current implementation:** The API creates a final-mile task when Logistics dispatches a Shipment from its sole hub, supports Courier-scoped task listing/detail/accept/reject, task-bound hub-handoff evidence submission, `in_transit`/`out_for_delivery` movement, and an accepted-task delivery-context read with the immutable destination address/contact and hub context. An accepted dispatch schedule has an advisory Geoapify Matrix/Routing route; live Courier location telemetry remains deferred.
+- **Current implementation:** The API creates a final-mile task when Logistics dispatches a Shipment from its sole hub, supports Courier-scoped task listing/detail/accept/reject, task-bound hub-handoff evidence submission, `in_transit`/`out_for_delivery` movement, and an accepted-task delivery-context read with the immutable destination address/contact and hub context. An accepted dispatch schedule has an advisory Geoapify Matrix/Routing route; live Courier location telemetry remains deferred. Flutter failed-attempt reporting and exact retry are adopted locally against `4d8bfefa2a95007256e6616df415fa186d1b18eb`; see [failed-attempt handoff](failed-attempts.md). Live/device acceptance remains open.
 - **Flow:** Logistics dispatches → final-mile task is offered → Courier accepts → Courier picks up from hub → `in_transit` → `out_for_delivery` → proof/Complete Delivery.
 - **Task boundary:** One Delivery Task represents one Order/Parcel and one leg. First-mile and final-mile assignments are independent and may use the same or a different Courier.
 - **Non-goals:** assignment, acceptance, pickup, scan/evidence recording, proof storage, completion, route-provider credentials, returns/refunds, or a production Courier web UI.
@@ -107,6 +108,7 @@ accepted final-mile task
 ## HOW
 
 ### Implemented endpoint contract and deferred extensions
+
 - The development-only Courier API mockup may show authorized delivery context and submit the implemented revision-checked movement transitions.
 
 - `GET /api/v1/courier/final-mile-tasks` — implemented; active final-mile tasks offered to or accepted by the authenticated Courier.
@@ -147,9 +149,7 @@ accepted final-mile task
 
 ```json
 {
-  "latitude": 14.5995,
-  "longitude": 120.9842,
-  "captured_at": "client-time",
+  "latitude": 14.5995, "longitude": 120.9842, "captured_at": "client-time",
   "expected_revision": 4,
   "idempotency_key": "location-attempt-uuid"
 }
@@ -165,7 +165,7 @@ accepted final-mile task
 
 ### Flutter handoff and navigation
 
-- The active screen shows the accepted task, destination, current state, distance/ETA freshness, route availability, and a clear next action.
+- Notification entry first reauthorizes its ID through the scoped final-mile task-detail read, including offers absent from loaded lists. Current offers use batch review, accepted tasks use hub handoff, and picked-up/transit tasks use delivery context; terminal/unknown states are read-only. Refresh repeats the scoped read before rendering actions and never falls back to a withdrawn snapshot. The active delivery screen shows authorized destination, current state, advisory freshness, and one next action; Back returns to notification details without marking read or mutating work.
 - Accepted/in-progress batch detail offers secondary **View delivery route**, opening a read-only screen with hub start, numbered stops, road/fallback labels, attribution, zoom controls, and **Fit route**. Offered batches have no route action.
 - Returning from external navigation triggers a fresh task/route read rather than trusting a background callback.
 - Permission denial, GPS disabled, route unavailable, stale metrics, reassignment, and destination reached are distinct accessible states.

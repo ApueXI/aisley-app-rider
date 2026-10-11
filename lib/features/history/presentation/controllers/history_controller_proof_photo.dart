@@ -5,6 +5,7 @@ extension HistoryControllerProofPhoto on HistoryController {
     String proofId, {
     bool force = false,
   }) async {
+    if (_disposed) return;
     final normalizedProofId = proofId.trim();
     if (normalizedProofId.isEmpty) return;
     if (detailProofPhotoStatus == ProofPhotoLoadStatus.loading ||
@@ -38,7 +39,11 @@ extension HistoryControllerProofPhoto on HistoryController {
         _startRetryDelay(error.retryAfter);
       }
       _notifyHistoryListeners();
-      if (error.statusCode == 401) {
+      if (_isAccessLoss(error)) {
+        _clearAccountHistory();
+        status = _stateFor(error);
+        errorMessage = _messageForError(error);
+        _notifyHistoryListeners();
         await _notifyAuthFailure(error);
       }
     } on TokenStorageException {

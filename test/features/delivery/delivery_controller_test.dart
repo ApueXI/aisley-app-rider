@@ -6,6 +6,7 @@ import 'package:aisley_app/core/networking/api_client.dart';
 import 'package:aisley_app/core/networking/api_contract_exception.dart';
 import 'package:aisley_app/features/delivery/data/delivery_repository.dart';
 import 'package:aisley_app/features/delivery/domain/delivery_models.dart';
+import 'package:aisley_app/features/delivery/domain/failed_delivery_attempt.dart';
 import 'package:aisley_app/features/delivery/domain/delivery_proof_photo.dart';
 import 'package:aisley_app/features/delivery/presentation/controllers/delivery_controller.dart';
 import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
@@ -68,7 +69,10 @@ void main() {
       controller.actionStatus(_outForDeliveryTask),
       DeliveryActionStatus.proofAwaitingValidation,
     );
-    expect(controller.completions[_outForDeliveryTask.id], isNull);
+    expect(
+      controller.completions[_outForDeliveryTask.id]?.isDelivered,
+      isFalse,
+    );
     expect(controller.proofPhotos['proof-1']?.contentType, 'image/jpeg');
     expect(
       controller.proofPhotoStatuses['proof-1'],
@@ -149,6 +153,7 @@ void main() {
     () async {
       final repository = _FakeDeliveryRepository()
         ..completionProjection = const CompletionProjection(
+          proofFailedAttemptCount: 0,
           taskId: 'delivery-task-1',
           taskStatus: 'out_for_delivery',
           completionStatus: 'rejected',
@@ -266,43 +271,59 @@ void main() {
     },
   );
 
-  test(
-    'a stale completion projection cannot block the latest proof handoff',
-    () async {
-      final repository = _FakeDeliveryRepository()
-        ..completionProjection = const CompletionProjection(
-          taskId: 'delivery-task-1',
-          intentId: 'old-intent',
-          taskStatus: 'out_for_delivery',
-          completionStatus: 'awaiting_validation',
-          evidenceStatus: 'awaiting_validation',
-          evidenceId: 'old-proof',
-          revision: 7,
-        );
-      final controller = DeliveryController(deliveryRepository: repository)
-        ..tasks = <PickupTask>[_outForDeliveryTask]
-        ..proofs[_outForDeliveryTask.id] = const ProofSubmission(
-          taskId: 'delivery-task-1',
-          proofId: 'new-proof',
-          evidenceStatus: 'awaiting_validation',
-          custodyState: 'out_for_delivery',
-          completionEligible: false,
-        );
+  test('a stale completion projection requires fresh proof identity before handoff', () async {
+    final repository = _FakeDeliveryRepository()
+      ..completionProjection = const CompletionProjection(
+        proofFailedAttemptCount: 0,
+        taskId: 'delivery-task-1',
+        intentId: 'old-intent',
+        taskStatus: 'out_for_delivery',
+        completionStatus: 'awaiting_validation',
+        evidenceStatus: 'awaiting_validation',
+        evidenceId: 'old-proof',
+        revision: 7,
+      );
+    final controller = DeliveryController(deliveryRepository: repository)
+      ..tasks = <PickupTask>[_outForDeliveryTask]
+      ..proofs[_outForDeliveryTask.id] = const ProofSubmission(
+        taskId: 'delivery-task-1',
+        proofId: 'new-proof',
+        evidenceStatus: 'awaiting_validation',
+        custodyState: 'out_for_delivery',
+        completionEligible: false,
+      );
 
-      await controller.loadCompletion(_outForDeliveryTask);
+    await controller.loadCompletion(_outForDeliveryTask);
 
-      expect(controller.isCompletionPending(_outForDeliveryTask), isFalse);
-      final submitted = await controller.submitCompletion(
+    expect(controller.isCompletionPending(_outForDeliveryTask), isFalse);
+    final submitted = await controller.submitCompletion(
+      _outForDeliveryTask,
+      evidenceId: 'new-proof',
+      confirmedCollection: _codCollection,
+    );
+
+    expect(submitted, isFalse);
+    expect(repository.completionEvidenceId, isNull);
+    repository.completionProjection = const CompletionProjection(
+      taskId: 'delivery-task-1',
+      taskStatus: 'out_for_delivery',
+      completionStatus: null,
+      evidenceStatus: 'awaiting_validation',
+      evidenceId: 'new-proof',
+      revision: 7,
+      proofFailedAttemptCount: 0,
+    );
+    expect(
+      await controller.submitCompletion(
         _outForDeliveryTask,
         evidenceId: 'new-proof',
         confirmedCollection: _codCollection,
-      );
-
-      expect(submitted, isTrue);
-      expect(repository.completionEvidenceId, 'new-proof');
-      expect(controller.isCompletionPending(_outForDeliveryTask), isTrue);
-    },
-  );
+      ),
+      isTrue,
+    );
+    expect(repository.completionEvidenceId, 'new-proof');
+    expect(controller.isCompletionPending(_outForDeliveryTask), isTrue);
+  });
 
   test('completion response failures explain unconfirmed results without field names', () async {
     final repository = _FakeDeliveryRepository()
@@ -439,6 +460,7 @@ void main() {
   test('completion uses the latest known server revision', () async {
     final repository = _FakeDeliveryRepository()
       ..completionProjection = const CompletionProjection(
+        proofFailedAttemptCount: 0,
         taskId: 'delivery-task-1',
         taskStatus: 'out_for_delivery',
         completionStatus: null,
@@ -556,6 +578,7 @@ void main() {
     () async {
       final repository = _FakeDeliveryRepository()
         ..deliveryContext = const DeliveryContext(
+          failedAttemptCount: 0,
           taskId: 'delivery-task-1',
           status: 'out_for_delivery',
           revision: 7,
@@ -590,6 +613,7 @@ void main() {
   test('changed payable total requires a new cash confirmation', () async {
     final repository = _FakeDeliveryRepository()
       ..deliveryContext = const DeliveryContext(
+        failedAttemptCount: 0,
         taskId: 'delivery-task-1',
         status: 'out_for_delivery',
         revision: 7,
@@ -624,6 +648,7 @@ void main() {
   test('unsupported payment method cannot submit COD intent', () async {
     final repository = _FakeDeliveryRepository()
       ..deliveryContext = const DeliveryContext(
+        failedAttemptCount: 0,
         taskId: 'delivery-task-1',
         status: 'out_for_delivery',
         revision: 7,
@@ -680,6 +705,7 @@ void main() {
   test('COD read for another task cannot authorize this completion', () async {
     final repository = _FakeDeliveryRepository()
       ..deliveryContext = const DeliveryContext(
+        failedAttemptCount: 0,
         taskId: 'other-task',
         status: 'out_for_delivery',
         revision: 7,
@@ -770,6 +796,7 @@ class _FakeDeliveryRepository implements DeliveryRepository {
   bool? completionCodCollected;
   int deliveryContextFetches = 0;
   DeliveryContext deliveryContext = const DeliveryContext(
+    failedAttemptCount: 0,
     taskId: 'delivery-task-1',
     status: 'out_for_delivery',
     revision: 7,
@@ -779,6 +806,7 @@ class _FakeDeliveryRepository implements DeliveryRepository {
     currency: 'PHP',
   );
   CompletionProjection completionProjection = const CompletionProjection(
+    proofFailedAttemptCount: 0,
     taskId: 'delivery-task-1',
     taskStatus: 'out_for_delivery',
     completionStatus: null,
@@ -794,6 +822,15 @@ class _FakeDeliveryRepository implements DeliveryRepository {
   final List<String> completionIdempotencyKeys = <String>[];
   Object? proofPhotoReadError;
   final List<String> proofPhotoReads = <String>[];
+
+  @override
+  Future<FailedDeliveryAttemptReceipt> reportFailedAttempt({
+    required String taskId,
+    required FailedDeliveryReason reason,
+    required String? note,
+    required int expectedRevision,
+    required String idempotencyKey,
+  }) async => throw UnimplementedError();
 
   @override
   Future<List<PickupTask>> fetchFinalMileTasks() async {
@@ -897,6 +934,7 @@ class _FakeDeliveryRepository implements DeliveryRepository {
       );
     }
     return CompletionProjection(
+      proofFailedAttemptCount: 0,
       taskId: 'delivery-task-1',
       intentId: 'intent-1',
       taskStatus: 'out_for_delivery',

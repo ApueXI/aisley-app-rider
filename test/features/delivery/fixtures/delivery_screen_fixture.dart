@@ -11,6 +11,7 @@ import 'package:aisley_app/features/dashboard/data/dashboard_repository.dart';
 import 'package:aisley_app/features/dashboard/domain/dashboard_models.dart';
 import 'package:aisley_app/features/delivery/data/delivery_repository.dart';
 import 'package:aisley_app/features/delivery/domain/delivery_models.dart';
+import 'package:aisley_app/features/delivery/domain/failed_delivery_attempt.dart';
 import 'package:aisley_app/features/delivery/domain/delivery_proof_photo.dart';
 import 'package:aisley_app/features/delivery/presentation/photo_capture/delivery_photo_capture.dart';
 import 'package:aisley_app/features/delivery/presentation/photo_capture/delivery_photo_capture_result.dart';
@@ -44,6 +45,7 @@ class WidgetDeliveryRepository implements DeliveryRepository {
   DeliveryPhotoSelection? uploadedPhoto;
   ApiException? proofError;
   DeliveryContext deliveryContext = const DeliveryContext(
+    failedAttemptCount: 0,
     taskId: 'delivery-task-1',
     status: 'out_for_delivery',
     revision: 7,
@@ -57,6 +59,15 @@ class WidgetDeliveryRepository implements DeliveryRepository {
     payableTotal: '115.00',
     currency: 'PHP',
   );
+
+  @override
+  Future<FailedDeliveryAttemptReceipt> reportFailedAttempt({
+    required String taskId,
+    required FailedDeliveryReason reason,
+    required String? note,
+    required int expectedRevision,
+    required String idempotencyKey,
+  }) async => throw UnimplementedError();
 
   @override
   Future<List<PickupTask>> fetchFinalMileTasks() async {
@@ -111,6 +122,7 @@ class WidgetDeliveryRepository implements DeliveryRepository {
   Future<CompletionProjection> fetchCompletion(String taskId) async {
     final hasEvidence = uploadedPhoto != null;
     return CompletionProjection(
+      proofFailedAttemptCount: 0,
       taskId: 'delivery-task-1',
       taskStatus: 'out_for_delivery',
       completionStatus: completionEvidenceId == null
@@ -143,6 +155,7 @@ class WidgetDeliveryRepository implements DeliveryRepository {
     completionEvidenceId = evidenceId;
     this.codCollected = codCollected;
     return const CompletionProjection(
+      proofFailedAttemptCount: 0,
       taskId: 'delivery-task-1',
       intentId: 'intent-1',
       taskStatus: 'out_for_delivery',

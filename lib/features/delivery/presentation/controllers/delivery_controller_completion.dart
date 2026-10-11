@@ -48,13 +48,16 @@ extension DeliveryControllerCompletion on DeliveryController {
     _actionStatuses[task.id] = DeliveryActionStatus.completionLoading;
     _actionErrors[task.id] = null;
     _notifyDeliveryListeners();
+    final epoch = _loadEpoch;
     CompletionProjection current;
     try {
       current = await deliveryRepository.fetchCompletion(task.id);
+      if (_disposed || epoch != _loadEpoch) return false;
       if (current.taskId != task.id) {
         throw const ApiContractException('delivery.completion.task_id');
       }
       completions[task.id] = current;
+      completionStatuses[task.id] = DeliveryLoadStatus.loaded;
       if (current.evidenceId == normalizedEvidenceId &&
           (current.evidenceStatus == 'rejected' ||
               current.completionStatus == 'rejected')) {
@@ -71,6 +74,13 @@ extension DeliveryControllerCompletion on DeliveryController {
         _notifyDeliveryListeners();
         return false;
       }
+      if (!hasFreshProof(task, projection: current)) {
+        _setLocalValidationError(
+          task,
+          'Take a new photo after the failed visit before submitting Delivered intent.',
+        );
+        return false;
+      }
       if (current.revision == null ||
           current.taskStatus != 'out_for_delivery') {
         _actionStatuses[task.id] = DeliveryActionStatus.conflict;
@@ -79,12 +89,15 @@ extension DeliveryControllerCompletion on DeliveryController {
         return false;
       }
     } on ApiException catch (error) {
+      if (_disposed || epoch != _loadEpoch) return false;
       await _setActionError(task, error, submission: false);
       return false;
     } on TokenStorageException {
+      if (_disposed || epoch != _loadEpoch) return false;
       _setStorageActionError(task);
       return false;
     } on ApiContractException {
+      if (_disposed || epoch != _loadEpoch) return false;
       _setContractActionError(task, submission: false);
       return false;
     }
@@ -122,6 +135,7 @@ extension DeliveryControllerCompletion on DeliveryController {
     _actionErrors[task.id] = null;
     _actionRetryAfter[task.id] = null;
     _notifyDeliveryListeners();
+    final epoch = _loadEpoch;
     try {
       final completion = await deliveryRepository.submitCompletion(
         taskId: task.id,
@@ -130,6 +144,7 @@ extension DeliveryControllerCompletion on DeliveryController {
         idempotencyKey: attempt.idempotencyKey,
         codCollected: attempt.codCollected,
       );
+      if (_disposed || epoch != _loadEpoch) return false;
       if (completion.taskId != task.id ||
           completion.evidenceId != attempt.evidenceId ||
           !completion.isAwaitingValidation) {
@@ -143,13 +158,16 @@ extension DeliveryControllerCompletion on DeliveryController {
       _notifyDeliveryListeners();
       return true;
     } on ApiException catch (error) {
+      if (_disposed || epoch != _loadEpoch) return false;
       if (DeliveryController._isDefinitiveMutationError(error)) {
         _pendingCompletions.remove(task.id);
       }
       await _setActionError(task, error);
     } on TokenStorageException {
+      if (_disposed || epoch != _loadEpoch) return false;
       _setStorageActionError(task);
     } on ApiContractException {
+      if (_disposed || epoch != _loadEpoch) return false;
       _setContractActionError(task);
     }
     return false;

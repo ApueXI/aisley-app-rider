@@ -155,6 +155,7 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 
 ### Delivery history
 
+- Use the Material **Order reference** field with primary **Search** and secondary **Clear** for full exact references. Keep the active reference visible independently of draft edits; Clear returns field focus. Wrap controls at large text and retain the submitted reference through refresh, retry, and policy recovery.
 - Present delivered final-mile records as read-only cards with order reference, delivered time, pickup/destination areas, item count, and safe proof/completion status.
 - History detail may show immutable item snapshots, opaque proof references, and the adopted authenticated private photo viewer. Keep validated image bytes only in account-scoped memory and clear them when detail/session scope ends; exclude street addresses, contact phone numbers, raw storage paths, public media URLs, and mutation controls.
 - Keep cursor pagination unavailable when the server does not provide a usable cursor; distinguish an empty successful list from unavailable, unauthorized, offline, and retryable states.

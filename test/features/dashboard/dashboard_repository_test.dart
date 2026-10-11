@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
-  test('reads the protected scaffold without query or mutation', () async {
+  test('requests v2 and accepts protected legacy scaffold fallback', () async {
     late http.Request request;
     final repository = _repository((incoming) async {
       request = incoming;
@@ -22,7 +22,7 @@ void main() {
 
     expect(request.method, 'GET');
     expect(request.url.path, '/api/v1/courier/dashboard');
-    expect(request.url.query, isEmpty);
+    expect(request.url.queryParameters, {'version': '2'});
     expect(request.headers['authorization'], 'Bearer test-token');
     expect(snapshot.freshness.state, DashboardFreshnessState.scaffold);
     expect(

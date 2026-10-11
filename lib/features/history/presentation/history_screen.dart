@@ -11,6 +11,7 @@ import 'controllers/history_controller.dart';
 part 'components/history_list.dart';
 part 'components/history_detail.dart';
 part 'components/history_status.dart';
+part 'components/history_reference_search.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({

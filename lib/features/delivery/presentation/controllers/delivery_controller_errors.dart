@@ -18,19 +18,36 @@ extension DeliveryControllerErrors on DeliveryController {
   }
 
   Future<void> _setContextError(String taskId, ApiException error) async {
+    if (error.statusCode == 401 ||
+        error.statusCode == 403 ||
+        error.statusCode == 404) {
+      contexts.remove(taskId);
+    }
+    if ((error.statusCode == 401 ||
+            error.statusCode == 403 ||
+            error.statusCode == 404) &&
+        error.code != 'POLICY_CONSENT_REQUIRED') {
+      _clearFailedAttemptPrivateState(taskId);
+    }
     contextStatuses[taskId] = _loadStateFor(error);
     contextErrors[taskId] = _messageForError(error);
     if (contextStatuses[taskId] == DeliveryLoadStatus.rateLimited) {
       _startRetryDelay(error.retryAfter);
     }
     _notifyDeliveryListeners();
-    if (error.statusCode == 401) {
+    if (error.statusCode == 401 || error.statusCode == 403) {
       clearAllProofPhotos(notify: false);
       await _notifyAuthFailure(error);
     }
   }
 
   Future<void> _setCompletionError(String taskId, ApiException error) async {
+    if ((error.statusCode == 401 ||
+            error.statusCode == 403 ||
+            error.statusCode == 404) &&
+        error.code != 'POLICY_CONSENT_REQUIRED') {
+      _clearFailedAttemptPrivateState(taskId);
+    }
     completionStatuses[taskId] = _loadStateFor(error);
     completionErrors[taskId] = _messageForError(error);
     if (completionStatuses[taskId] == DeliveryLoadStatus.rateLimited) {

@@ -13,7 +13,9 @@ extension DeliveryControllerProofSubmission on DeliveryController {
       return false;
     }
     final priorProof = proofs[task.id];
-    if (priorProof != null && evidenceStatusFor(task) != 'rejected') {
+    if (priorProof != null &&
+        evidenceStatusFor(task) != 'rejected' &&
+        hasFreshProof(task)) {
       _setLocalValidationError(
         task,
         'This task already has photo proof. Refresh its validation status before submitting another.',
@@ -35,9 +37,11 @@ extension DeliveryControllerProofSubmission on DeliveryController {
     _actionStatuses[task.id] = DeliveryActionStatus.loading;
     _actionErrors[task.id] = null;
     _notifyDeliveryListeners();
+    final epoch = _loadEpoch;
     PickupTask current;
     try {
       current = await deliveryRepository.fetchFinalMileTask(task.id);
+      if (_disposed || epoch != _loadEpoch) return false;
       if (current.id != task.id || !current.isFinalMile) {
         throw const ApiContractException('delivery.task.identity');
       }
@@ -50,12 +54,15 @@ extension DeliveryControllerProofSubmission on DeliveryController {
         return false;
       }
     } on ApiException catch (error) {
+      if (_disposed || epoch != _loadEpoch) return false;
       await _setActionError(task, error, submission: false);
       return false;
     } on TokenStorageException {
+      if (_disposed || epoch != _loadEpoch) return false;
       _setStorageActionError(task);
       return false;
     } on ApiContractException {
+      if (_disposed || epoch != _loadEpoch) return false;
       _setContractActionError(task, submission: false);
       return false;
     }
@@ -92,6 +99,7 @@ extension DeliveryControllerProofSubmission on DeliveryController {
     _actionErrors[task.id] = null;
     _actionRetryAfter[task.id] = null;
     _notifyDeliveryListeners();
+    final epoch = _loadEpoch;
     try {
       final proof = await deliveryRepository.submitProof(
         taskId: task.id,
@@ -100,6 +108,7 @@ extension DeliveryControllerProofSubmission on DeliveryController {
         idempotencyKey: attempt.idempotencyKey,
         onCancel: onCancel,
       );
+      if (_disposed || epoch != _loadEpoch) return false;
       if (proof.taskId != task.id) {
         throw const ApiContractException('delivery.proof.task_id');
       }
@@ -113,16 +122,21 @@ extension DeliveryControllerProofSubmission on DeliveryController {
           ? DeliveryActionStatus.validationError
           : DeliveryActionStatus.proofAwaitingValidation;
       _notifyDeliveryListeners();
+      _invalidatedProofTasks.remove(task.id);
+      await loadDetails(task);
       await loadProofPhoto(proof.proofId, force: true);
       return true;
     } on ApiException catch (error) {
+      if (_disposed || epoch != _loadEpoch) return false;
       if (DeliveryController._isDefinitiveMutationError(error)) {
         _pendingProofs.remove(task.id);
       }
       await _setActionError(task, error);
     } on TokenStorageException {
+      if (_disposed || epoch != _loadEpoch) return false;
       _setStorageActionError(task);
     } on ApiContractException {
+      if (_disposed || epoch != _loadEpoch) return false;
       _setContractActionError(task);
     }
     return false;
