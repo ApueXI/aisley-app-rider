@@ -7,8 +7,10 @@ import '../networking/api_client.dart';
 import '../networking/multipart_file_selection.dart';
 import '../security/token_storage.dart';
 import 'attachment.dart';
+import 'content_repository.dart';
 
-class ApiChatMediaRepository implements ChatMediaRepository {
+class ApiChatMediaRepository
+    implements ChatMediaRepository, ChatMediaContentRepository {
   ApiChatMediaRepository(this.client, {this.onDenial, this.generation});
   final ApiClient client;
   final int Function()? generation;
@@ -68,13 +70,17 @@ class ApiChatMediaRepository implements ChatMediaRepository {
     );
     if (file == null) return null;
     final length = await file.length();
-    if (length < 1 || length >= 10485760) {
-      throw const ChatMediaFailure('Choose an image under 10 MiB.');
+    if (length < 1 || length > 8000000) {
+      throw const ChatMediaFailure(
+        'Choose an image at most 8 MB (8,000,000 bytes).',
+      );
     }
     final builder = BytesBuilder(copy: false);
     await for (final bytes in file.openRead(0, length)) {
-      if (builder.length + bytes.length >= 10485760) {
-        throw const ChatMediaFailure('Choose an image under 10 MiB.');
+      if (builder.length + bytes.length > 8000000) {
+        throw const ChatMediaFailure(
+          'Choose an image at most 8 MB (8,000,000 bytes).',
+        );
       }
       builder.add(bytes);
     }
@@ -123,12 +129,35 @@ class ApiChatMediaRepository implements ChatMediaRepository {
   @override
   Future<Uint8List> image(String url) => _call(() async {
     chatImagePath(url, 'courier');
-    final response = await client.getServerUrl(url, authenticated: true);
-    if (response.bodyBytes.isEmpty ||
-        response.bodyBytes.length >= 10485760 ||
-        !(response.headers['content-type'] ?? '').startsWith('image/')) {
-      throw const FormatException();
+    final read = ChatMediaRead();
+    final stamp = generation?.call();
+    try {
+      return await client.privateMediaBytes(
+        url,
+        maxBytes: 10485759,
+        mimeType: 'image/*',
+        isCurrent: () => read.isCurrent && stamp == generation?.call(),
+        cancelled: read.cancelled,
+      );
+    } finally {
+      read.cancel();
     }
-    return response.bodyBytes;
+  });
+  @override
+  Future<Uint8List> content(
+    ChatAttachment attachment,
+    ChatMediaRead read, {
+    bool preview = false,
+  }) => _call(() async {
+    attachmentPath(attachment, 'courier', preview);
+    final stamp = generation?.call();
+    return client.privateMediaBytes(
+      preview ? attachment.previewUrl! : attachment.contentUrl!,
+      maxBytes: preview ? 10485759 : historicalMediaLimit(attachment),
+      mimeType: preview ? 'image/jpeg' : attachment.mimeType,
+      expectedBytes: preview ? null : attachment.byteSize,
+      isCurrent: () => read.isCurrent && stamp == generation?.call(),
+      cancelled: read.cancelled,
+    );
   });
 }

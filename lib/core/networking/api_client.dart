@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +10,8 @@ import '../security/token_storage.dart';
 import 'multipart_file_adapter.dart';
 import 'multipart_file_selection.dart';
 import 'network_socket_exception.dart';
+
+part 'private_media_transport.dart';
 
 class ApiClient {
   ApiClient({

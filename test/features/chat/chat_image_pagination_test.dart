@@ -174,7 +174,7 @@ void main() {
       );
       await fixture.chat.refreshActive(silent: true);
       await tester.pumpAndSettle();
-      expect(find.textContaining('not supported yet'), findsOneWidget);
+      expect(find.textContaining('unavailable or unsupported'), findsOneWidget);
       expect(find.byType(Image), findsNothing);
       fixture.repo.latest = ChatPage(
         items: [

@@ -3,6 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import 'attachment.dart';
+import 'private_file.dart';
+import 'private_image_viewer.dart';
+import 'content_repository.dart';
 import 'draft_controller.dart';
 
 class PrivateChatImage extends StatefulWidget {
@@ -18,6 +21,7 @@ class PrivateChatImage extends StatefulWidget {
 }
 
 class _PrivateChatImageState extends State<PrivateChatImage> {
+  ChatMediaRead? _read;
   Uint8List? _bytes;
   MemoryImage? _provider;
   String? _error;
@@ -63,6 +67,8 @@ class _PrivateChatImageState extends State<PrivateChatImage> {
 
   void _resetImage() {
     _request++;
+    _read?.cancel();
+    _read = null;
     _bytes = null;
     _loading = false;
     _error = null;
@@ -95,7 +101,16 @@ class _PrivateChatImageState extends State<PrivateChatImage> {
     try {
       final url = attachment.previewUrl;
       if (url == null) throw const ChatMediaFailure('Image unavailable.');
-      final bytes = await controller.repository.image(url);
+      final read = ChatMediaRead();
+      _read = read;
+      final repo = controller.repository;
+      final bytes = repo is ChatMediaContentRepository
+          ? await (repo as ChatMediaContentRepository).content(
+              attachment,
+              read,
+              preview: true,
+            )
+          : await repo.image(url);
       if (!current()) return;
       setState(() {
         _bytes = bytes;
@@ -119,7 +134,7 @@ class _PrivateChatImageState extends State<PrivateChatImage> {
     await showDialog<void>(
       context: context,
       builder: (context) =>
-          _PrivateImageViewer(attachment: attachment, controller: controller),
+          PrivateImageViewer(attachment: attachment, controller: controller),
     );
   }
 
@@ -133,8 +148,9 @@ class _PrivateChatImageState extends State<PrivateChatImage> {
   @override
   Widget build(BuildContext context) {
     if (widget.attachment.kind != 'image') {
-      return Text(
-        '${widget.attachment.filename} · ${widget.attachment.kind}. Viewing this format is not supported yet.',
+      return PrivateChatFile(
+        attachment: widget.attachment,
+        controller: widget.controller,
       );
     }
     if (_loading) {
@@ -168,87 +184,4 @@ class _PrivateChatImageState extends State<PrivateChatImage> {
       ),
     );
   }
-}
-
-class _PrivateImageViewer extends StatefulWidget {
-  const _PrivateImageViewer({
-    required this.attachment,
-    required this.controller,
-  });
-  final ChatAttachment attachment;
-  final ChatMediaDraftController controller;
-  @override
-  State<_PrivateImageViewer> createState() => _PrivateImageViewerState();
-}
-
-class _PrivateImageViewerState extends State<_PrivateImageViewer> {
-  MemoryImage? _image;
-  String? _error;
-  late final int _generation = widget.controller.privateGeneration;
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_clear);
-    _load();
-  }
-
-  void _clear() {
-    if (widget.controller.privateGeneration != _generation) {
-      _image?.evict();
-      _image = null;
-      if (mounted) setState(() => _error = 'Image access ended.');
-    }
-  }
-
-  Future<void> _load() async {
-    setState(() => _error = null);
-    try {
-      final url = widget.attachment.contentUrl;
-      if (url == null) throw const ChatMediaFailure('Image unavailable.');
-      final bytes = await widget.controller.repository.image(url);
-      if (mounted && _generation == widget.controller.privateGeneration) {
-        setState(() => _image = MemoryImage(bytes));
-      }
-    } catch (_) {
-      if (mounted && _generation == widget.controller.privateGeneration) {
-        setState(() => _error = 'Image unavailable.');
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_clear);
-    _image?.evict();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.attachment.filename),
-    content: SizedBox(
-      width: 600,
-      height: MediaQuery.sizeOf(context).height * 0.5,
-      child: _error != null
-          ? Text(_error!)
-          : _image == null
-          ? const Center(child: CircularProgressIndicator())
-          : InteractiveViewer(
-              child: Image(
-                image: _image!,
-                fit: BoxFit.contain,
-                errorBuilder: (_, e, s) =>
-                    const Text('This image cannot be displayed.'),
-              ),
-            ),
-    ),
-    actions: [
-      if (_error != null && _generation == widget.controller.privateGeneration)
-        TextButton(onPressed: _load, child: const Text('Retry')),
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('Close'),
-      ),
-    ],
-  );
 }

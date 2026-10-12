@@ -76,7 +76,7 @@ void main() {
       await tester.pumpWidget(_page(controller, kind: kind));
       await tester.pumpAndSettle();
       expect(find.byType(Image), findsNothing);
-      expect(find.textContaining('not supported yet'), findsOneWidget);
+      expect(find.textContaining('unavailable or unsupported'), findsOneWidget);
       expect(
         (await oldProvider.obtainCacheStatus(
           configuration: ImageConfiguration.empty,
