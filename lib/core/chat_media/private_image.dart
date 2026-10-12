@@ -32,63 +32,101 @@ class _PrivateChatImageState extends State<PrivateChatImage> {
     if (widget.attachment.kind == 'image') _load();
   }
 
+  @override
+  void didUpdateWidget(PrivateChatImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final controllerChanged = !identical(
+      oldWidget.controller,
+      widget.controller,
+    );
+    final oldAttachment = oldWidget.attachment;
+    final attachment = widget.attachment;
+    final attachmentChanged =
+        oldAttachment.id != attachment.id ||
+        oldAttachment.kind != attachment.kind ||
+        oldAttachment.state != attachment.state ||
+        oldAttachment.previewUrl != attachment.previewUrl;
+    if (!controllerChanged && !attachmentChanged) return;
+
+    if (controllerChanged) {
+      oldWidget.controller.removeListener(_scopeChanged);
+      _generation = widget.controller.privateGeneration;
+      widget.controller.addListener(_scopeChanged);
+    }
+    _resetImage();
+    if (_generation != widget.controller.privateGeneration) {
+      _error = 'Image access ended.';
+    } else if (attachment.kind == 'image') {
+      _load();
+    }
+  }
+
+  void _resetImage() {
+    _request++;
+    _bytes = null;
+    _loading = false;
+    _error = null;
+    _provider?.evict();
+    _provider = null;
+  }
+
   void _scopeChanged() {
     if (widget.controller.privateGeneration != _generation) {
-      _request++;
-      _bytes = null;
-      _loading = false;
+      _resetImage();
       _error = 'Image access ended.';
-      _provider?.evict();
-      _provider = null;
       if (mounted) setState(() {});
     }
   }
 
   Future<void> _load() async {
-    if (_generation != widget.controller.privateGeneration) return;
-    final stamp = widget.controller.privateGeneration, request = ++_request;
+    final controller = widget.controller;
+    if (_generation != controller.privateGeneration) return;
+    final attachment = widget.attachment;
+    _resetImage();
+    final stamp = _generation, request = _request;
+    bool current() =>
+        mounted &&
+        request == _request &&
+        identical(controller, widget.controller) &&
+        stamp == controller.privateGeneration;
     setState(() {
       _loading = true;
-      _error = null;
     });
     try {
-      final url = widget.attachment.previewUrl;
+      final url = attachment.previewUrl;
       if (url == null) throw const ChatMediaFailure('Image unavailable.');
-      final bytes = await widget.controller.repository.image(url);
-      if (!mounted ||
-          request != _request ||
-          stamp != widget.controller.privateGeneration) {
-        return;
-      }
+      final bytes = await controller.repository.image(url);
+      if (!current()) return;
       setState(() {
         _bytes = bytes;
         _provider = MemoryImage(bytes);
       });
     } catch (_) {
-      if (mounted && request == _request) {
+      if (current()) {
         setState(() => _error = 'Image unavailable. Retry when connected.');
       }
     } finally {
-      if (mounted && request == _request) setState(() => _loading = false);
+      if (current()) setState(() => _loading = false);
     }
   }
 
   Future<void> _view() async {
+    if (_generation != widget.controller.privateGeneration || _bytes == null) {
+      return;
+    }
+    final attachment = widget.attachment;
+    final controller = widget.controller;
     await showDialog<void>(
       context: context,
-      builder: (context) => _PrivateImageViewer(
-        attachment: widget.attachment,
-        controller: widget.controller,
-      ),
+      builder: (context) =>
+          _PrivateImageViewer(attachment: attachment, controller: controller),
     );
   }
 
   @override
   void dispose() {
-    _request++;
     widget.controller.removeListener(_scopeChanged);
-    _provider?.evict();
-    _bytes = null;
+    _resetImage();
     super.dispose();
   }
 
