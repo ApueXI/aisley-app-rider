@@ -12,6 +12,7 @@ scope: Laravel API consumed by an external Flutter mobile client
 backend_contract_commit: d1abeee73d0141e1fd7dda4bea0ee3fead370378
 copied_backend_checkout: 4c3f504
 source_coverage: requirements.md, workspace.md, schema.md, Courier.md, Logistics.md
+documentation_synced_on: 2026-10-12
 ---
 
 # Courier Authentication
@@ -100,8 +101,7 @@ GET active Logistics options
 
 - Login validates Courier credentials before access checks. Unknown email, wrong password, or another role's credentials return `422 INVALID_CREDENTIALS` with `The email or password is incorrect.`; no account or affiliation state is disclosed and no token is issued.
 - After valid credentials at login, and after bearer authentication and Courier-role checks on protected requests, check account status before affiliation. Login and protected requests use the same `403` payload for each inactive account status, even when its affiliation is also invalid:
-
-  | Account status | Error code | Message |
+ | Account status | Error code | Message |
   | --- | --- | --- |
   | `pending` | `ACCOUNT_PENDING_APPROVAL` | `This Courier account is not active.` |
   | `rejected` | `ACCOUNT_REJECTED` | `This Courier account is not active.` |

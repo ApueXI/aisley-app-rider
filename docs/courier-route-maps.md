@@ -121,7 +121,7 @@ runtime/secure-storage behavior require an authorized API and device later.
 
 Use the same Flutter renderer in the isolated harness; its HTTP client returns
 synthetic DTOs and PNG bytes and never reads account storage or a live API.
-Keep the ordinary app on localhost 8765. Serve the harness separately:
+Keep the ordinary Courier app on localhost 8765. The isolated harness uses 8766 temporarily; stop a Buyer server occupying that port before running it. Serve the harness separately:
 
 ```sh
 flutter run --no-pub -d web-server --web-hostname localhost --web-port 8766 -t test/manual/route_map_browser_fixture.dart

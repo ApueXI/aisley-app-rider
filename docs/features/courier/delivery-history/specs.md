@@ -13,10 +13,10 @@ role: Courier
 scope: Laravel API and external Flutter application
 backend_contract_commit: d1abeee73d0141e1fd7dda4bea0ee3fead370378
 backend_contract_version: courier-delivery-history-v1
+documentation_synced_on: 2026-10-12
 ---
 
 # Delivery History
-
 **Flutter adoption boundary:** Existing read-only history screens and the authenticated in-memory private-photo preview are recorded in the external progress log. Current Laravel history derives only from Logistics-confirmed photo-POD deliveries. Keep proof ID/status read-only; the adopted preview independently reauthorizes through the Courier proof endpoint and clears bytes when detail or account scope ends.
 
 ## Photo POD revision (2026-09-20)
