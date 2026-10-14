@@ -1,3 +1,5 @@
+import 'registration_email.dart';
+
 import 'dart:convert';
 
 import '../../../core/networking/api_client.dart';
@@ -29,11 +31,39 @@ abstract interface class AuthRepository {
   Future<void> clearStoredToken();
 }
 
-class ApiAuthRepository implements AuthRepository {
+class ApiAuthRepository implements AuthRepository, RegistrationEmailRepository {
   ApiAuthRepository({required this._client, required this._tokenStorage});
 
   final ApiClient _client;
   final TokenStorage _tokenStorage;
+
+  @override
+  Future<RegistrationEmailChallenge> requestRegistrationCode(
+    String email,
+  ) async {
+    final response = await _client.postJson(
+      '/courier/auth/registration/verification-code',
+      body: {'email': email.trim().toLowerCase()},
+    );
+    return RegistrationEmailChallenge.parse(_decodeObject(response.body));
+  }
+
+  @override
+  Future<RegistrationEmailProof> verifyRegistrationEmail(
+    String email,
+    String challengeId,
+    String code,
+  ) async {
+    final response = await _client.postJson(
+      '/courier/auth/registration/verify-email',
+      body: {
+        'email': email.trim().toLowerCase(),
+        'challenge_id': challengeId,
+        'verification_code': code,
+      },
+    );
+    return RegistrationEmailProof.parse(_decodeObject(response.body));
+  }
 
   @override
   Future<bool> hasStoredToken() async {

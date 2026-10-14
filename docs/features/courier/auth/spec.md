@@ -3,7 +3,7 @@ feature: courier-auth
 title: Courier Authentication
 system: AISLEY
 type: Feature Specification
-version: 2.6
+version: 2.7
 status: Implemented foundation; auth denial parity covered; recovery completion deferred
 implementation_status: Backend Auth v2.6 implemented per supplied snapshot; Flutter Auth response integration verified locally against 4c3f504; authenticated live acceptance outstanding; earlier operational adoption d7df220
 canonical: true
@@ -12,6 +12,7 @@ scope: Laravel API consumed by an external Flutter mobile client
 backend_contract_commit: d1abeee73d0141e1fd7dda4bea0ee3fead370378
 copied_backend_checkout: 4c3f504
 source_coverage: requirements.md, workspace.md, schema.md, Courier.md, Logistics.md
+documentation_synced_on: 2026-10-14
 ---
 
 # Courier Authentication
@@ -23,7 +24,7 @@ source_coverage: requirements.md, workspace.md, schema.md, Courier.md, Logistics
 - **Client boundary:** Courier screens belong to the separate Flutter project. This repository provides API behavior only; do not add a Courier React page, browser-cookie flow, or web dashboard under `src/`.
 - **MVP cardinality:** one Courier has one current Logistics affiliation. The selected organization owns exactly one operational hub; the server derives that hub and the client cannot select a sub-hub.
 - **Approval authority:** The associated active Logistics organization approves or rejects the Courier affiliation. Admin may suspend, restore, or deactivate an account through the separate lifecycle feature, but Admin does not approve the affiliation.
-- **Boundary:** recovery completion, email verification, MFA, affiliation history/revocation, and session-device policy remain deferred. First-mile pickup/routing and final-mile movement, completion, history, and private POD reads exist under their owning specs; Flutter has adopted private photo POD and atomic final-mile batch acceptance locally, while authenticated/device acceptance remains unverified. Signature proof, live location telemetry, earnings, and offline mutations remain deferred.
+- **Boundary:** recovery completion, MFA, affiliation history/revocation, and session-device policy remain deferred. First-mile pickup/routing and final-mile movement, completion, history, and private POD reads exist under their owning specs; Flutter has adopted private photo POD and atomic final-mile batch acceptance locally, while authenticated/device acceptance remains unverified. Signature proof, live location telemetry, earnings, and offline mutations remain deferred.
 
 ```text
 GET active Logistics options
@@ -35,9 +36,9 @@ GET active Logistics options
 ```
 
 ## MUST
+- Registration now requires email-first OTP and `email_verification_token`; see [registration email contract](../../../registration-email.md) for exact endpoints, limits, errors, retry, proof expiry, and client behavior. Adopted locally on 2026-10-14; deployed/device acceptance remains open.
 
 ### Identity and relationship rules
-
 - Derive `UserRole::Courier`, `UserStatus`, affiliation status, reviewer, hub, and token ability on the server. Prohibit client authority for these fields.
 - Normalize email by trimming and lowercasing it before validation and lookup.
 - Enforce the shared `unique(email, role)` rule. A same-email Customer, Seller, Admin, or Logistics account is not a Courier account.
@@ -100,8 +101,7 @@ GET active Logistics options
 
 - Login validates Courier credentials before access checks. Unknown email, wrong password, or another role's credentials return `422 INVALID_CREDENTIALS` with `The email or password is incorrect.`; no account or affiliation state is disclosed and no token is issued.
 - After valid credentials at login, and after bearer authentication and Courier-role checks on protected requests, check account status before affiliation. Login and protected requests use the same `403` payload for each inactive account status, even when its affiliation is also invalid:
-
-  | Account status | Error code | Message |
+ | Account status | Error code | Message |
   | --- | --- | --- |
   | `pending` | `ACCOUNT_PENDING_APPROVAL` | `This Courier account is not active.` |
   | `rejected` | `ACCOUNT_REJECTED` | `This Courier account is not active.` |
@@ -219,7 +219,7 @@ The supplied snapshot identifies the foundation baseline as commit `d1abeee73d01
 - Do not reproduce Eloquent, SQL, enum implementation, or authorization logic in Dart. The API response is authoritative and all mutations need online revalidation.
 - Add API tests for role/status/affiliation/hub scope, prohibited fields, duplicate races, file spoofing/boundaries, transaction cleanup, token issuance/logout, throttling, DTO privacy, and Logistics organization isolation.
 - Add Flutter contract fixtures/tests for JSON parsing, multipart names, secure-storage failure, `401/403/409/422/429`, timeout/offline states, and redacted DTOs. Mocks supplement but do not replace backend verification.
-- Before expanding Auth, approve reset delivery, email verification, MFA, resubmission/revocation history, device limits, and any coordinate/pin policy. Update this spec and the copied Flutter contract with the new backend commit/API version.
+- Before expanding Auth, approve reset delivery, MFA, resubmission/revocation history, device limits, and any coordinate/pin policy. Update this spec and the copied Flutter contract with the new backend commit/API version.
 
 ### Handoff checklist
 

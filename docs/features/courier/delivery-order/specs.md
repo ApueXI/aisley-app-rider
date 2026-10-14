@@ -16,10 +16,10 @@ failed_attempt_contract_commit: 4d8bfefa2a95007256e6616df415fa186d1b18eb
 backend_contract_version: courier-delivery-v1-final-mile-task
 map_contract_commit: 51d96947569d1603fdfb6d264ebd2a04bf866280
 source_coverage: docs/requirements.md, docs/workspace.md, docs/schema.md, docs/domains/Courier.md, docs/domains/Logistics.md, docs/features/shared/shipment-fulfillment/spec.md
+documentation_synced_on: 2026-10-12
 ---
 
 # Deliver Order
-
 **Flutter adoption boundary:** Flutter now renders accepted final-mile batch routes with MapLibre on Android and localhost web, preserving server order, advisory metrics, and known-location fallback. Local tests/builds are client evidence; source inspection at `51d9694` does not establish deployed API, installed-APK, or browser acceptance. Pickup routing remains independent.
 
 ## Map and parcel-price revision (2026-09-21)
@@ -32,7 +32,7 @@ After acceptance, `GET /api/v1/courier/tasks/{task}/delivery` returns `data.orde
 ```json
 {"data":{"task_id":"<authorized-task-uuid>","revision":4,"order":{"payment_method":"cod","payment_status":"pending","payable_total":"115.00","currency":"PHP"},"parcel":{"price":"100.00","currency":"PHP"}}}
 ```
-`order.payable_total` is the amount to collect; `parcel.price` is only the merchandise subtotal. Do not use the parcel price as COD due, infer a missing total, or treat the example values as a live Order. The current backend payment-method enum contains only `cod`; future methods need their own approved contract.
+`order.payable_total` is the amount to collect; `parcel.price` is only the merchandise subtotal. Do not use the parcel price as COD due, infer a missing total, or treat the example values as a live Order. Customer checkout remains COD-only; the backend also models prepaid fulfillment. Paid-prepaid completion follows the current POD policy and creates no COD cash claim.
 
 ## Final-mile batch route revision (2026-09-20)
 
@@ -75,7 +75,7 @@ accepted final-mile task
 
 ### Provider-neutral route, distance, and ETA
 
-- The API may provide `distance_km` and `estimated_duration_minutes` for the authorized task, plus an optional route representation or external-navigation handoff.
+- Per-task distance/ETA and external-navigation payloads are deferred; implemented accepted-batch routes supply their own summary.
 - Task metrics remain advisory/optional. Batch routes instead use `summary.stop_count`, `distance_metres`, and `duration_seconds`, without revision/calculation timestamps; label local receipt time **Last refreshed**.
 - Missing/stale coordinates, routing timeout, quota exhaustion, or provider failure must return an honest unavailable state, never zero distance or a fabricated ETA.
 - Route metrics cannot decide assignment, eligibility, custody, delivery completion, or destination authority.

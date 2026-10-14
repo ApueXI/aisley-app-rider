@@ -1,3 +1,5 @@
+import 'package:aisley_app/features/account/domain/password_challenge.dart';
+
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,40 @@ import 'package:aisley_app/features/account/domain/account_models.dart';
 import 'package:aisley_app/features/account/presentation/controllers/account_controller.dart';
 
 void main() {
+  test('password changes require an email challenge and clearing account removes it', () async {
+    final repo = _FakeAccountRepository();
+    final controller = AccountController(accountRepository: repo);
+    await controller.loadAccount();
+    expect(
+      await controller.changePassword(
+        currentPassword: 'old-secret',
+        password: 'new-secret',
+        passwordConfirmation: 'new-secret',
+        verificationCode: '123456',
+      ),
+      isFalse,
+    );
+    expect(
+      await controller.requestPasswordCode(
+        currentPassword: 'old-secret',
+        password: 'new-secret',
+        passwordConfirmation: 'new-secret',
+      ),
+      isTrue,
+    );
+    expect(controller.passwordChallenge, isNotNull);
+    expect(
+      await controller.requestPasswordCode(
+        currentPassword: 'old-secret',
+        password: 'new-secret',
+        passwordConfirmation: 'new-secret',
+      ),
+      isFalse,
+    );
+    controller.clear();
+    expect(controller.passwordChallenge, isNull);
+  });
+
   test(
     'keeps the account and exposes field errors on profile validation',
     () async {
@@ -46,10 +82,16 @@ void main() {
     );
 
     await controller.loadAccount();
+    await controller.requestPasswordCode(
+      currentPassword: 'old-secret',
+      password: 'new-secret',
+      passwordConfirmation: 'new-secret',
+    );
     final changed = await controller.changePassword(
       currentPassword: 'old-secret',
       password: 'new-secret',
       passwordConfirmation: 'new-secret',
+      verificationCode: '123456',
     );
 
     expect(changed, isTrue);
@@ -204,10 +246,26 @@ class _FakeAccountRepository implements AccountRepository {
   }
 
   @override
+  Future<PasswordChallenge> requestPasswordCode({
+    required String currentPassword,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    return PasswordChallenge(
+      id: '00000000-0000-4000-8000-000000000001',
+      maskedEmail: 'r***@example.test',
+      expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+      resendAt: DateTime.now().add(const Duration(seconds: 60)),
+    );
+  }
+
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String password,
     required String passwordConfirmation,
+    required String challengeId,
+    required String verificationCode,
   }) async {}
 
   @override

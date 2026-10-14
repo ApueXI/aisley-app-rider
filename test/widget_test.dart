@@ -1,3 +1,6 @@
+import 'package:aisley_app/features/auth/data/registration_email.dart';
+import 'package:aisley_app/features/account/domain/password_challenge.dart';
+
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -29,6 +32,7 @@ void main() {
     await controller.initialize();
     await tester.pumpWidget(CourierApp(authController: controller));
     await tester.tap(find.text('New Courier? Register here'));
+    await _verifyRegistrationEmail(tester);
     await _pumpUntilFound(tester, find.text('Logistics organization'));
 
     final dropdown = find.byWidgetPredicate(
@@ -62,6 +66,7 @@ void main() {
 
     await tester.pumpWidget(CourierApp(authController: controller));
     await tester.tap(find.text('New Courier? Register here'));
+    await _verifyRegistrationEmail(tester);
     await _pumpUntilFound(tester, find.text('Logistics organization'));
 
     expect(find.text('Create your Courier account'), findsOneWidget);
@@ -81,6 +86,7 @@ void main() {
 
     await tester.pumpWidget(CourierApp(authController: controller));
     await tester.tap(find.text('New Courier? Register here'));
+    await _verifyRegistrationEmail(tester);
     await _pumpUntilFound(tester, find.text('Logistics organization'));
     await tester.ensureVisible(find.text('Submit registration'));
     await tester.tap(find.text('Submit registration'));
@@ -226,6 +232,18 @@ void main() {
   });
 }
 
+Future<void> _verifyRegistrationEmail(WidgetTester tester) async {
+  await _pumpUntilFound(tester, find.text('Send verification code'));
+  await tester.enterText(find.byType(TextField).first, 'courier@example.com');
+  await tester.ensureVisible(find.text('Send verification code'));
+  await tester.tap(find.text('Send verification code'));
+  await tester.pump();
+  await tester.enterText(find.byType(TextField).last, '012345');
+  await tester.ensureVisible(find.text('Verify email'));
+  await tester.tap(find.text('Verify email'));
+  await tester.pump();
+}
+
 Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
   for (var index = 0; index < 100; index++) {
     if (finder.evaluate().isNotEmpty) {
@@ -236,7 +254,26 @@ Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
   expect(finder, findsOneWidget);
 }
 
-class _FakeAuthRepository implements AuthRepository {
+class _FakeAuthRepository
+    implements AuthRepository, RegistrationEmailRepository {
+  @override
+  Future<RegistrationEmailChallenge> requestRegistrationCode(
+    String email,
+  ) async => RegistrationEmailChallenge(
+    id: 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',
+    expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+    resendAt: DateTime.now(),
+  );
+  @override
+  Future<RegistrationEmailProof> verifyRegistrationEmail(
+    String email,
+    String challengeId,
+    String code,
+  ) async => RegistrationEmailProof(
+    token: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    expiresAt: DateTime.now().add(const Duration(hours: 1)),
+  );
+
   final CourierIdentity courier = CourierIdentity.fromJson(
     const <String, dynamic>{
       'id': 'courier-1',
@@ -339,10 +376,26 @@ class _FakeDashboardAccountRepository implements AccountRepository {
   }
 
   @override
+  Future<PasswordChallenge> requestPasswordCode({
+    required String currentPassword,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    return PasswordChallenge(
+      id: '00000000-0000-4000-8000-000000000001',
+      maskedEmail: 'r***@example.test',
+      expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+      resendAt: DateTime.now().add(const Duration(seconds: 60)),
+    );
+  }
+
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String password,
     required String passwordConfirmation,
+    required String challengeId,
+    required String verificationCode,
   }) async {}
 
   @override

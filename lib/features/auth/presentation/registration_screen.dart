@@ -1,3 +1,6 @@
+import 'registration_email_controller.dart';
+import 'registration_email_fields.dart';
+
 import 'dart:async';
 
 import 'package:file_selector/file_selector.dart';
@@ -43,6 +46,7 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  late final RegistrationEmailController _verification;
   final _formKey = GlobalKey<FormState>();
   final _leaveGuardKey = GlobalKey<UnsavedChangesGuardState>();
   final _fieldNavigation = FormFieldNavigation();
@@ -96,12 +100,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   void initState() {
     super.initState();
+    _verification = RegistrationEmailController(
+      widget.authController.registrationEmailRepository,
+    );
+    _verification.addListener(_onVerificationChanged);
     widget.authController.addListener(_onDraftChanged);
     for (final controller in _textControllers) {
       controller.addListener(_onDraftChanged);
     }
     unawaited(_loadOrganizations());
     unawaited(_loadPsgcRegions());
+  }
+
+  void _onVerificationChanged() {
+    if (!mounted) return;
+    if (_verification.verified &&
+        _emailController.text != _verification.verifiedEmail) {
+      _emailController.text = _verification.verifiedEmail;
+    }
+    setState(() {});
   }
 
   @override
@@ -113,6 +130,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       controller.removeListener(_onDraftChanged);
       controller.dispose();
     }
+    _verification.removeListener(_onVerificationChanged);
+    _verification.dispose();
     super.dispose();
   }
 

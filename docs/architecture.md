@@ -11,6 +11,9 @@ map_contract_commit: 51d96947569d1603fdfb6d264ebd2a04bf866280
 
 # Scope
 
+> Current status and inspected revisions: [October 12 synchronization](references/synchronization-2026-10-12.md). Dated reports below retain their original verification scope; client sources belong to the corresponding standalone Flutter repository.
+
+
 This document describes the external Flutter application used by Couriers. Android APK is its mobile delivery target; a local Flutter `web-server` browser run of the same codebase is the camera and file-upload testing target. It is not the architecture of the Laravel monorepo and it does not authorize changes to the backend, the Customer/Seller/Admin/Logistics web applications, or the database.
 
 The Laravel API remains the source of truth for identity, approval, role access, organization and hub ownership, order status, task assignment, and delivery state. The Flutter app renders server responses and submits only fields allowed by the versioned API contract.
@@ -217,3 +220,7 @@ Reuse the app-wide Material theme in `lib/app/courier_app.dart`, feature-owned p
 ## Canonical documents
 
 Read the relevant sections of `docs/requirements.md`, `docs/workspace.md`, `docs/schema.md`, `docs/domain/Courier.md`, `docs/domain/Logistics.md`, the matching Courier feature specification (or the shared Logistics vehicle specification for Courier vehicle work), and the two registration/upload references. The decision worksheet is historical context only; it is not an implementation authority.
+
+## Browser cooldown headers
+
+- The 2026-10-10 backend B05 fix explicitly exposes `Retry-After` for approved browser origins, including default `http://localhost:8765`. The original delta-seconds or HTTP-date header is readable on credentialed responses; native behavior is unchanged. Local synthetic middleware/browser verification does not prove deployed headers or actual Flutter cooldown behavior. Refresh Laravel's cached configuration during deployment, then verify exposure and client cooldown handling from the approved origin; preserve existing missing/invalid-header handling and client acceptance status.

@@ -96,7 +96,8 @@ extension _RegistrationSubmission on _RegistrationScreenState {
   }
 
   Future<void> _submit() async {
-    if (_isSubmitting ||
+    if (!_verification.verified ||
+        _isSubmitting ||
         _isPickingEvidence ||
         !widget.authController.canRegister) {
       return;
@@ -149,7 +150,8 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       contactNumber: _contactNumberController.text,
       sex: _sex!,
       birthDate: _birthDate!,
-      email: _emailController.text,
+      email: _verification.verifiedEmail,
+      emailVerificationToken: _verification.proof!.token,
       password: _passwordController.text,
       passwordConfirmation: _passwordConfirmationController.text,
       logisticsOrganizationId: _organization!.id,
@@ -188,6 +190,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       _passwordConfirmationController.clear();
       _updateState(() {
         _result = result;
+        _verification.reset();
         _isSubmitting = false;
         _cancelUpload = null;
         _governmentId = null;
@@ -198,6 +201,9 @@ extension _RegistrationSubmission on _RegistrationScreenState {
         return;
       }
       _updateState(() {
+        if (error.fieldErrors.containsKey('email_verification_token')) {
+          _verification.reset();
+        }
         _fieldErrors = error.fieldErrors;
         _submissionError = _messageForRegistrationError(error);
         _isSubmitting = false;
@@ -211,7 +217,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
         return;
       }
       _updateState(() {
-        _submissionError = 'The service returned an unexpected registration response. Please retry.';
+        _submissionError = 'The registration result is unconfirmed. Try signing in before deliberately submitting again; your application may already be pending.';
         _isSubmitting = false;
         _cancelUpload = null;
         _passwordController.clear();
@@ -247,7 +253,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
     _updateState(() {
       _isSubmitting = false;
       _cancelUpload = null;
-      _submissionError = 'Registration upload cancelled. Review the form before submitting again.';
+      _submissionError = 'The request was cancelled; registration may already have been submitted. Try signing in before deliberately submitting again.';
       _passwordController.clear();
       _passwordConfirmationController.clear();
     });

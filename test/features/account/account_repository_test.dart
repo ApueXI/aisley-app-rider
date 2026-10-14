@@ -14,6 +14,48 @@ import 'package:aisley_app/features/account/data/account_repository.dart';
 import 'package:aisley_app/features/account/domain/account_models.dart';
 
 void main() {
+  test('requests a password verification code with authenticated POST and exact fields', () async {
+    late http.Request request;
+    final client = ApiClient(
+      config: const AppConfig(baseUrl: 'https://api.example.test'),
+      tokenStorage: _FakeTokenStorage()..token = 'synthetic-token',
+      client: MockClient((incoming) async {
+        request = incoming;
+        return http.Response(
+          jsonEncode({
+            'message': 'Queued',
+            'data': {
+              'challenge_id': '11111111-1111-4111-8111-111111111111',
+              'masked_email': 'r***@example.test',
+              'expires_at': '2026-10-14T10:10:00Z',
+              'resend_available_at': '2026-10-14T10:01:00Z',
+            },
+          }),
+          202,
+        );
+      }),
+    );
+    final result = await ApiAccountRepository(client: client)
+        .requestPasswordCode(
+          currentPassword: 'Synthetic123',
+          password: 'Synthetic456',
+          passwordConfirmation: 'Synthetic456',
+        );
+    expect(result.id, '11111111-1111-4111-8111-111111111111');
+    expect(result.maskedEmail, 'r***@example.test');
+    expect(request.method, 'POST');
+    expect(
+      request.url.path,
+      '/api/v1/courier/account/password/verification-code',
+    );
+    expect(jsonDecode(request.body), {
+      'current_password': 'Synthetic123',
+      'password': 'Synthetic456',
+      'password_confirmation': 'Synthetic456',
+    });
+    expect(request.headers['Authorization'], 'Bearer synthetic-token');
+  });
+
   test('reads the authenticated Courier account projection', () async {
     late http.Request request;
     final storage = _FakeTokenStorage()..token = 'account-token';
@@ -93,6 +135,8 @@ void main() {
       currentPassword: 'old-secret',
       password: 'new-secret',
       passwordConfirmation: 'new-secret',
+      challengeId: '00000000-0000-4000-8000-000000000001',
+      verificationCode: '123456',
     );
 
     final body = jsonDecode(request.body) as Map<String, dynamic>;
@@ -102,6 +146,8 @@ void main() {
       'current_password',
       'password',
       'password_confirmation',
+      'challenge_id',
+      'verification_code',
     });
     expect(body.keys, isNot(contains('token')));
     expect(body.keys, isNot(contains('role')));

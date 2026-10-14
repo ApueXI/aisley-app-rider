@@ -182,6 +182,7 @@ class CourierRegistrationRequest {
     required this.sex,
     required this.birthDate,
     required this.email,
+    required this.emailVerificationToken,
     required this.password,
     required this.passwordConfirmation,
     required this.logisticsOrganizationId,
@@ -198,6 +199,7 @@ class CourierRegistrationRequest {
     required this.vehicleRegistration,
   });
 
+  final String emailVerificationToken;
   final String firstName;
   final String lastName;
   final String? middleName;
@@ -227,6 +229,7 @@ class CourierRegistrationRequest {
       'contact_number': contactNumber.trim(),
       'sex': sex,
       'birth_date': _formatDate(birthDate),
+      'email_verification_token': emailVerificationToken,
       'email': email.trim().toLowerCase(),
       'password': password,
       'password_confirmation': passwordConfirmation,

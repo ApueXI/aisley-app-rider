@@ -205,6 +205,8 @@ CourierRegistrationRequest registrationRequest() {
     bytes: Uint8List.fromList([137, 80, 78, 71]),
   );
   return CourierRegistrationRequest(
+    emailVerificationToken:
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     firstName: 'Test',
     lastName: 'Courier',
     contactNumber: '09171234567',

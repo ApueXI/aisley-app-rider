@@ -7,6 +7,33 @@ extension _RegistrationForm on _RegistrationScreenState {
       return _buildSubmitted(context, result);
     }
 
+    if (!_verification.verified) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Courier registration'),
+          leading: IconButton(
+            tooltip: 'Return to sign in',
+            onPressed: _leaveRegistration,
+            icon: const Icon(Icons.arrow_back),
+          ),
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 620),
+                child: RegistrationEmailFields(
+                  controller: _verification,
+                  disabled: _isSubmitting || _isPickingEvidence,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -30,6 +57,11 @@ extension _RegistrationForm on _RegistrationScreenState {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildHeader(context),
+                    RegistrationEmailFields(
+                      controller: _verification,
+                      disabled: _isSubmitting || _isPickingEvidence,
+                    ),
+                    const SizedBox(height: 18),
                     if (_submissionError != null) ...[
                       _RegistrationErrorBanner(message: _submissionError!),
                       const SizedBox(height: 18),
@@ -152,6 +184,7 @@ extension _RegistrationForm on _RegistrationScreenState {
                       key: _fieldNavigation.fieldKey('email'),
                       focusNode: _fieldNavigation.focusNode('email'),
                       controller: _emailController,
+                      readOnly: true,
                       enabled: !_isSubmitting,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,

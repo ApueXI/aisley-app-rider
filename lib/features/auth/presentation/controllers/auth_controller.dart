@@ -1,3 +1,5 @@
+import '../../data/registration_email.dart';
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -43,6 +45,8 @@ class AuthController extends ChangeNotifier {
   });
 
   final AuthRepository _authRepository;
+  RegistrationEmailRepository get registrationEmailRepository =>
+      _authRepository as RegistrationEmailRepository;
   final DashboardRepository _dashboardRepository;
   final void Function()? _onSessionEnded;
 

@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../auth/presentation/controllers/auth_controller.dart';
 import '../domain/chat_models.dart';
-import '../../../core/chat_media/draft_controller.dart';
 import '../../../core/chat_media/image_widgets.dart';
 import 'controllers/chat_controller.dart';
+import 'chat_message_row.dart';
 
 class ChatThreadScreen extends StatefulWidget {
   const ChatThreadScreen({
@@ -273,7 +273,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen>
                             child: const Text('Load older messages'),
                           ),
                         for (final message in controller.messages)
-                          _MessageRow(
+                          ChatMessageRow(
+                            key: ValueKey((message.conversationId, message.id)),
                             message: message,
                             media: controller.media,
                           ),
@@ -348,45 +349,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen>
           ),
         );
       },
-    );
-  }
-}
-
-class _MessageRow extends StatelessWidget {
-  const _MessageRow({required this.message, this.media});
-
-  final ChatMessage message;
-  final ChatMediaDraftController? media;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Semantics(
-      container: true,
-      label: '${message.mine ? 'You' : message.senderRole}: ${message.body}',
-      child: Align(
-        alignment: message.mine ? Alignment.centerRight : Alignment.centerLeft,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 320),
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: message.mine
-                ? scheme.primaryContainer
-                : scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(message.body),
-              if (media != null)
-                for (final attachment in message.attachments)
-                  PrivateChatImage(attachment: attachment, controller: media!),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

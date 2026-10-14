@@ -48,8 +48,8 @@ void main() {
       scenario,
       (tester) async {
         final (auth, account) = await openAccount(tester, scenario: scenario);
-        await reveal(tester, find.text('Change password'));
-        await tester.tap(find.text('Change password'));
+        await reveal(tester, find.text('Send verification code'));
+        await tester.tap(find.text('Send verification code'));
         await tester.pumpAndSettle();
         final current = field('Current password');
         expect(tester.widget<TextField>(current).focusNode!.hasFocus, isTrue);
@@ -63,7 +63,7 @@ void main() {
         await enter(tester, 'Confirm new password', 'TestNew123');
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle();
-        expect(find.text('Change password?'), findsOneWidget);
+        expect(find.text('Verify password change'), findsOneWidget);
         await checkAccessibility(tester);
         await focusByKeyboard(
           tester,
