@@ -13,6 +13,64 @@ import 'package:aisley_app/features/auth/data/auth_repository.dart';
 import 'package:aisley_app/features/auth/domain/auth_models.dart';
 
 void main() {
+  test(
+    'registration OTP uses public exact routes and six-digit strings',
+    () async {
+      final storage = FakeTokenStorage();
+      final requests = <http.Request>[];
+      final client = ApiClient(
+        config: const AppConfig(baseUrl: 'https://api.example.test'),
+        tokenStorage: storage,
+        client: MockClient((request) async {
+          requests.add(request);
+          return http.Response(
+            jsonEncode(
+              request.url.path.endsWith('verification-code')
+                  ? {
+                      'challenge_id': 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',
+                      'expires_at': '2026-10-14T00:10:00Z',
+                      'resend_available_at': '2026-10-14T00:01:00Z',
+                    }
+                  : {
+                      'email_verification_token': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                      'expires_at': '2026-10-14T01:00:00Z',
+                    },
+            ),
+            200,
+          );
+        }),
+      );
+      final repository = ApiAuthRepository(
+        client: client,
+        tokenStorage: storage,
+      );
+      final challenge = await repository.requestRegistrationCode(
+        ' NEW@EXAMPLE.COM ',
+      );
+      expect(
+        requests.last.url.path,
+        '/api/v1/courier/auth/registration/verification-code',
+      );
+      expect(jsonDecode(requests.last.body), {'email': 'new@example.com'});
+      final proof = await repository.verifyRegistrationEmail(
+        ' NEW@EXAMPLE.COM ',
+        challenge.id,
+        '012345',
+      );
+      expect(
+        requests.last.url.path,
+        '/api/v1/courier/auth/registration/verify-email',
+      );
+      expect(jsonDecode(requests.last.body), {
+        'email': 'new@example.com',
+        'challenge_id': challenge.id,
+        'verification_code': '012345',
+      });
+      expect(requests.last.headers, isNot(contains('authorization')));
+      expect(storage.token, isNull);
+      expect(proof.token.length, 64);
+    },
+  );
   test('preserves nested registration validation field paths', () {
     final error = ApiException.fromResponse(
       http.Response(
@@ -102,6 +160,8 @@ void main() {
 
     final result = await repository.register(
       CourierRegistrationRequest(
+        emailVerificationToken:
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         firstName: 'Maya',
         lastName: 'Santos',
         middleName: 'Q',

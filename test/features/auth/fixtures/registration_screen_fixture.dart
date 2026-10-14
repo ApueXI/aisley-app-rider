@@ -1,3 +1,5 @@
+import 'package:aisley_app/features/auth/data/registration_email.dart';
+
 import '../../../helpers/accessibility.dart';
 
 import 'package:aisley_app/app/courier_theme.dart';
@@ -31,6 +33,7 @@ class RegistrationScreenFixture {
     double textScale = 1,
     AccessibilityScenario? scenario,
     bool settle = true,
+    bool verifyEmail = true,
   }) async {
     const regionIndex = 'lib/psgc-address-data/data/list-of-all-regions.json';
     rootBundle.clear();
@@ -87,6 +90,17 @@ class RegistrationScreenFixture {
         ),
       ),
     );
+    await tester.pump();
+    if (verifyEmail) {
+      await enter(tester, 'Email address', 'courier@example.com');
+      await tester.ensureVisible(find.text('Send verification code'));
+      await tester.tap(find.text('Send verification code'));
+      await tester.pump();
+      await enter(tester, 'Verification code', '012345');
+      await tester.ensureVisible(find.text('Verify email'));
+      await tester.tap(find.text('Verify email'));
+      await tester.pump();
+    }
     if (settle) {
       await tester.pumpAndSettle();
     } else {
@@ -103,7 +117,6 @@ class RegistrationScreenFixture {
       'First name': 'Ana',
       'Last name': 'Santos',
       'Contact number': '09171234567',
-      'Email': 'courier@example.com',
       'Password': 'TestInput123',
       'Confirm password': 'TestInput123',
       'Street / house detail': 'Test street',
@@ -188,7 +201,26 @@ class TestImagePicker extends FileSelectorPlatform {
   );
 }
 
-class RegistrationTestRepository implements AuthRepository {
+class RegistrationTestRepository
+    implements AuthRepository, RegistrationEmailRepository {
+  @override
+  Future<RegistrationEmailChallenge> requestRegistrationCode(
+    String email,
+  ) async => RegistrationEmailChallenge(
+    id: 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',
+    expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+    resendAt: DateTime.now(),
+  );
+  @override
+  Future<RegistrationEmailProof> verifyRegistrationEmail(
+    String email,
+    String challengeId,
+    String code,
+  ) async => RegistrationEmailProof(
+    token: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    expiresAt: DateTime.now().add(const Duration(hours: 1)),
+  );
+
   ApiException? error;
   ApiException? optionsError;
   Completer<List<LogisticsOption>>? pendingOptions;

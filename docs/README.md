@@ -76,3 +76,7 @@ Copy the complete contents into the Courier project’s `docs/`, including all `
 Receive-only MP4 viewing and document download plus inclusive 8 MB image selection adopt Laravel `28fc740`. See [verification](references/private-media-verification.md) for actual checks and remaining runtime/device gates; video/document selection/upload stays outside this release.
 
 Account password editing adopts the [email verification contract](password-change.md) and code dialog in the local Courier client (2026-10-14), preserving all-device sign-out; live SMTP/deployed/device acceptance remains open.
+
+## Email-first registration — 2026-10-14
+
+Registration adopts [email OTP verification](registration-email.md) before account creation, with required proof, expiry/resend/error recovery and existing approval gates. Updated Flutter registration is implemented locally; deployed API, live SMTP and installed-device acceptance remain open. Existing accounts keep their login behavior.

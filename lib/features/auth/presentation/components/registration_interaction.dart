@@ -46,7 +46,10 @@ extension _RegistrationInteraction on _RegistrationScreenState {
 
   bool get _hasUnsavedChanges =>
       _result == null &&
-      (_textControllers.any((controller) => controller.text.isNotEmpty) ||
+      (_textControllers.any(
+            (controller) =>
+                controller != _emailController && controller.text.isNotEmpty,
+          ) ||
           _sex != null ||
           _vehicleType != null ||
           _organization != null ||
