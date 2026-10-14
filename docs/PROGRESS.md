@@ -29,3 +29,9 @@ Short, dated implementation log. Append entries; archive complete logs after 150
 - Adopted registration-email contract v1 (2026-10-14): public code/verify APIs, six-digit OTP, required role/email-bound proof, resend/expiry/Retry-After, memory-only secrets, retained registration drafts and existing approval gates. Existing accounts keep their login behavior. Updated typed API models/repositories and native registration UI; no new dependencies.
 - Verification: 190 auth checks, 7 app checks and targeted registration-success cleanup, Flutter analyzer, web build and Android release APK pass. Laravel registration/mail enforcement and isolated PostgreSQL concurrency checks pass independently; live SMTP/deployed API and installed-device acceptance remain open. API enforcement requires coordinated client release and the new backend migration/workers.
 - Backend implementation: `27a6361`; registration-email contract v1 (2026-10-14).
+
+## 2026-10-14 — Project-local Courier UI review skill
+
+- Created [courier-ui-review](../.agents/skills/courier-ui-review/SKILL.md) with audit as the default, UI metadata, a report template, and an explicit improvement workflow. Reports preserve evidence and scoped finding IDs; improvements revalidate findings and resolve applicable Flutter helpers from the current catalog.
+- Verification: skill-creator validator, metadata/reference checks, and instruction walkthroughs for the six requested audit, selected-finding, stale-finding, missing-runtime, backend-gap, and direct-fix scenarios pass. This is skill/documentation work only; no application audit, UI edits, or Flutter checks were performed. Changes remain uncommitted for review.
+- Backend/API baseline unchanged: latest recorded backend implementation `27a6361`, registration-email contract v1 (2026-10-14). Future reviews must resolve each affected feature's current adopted contract and distinguish local checks from device/browser acceptance.

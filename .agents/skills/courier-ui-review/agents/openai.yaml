@@ -1,0 +1,4 @@
+interface:
+  display_name: "Courier UI Review"
+  short_description: "Audit Courier UI and improve selected findings"
+  default_prompt: "Use $courier-ui-review to audit the requested Flutter screens and write an actionable report under docs/reports/."
