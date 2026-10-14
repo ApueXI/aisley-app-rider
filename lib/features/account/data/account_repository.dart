@@ -1,3 +1,5 @@
+import '../domain/password_challenge.dart';
+
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -18,10 +20,18 @@ abstract interface class AccountRepository {
     String? idempotencyKey,
   });
 
+  Future<PasswordChallenge> requestPasswordCode({
+    required String currentPassword,
+    required String password,
+    required String passwordConfirmation,
+  });
+
   Future<void> changePassword({
     required String currentPassword,
     required String password,
     required String passwordConfirmation,
+    required String challengeId,
+    required String verificationCode,
   });
 
   Future<CourierAccount> uploadProfilePhoto({
@@ -75,10 +85,38 @@ class ApiAccountRepository implements AccountRepository {
   }
 
   @override
+  Future<PasswordChallenge> requestPasswordCode({
+    required String currentPassword,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    final response = await _client.postJson(
+      '/courier/account/password/verification-code',
+      authenticated: true,
+      body: {
+        'current_password': currentPassword,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+      },
+    );
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw const ApiContractException('Invalid verification response.');
+      }
+      return PasswordChallenge.parse(decoded['data']);
+    } on FormatException {
+      throw const ApiContractException('Invalid verification response.');
+    }
+  }
+
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String password,
     required String passwordConfirmation,
+    required String challengeId,
+    required String verificationCode,
   }) async {
     await _client.putJson(
       '/courier/account/password',
@@ -87,6 +125,8 @@ class ApiAccountRepository implements AccountRepository {
         'current_password': currentPassword,
         'password': password,
         'password_confirmation': passwordConfirmation,
+        'challenge_id': challengeId,
+        'verification_code': verificationCode,
       },
     );
   }

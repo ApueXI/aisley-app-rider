@@ -33,7 +33,7 @@ void main() {
     await tester.drag(find.byType(ListView), const Offset(0, -700));
     await tester.pumpAndSettle();
     expect(find.text('Security'), findsOneWidget);
-    expect(find.text('Change password'), findsOneWidget);
+    expect(find.text('Send verification code'), findsOneWidget);
   });
 
   for (final systemBack in [false, true]) {
@@ -99,11 +99,15 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Keep editing'));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Change password'));
-      await tester.tap(find.text('Change password'));
+      await tester.ensureVisible(find.text('Send verification code'));
+      await tester.tap(find.text('Send verification code'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Unsaved profile changes'), findsOneWidget);
-      await tester.tap(find.text('Change password').last);
+      expect(find.text('Verify password change'), findsOneWidget);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Verification code'),
+        '123456',
+      );
+      await tester.tap(find.text('Verify and update password'));
       await tester.pumpAndSettle();
       expect(account.status, AccountStatus.signedOut);
       expect(auth.status, AuthStatus.signedOut);

@@ -74,3 +74,5 @@ Copy the complete contents into the Courier project’s `docs/`, including all `
 ## G26 private media adoption — 2026-10-12
 
 Receive-only MP4 viewing and document download plus inclusive 8 MB image selection adopt Laravel `28fc740`. See [verification](references/private-media-verification.md) for actual checks and remaining runtime/device gates; video/document selection/upload stays outside this release.
+
+Account password editing adopts the [email verification contract](password-change.md) and code dialog in the local Courier client (2026-10-14), preserving all-device sign-out; live SMTP/deployed/device acceptance remains open.

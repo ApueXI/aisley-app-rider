@@ -16,6 +16,9 @@ extension AccountControllerState on AccountController {
       return;
     }
 
+    passwordChallenge = null;
+    passwordRetryAt = null;
+    passwordRequiresReconciliation = false;
     account = null;
     status = AccountStatus.idle;
     errorMessage = null;
@@ -29,6 +32,7 @@ extension AccountControllerState on AccountController {
 
   Future<void> _handleApiError(ApiException error) async {
     if (error.statusCode == 401 || error.statusCode == 403) {
+      passwordChallenge = null;
       account = null;
       profilePhoto = null;
       profilePhotoStatus = error.statusCode == 401

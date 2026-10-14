@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../../domain/password_challenge.dart';
+
 import '../../../../core/networking/api_client.dart';
 import '../../../../core/networking/api_contract_exception.dart';
 import '../../../../core/security/token_storage.dart';
@@ -56,6 +58,12 @@ class AccountController extends ChangeNotifier {
   final PasswordChangedHandler? _onPasswordChanged;
   final AccountUpdatedHandler? _onAccountUpdated;
   int _operationEpoch = 0;
+
+  PasswordChallenge? passwordChallenge;
+  DateTime? passwordRetryAt;
+  bool passwordRequiresReconciliation = false;
+  bool get passwordCoolingDown =>
+      passwordRetryAt?.isAfter(DateTime.now()) == true;
 
   AccountStatus status = AccountStatus.idle;
   CourierAccount? account;

@@ -13,6 +13,7 @@ import '../domain/account_models.dart';
 import '../../vehicle/presentation/controllers/vehicle_controller.dart';
 import '../../vehicle/presentation/vehicle_screen.dart';
 import 'controllers/account_controller.dart';
+import 'components/password_verification_dialog.dart';
 
 part 'components/account_screen_account.dart';
 part 'components/account_screen_content.dart';

@@ -1,3 +1,5 @@
+import 'package:aisley_app/features/account/domain/password_challenge.dart';
+
 import 'dart:async';
 
 import '../../../helpers/accessibility.dart';
@@ -102,10 +104,26 @@ class FakeAccountRepository implements AccountRepository {
   }
 
   @override
+  Future<PasswordChallenge> requestPasswordCode({
+    required String currentPassword,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    return PasswordChallenge(
+      id: '00000000-0000-4000-8000-000000000001',
+      maskedEmail: 'r***@example.test',
+      expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+      resendAt: DateTime.now().add(const Duration(seconds: 60)),
+    );
+  }
+
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String password,
     required String passwordConfirmation,
+    required String challengeId,
+    required String verificationCode,
   }) async {}
 
   @override

@@ -8,48 +8,39 @@ extension _AccountScreenSecurity on _AccountScreenState {
       return;
     }
 
-    final shouldChange = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          scrollable: true,
-          title: const Text('Change password?'),
-          content: Text(
-            'Changing your password signs you out on every device. You will need to sign in again.'
-            '${_profileHasLocalEdits() || _pendingProfilePhoto != null ? ' Unsaved profile changes and selected photos will be lost.' : ''}',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Change password'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldChange != true || !mounted || _isClosingForSession) {
-      return;
-    }
-
     final currentPassword = _currentPasswordController.text;
     final newPassword = _newPasswordController.text;
     final passwordConfirmation = _passwordConfirmationController.text;
-    _clearPasswordFields();
-    FocusManager.instance.primaryFocus?.unfocus();
-
-    try {
-      await widget.accountController.changePassword(
-        currentPassword: currentPassword,
-        password: newPassword,
-        passwordConfirmation: passwordConfirmation,
+    final sent = await widget.accountController.requestPasswordCode(
+      currentPassword: currentPassword,
+      password: newPassword,
+      passwordConfirmation: passwordConfirmation,
+    );
+    if (!mounted || _isClosingForSession) return;
+    if (sent) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => PasswordVerificationDialog(
+          controller: widget.accountController,
+          hasUnsavedProfileChanges:
+              _profileHasLocalEdits() || _pendingProfilePhoto != null,
+          onVerify: (code) => widget.accountController.changePassword(
+            currentPassword: currentPassword,
+            password: newPassword,
+            passwordConfirmation: passwordConfirmation,
+            verificationCode: code,
+          ),
+          onResend: () => widget.accountController.requestPasswordCode(
+            currentPassword: currentPassword,
+            password: newPassword,
+            passwordConfirmation: passwordConfirmation,
+          ),
+        ),
       );
-    } finally {
-      // Keep password values out of the form after every server attempt.
+      if (!mounted) return;
+      widget.accountController.cancelPasswordVerification();
       _clearPasswordFields();
     }
 
@@ -161,7 +152,7 @@ extension _AccountScreenSecurity on _AccountScreenState {
                     button: true,
                     label: controller.status == AccountStatus.changingPassword
                         ? 'Changing password'
-                        : 'Change password',
+                        : 'Send verification code',
                     child: OutlinedButton.icon(
                       onPressed: controller.isBusy ? null : _changePassword,
                       icon: controller.status == AccountStatus.changingPassword
@@ -173,8 +164,8 @@ extension _AccountScreenSecurity on _AccountScreenState {
                           : const Icon(Icons.lock_reset_outlined),
                       label: Text(
                         controller.status == AccountStatus.changingPassword
-                            ? 'Changing…'
-                            : 'Change password',
+                            ? 'Please wait…'
+                            : 'Send verification code',
                       ),
                     ),
                   ),
