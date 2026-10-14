@@ -29,7 +29,8 @@ extension VehicleControllerDocuments on VehicleController {
 
   Future<bool> retryDocument(VehicleDocumentKind kind) async {
     final attempt = _pendingDocuments[kind];
-    if (attempt == null ||
+    if (!canRetryRateLimit ||
+        attempt == null ||
         documentActionStatus(kind) == VehicleActionStatus.uploading) {
       return false;
     }
@@ -41,6 +42,8 @@ extension VehicleControllerDocuments on VehicleController {
     _PendingDocumentUpload attempt, {
     void Function(void Function() cancel)? onCancel,
   }) async {
+    if (!canRetryRateLimit || _disposed) return false;
+    final generation = _generation;
     _documentStatuses[kind] = VehicleActionStatus.uploading;
     _documentErrors[kind] = null;
     _documentSuccessMessages[kind] = null;
@@ -55,6 +58,7 @@ extension VehicleControllerDocuments on VehicleController {
         idempotencyKey: attempt.idempotencyKey,
         onCancel: onCancel,
       );
+      if (_disposed || generation != _generation) return false;
       vehicle = updatedVehicle;
       _pendingDocuments.remove(kind);
       _documentStatuses[kind] = VehicleActionStatus.uploaded;
@@ -65,6 +69,7 @@ extension VehicleControllerDocuments on VehicleController {
       _notifyVehicleListeners();
       return true;
     } on ApiException catch (error) {
+      if (_disposed || generation != _generation) return false;
       if (error.isNetworkError) {
         await _reconcileUncertainDocument(kind, error);
       } else {
@@ -74,12 +79,14 @@ extension VehicleControllerDocuments on VehicleController {
         await _setDocumentError(kind, error);
       }
     } on TokenStorageException {
+      if (_disposed || generation != _generation) return false;
       _documentStatuses[kind] = VehicleActionStatus.secureStorageFailure;
       _documentErrors[kind] =
           'Secure session storage is unavailable. The ${kind.shortLabel} was not changed.';
       _documentSuccessMessages[kind] = null;
       _notifyVehicleListeners();
     } on ApiContractException {
+      if (_disposed || generation != _generation) return false;
       await _reconcileUncertainDocument(
         kind,
         const ApiException.network(
@@ -92,12 +99,24 @@ extension VehicleControllerDocuments on VehicleController {
   }
 
   Future<void> loadDocument(VehicleDocumentKind kind) async {
+    if (_disposed ||
+        !canRetryRateLimit ||
+        documentPreviewStatus(kind) == VehicleDocumentPreviewStatus.loading) {
+      return;
+    }
+    final generation = _generation;
+    final previewGeneration = _previewGeneration;
     _documentPreviewStatuses[kind] = VehicleDocumentPreviewStatus.loading;
     _documentPreviewErrors[kind] = null;
     _notifyVehicleListeners();
 
     try {
       final loadedDocument = await vehicleRepository.fetchDocument(kind);
+      if (_disposed ||
+          generation != _generation ||
+          previewGeneration != _previewGeneration) {
+        return;
+      }
       if (loadedDocument.bytes.isEmpty) {
         throw ApiContractException('vehicle.documents.${kind.value}.body');
       }
@@ -106,13 +125,28 @@ extension VehicleControllerDocuments on VehicleController {
       _documentPreviewErrors[kind] = null;
       _notifyVehicleListeners();
     } on ApiException catch (error) {
+      if (_disposed ||
+          generation != _generation ||
+          previewGeneration != _previewGeneration) {
+        return;
+      }
       await _setDocumentPreviewError(kind, error);
     } on TokenStorageException {
+      if (_disposed ||
+          generation != _generation ||
+          previewGeneration != _previewGeneration) {
+        return;
+      }
       _documentPreviewStatuses[kind] =
           VehicleDocumentPreviewStatus.secureStorageFailure;
       _documentPreviewErrors[kind] = 'Secure session storage is unavailable. This document cannot be loaded.';
       _notifyVehicleListeners();
     } on ApiContractException {
+      if (_disposed ||
+          generation != _generation ||
+          previewGeneration != _previewGeneration) {
+        return;
+      }
       _documentPreviewStatuses[kind] = VehicleDocumentPreviewStatus.failed;
       _documentPreviewErrors[kind] =
           'The private ${kind.shortLabel} response was not understood. Please retry.';

@@ -9,16 +9,15 @@ class _DeliveryIdentity extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Card(
-      color: scheme.secondaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Final-mile delivery',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: scheme.onSecondaryContainer,
+                color: scheme.onSurface,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -26,7 +25,7 @@ class _DeliveryIdentity extends StatelessWidget {
             Text(
               task.order?.reference ?? 'Order reference unavailable',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: scheme.onSecondaryContainer,
+                color: scheme.onSurface,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -34,7 +33,7 @@ class _DeliveryIdentity extends StatelessWidget {
             Text(
               task.waybill?.reference ?? 'Waybill reference unavailable',
               style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: scheme.onSecondaryContainer),
+                  ?.copyWith(color: scheme.onSurface),
             ),
             const SizedBox(height: 12),
             _DeliveryStatusPill(label: _deliveryStatusLabel(task.rawStatus)),
@@ -79,7 +78,7 @@ class _DeliveryContextCard extends StatelessWidget {
     final hub = data.hub;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

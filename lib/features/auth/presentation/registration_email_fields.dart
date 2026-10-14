@@ -9,10 +9,12 @@ class RegistrationEmailFields extends StatefulWidget {
     required this.controller,
     this.onVerified,
     this.disabled = false,
+    this.emailFocusNode,
   });
   final RegistrationEmailController controller;
   final VoidCallback? onVerified;
   final bool disabled;
+  final FocusNode? emailFocusNode;
   @override
   State<RegistrationEmailFields> createState() =>
       _RegistrationEmailFieldsState();
@@ -94,12 +96,14 @@ class _RegistrationEmailFieldsState extends State<RegistrationEmailFields> {
             const SizedBox(height: 16),
             if (c.verified)
               TextButton(
+                focusNode: widget.emailFocusNode,
                 onPressed: widget.disabled ? null : c.reset,
                 child: const Text('Change email'),
               )
             else ...[
               TextFormField(
                 controller: _email,
+                focusNode: widget.emailFocusNode,
                 enabled: !c.busy && c.challenge == null && !widget.disabled,
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],

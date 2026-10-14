@@ -12,7 +12,7 @@ class _HistoryStatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         label,
@@ -35,7 +35,7 @@ class _HistoryLoadingCard extends StatelessWidget {
       label: 'Loading delivery history',
       child: const Card(
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           child: Center(child: CircularProgressIndicator()),
         ),
       ),

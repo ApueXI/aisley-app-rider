@@ -28,7 +28,7 @@ class BlockedAccessScreen extends StatelessWidget {
   }) : this(
          authController: authController,
          title: 'Application not approved',
-         message: 'Courier access is unavailable for this application. Review details are not shown here.',
+         message: 'Your application was not approved. Contact your Logistics organization for help.',
          icon: Icons.info_outline_rounded,
          key: key,
        );
@@ -50,7 +50,7 @@ class BlockedAccessScreen extends StatelessWidget {
   }) : this(
          authController: authController,
          title: 'Logistics affiliation unavailable',
-         message: 'Your Courier affiliation is not currently valid, so operational access is blocked.',
+         message: 'Your Logistics affiliation is unavailable. Contact your Logistics organization before signing in again.',
          icon: Icons.domain_disabled_outlined,
          key: key,
        );
@@ -174,20 +174,8 @@ class _StatusMessageScreen extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
                 children: [
-                  Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      color: scheme.secondaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 36,
-                      color: scheme.onSecondaryContainer,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                  Icon(icon, size: 32, color: scheme.onSurfaceVariant),
+                  const SizedBox(height: 16),
                   Text(
                     title,
                     textAlign: TextAlign.center,
@@ -204,7 +192,7 @@ class _StatusMessageScreen extends StatelessWidget {
                           ?.copyWith(color: scheme.onSurfaceVariant),
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
                   if (waitingMessage != null) ...[
                     Semantics(liveRegion: true, child: Text(waitingMessage!)),
                     const SizedBox(height: 12),

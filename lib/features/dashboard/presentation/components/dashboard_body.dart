@@ -12,8 +12,6 @@ class _DashboardBody extends StatelessWidget {
     required this.onOpenHistory,
     this.onOpenBatches,
     this.onOpenNotifications,
-    this.onOpenMessages,
-    this.onOpenSupport,
     this.previewController,
     this.profilePhoto,
   });
@@ -24,65 +22,36 @@ class _DashboardBody extends StatelessWidget {
   final VoidCallback onOpenPickups;
   final DeliveryController? deliveryController;
   final HistoryController? historyController;
-  final VoidCallback onOpenDeliveries;
-  final VoidCallback onOpenHistory;
-  final VoidCallback? onOpenBatches;
-  final VoidCallback? onOpenNotifications;
-  final VoidCallback? onOpenMessages;
-  final VoidCallback? onOpenSupport;
+  final VoidCallback onOpenDeliveries, onOpenHistory;
+  final VoidCallback? onOpenBatches, onOpenNotifications;
   final DashboardPreviewController? previewController;
   final ProfilePhotoData? profilePhoto;
 
   @override
   Widget build(BuildContext context) {
-    final courier = authController.courier!;
-    final isLoading =
-        authController.dashboardStatus == DashboardLoadStatus.loading;
     final snapshot = authController.dashboard;
-    final summariesUnavailable =
-        snapshot != null &&
-        snapshot.freshness.state == DashboardFreshnessState.scaffold &&
-        const ['notifications', 'available_tasks', 'active_tasks'].every(
-          (key) =>
-              snapshot.section(key).state == DashboardSectionState.unavailable,
-        );
-
+    final loading =
+        authController.dashboardStatus == DashboardLoadStatus.loading;
     return ListView(
+      key: const PageStorageKey('home-work'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
-        _WelcomeCard(courier: courier, profilePhoto: profilePhoto),
-        const SizedBox(height: 24),
-        if (snapshot?.operational != true)
-          if (previewController case final controller?) ...[
-            _DashboardTaskPreviews(
-              controller: controller,
-              onOpenFirstMile: onOpenPickups,
-              onOpenFinalMile: onOpenDeliveries,
-            ),
-            const SizedBox(height: 24),
-          ],
-        Text(
-          'Dashboard summaries',
-          style: Theme.of(context).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w800),
+        _WelcomeCard(
+          courier: authController.courier!,
+          profilePhoto: profilePhoto,
         ),
-        const SizedBox(height: 16),
-        if (authController.dashboardErrorMessage != null)
+        const SizedBox(height: 24),
+        if (authController.dashboardErrorMessage case final message?) ...[
           _DashboardErrorBanner(
-            message: authController.dashboardErrorMessage!,
+            message: message,
             onRetry: authController.canRetryDashboard
                 ? authController.loadDashboard
                 : null,
           ),
-        if (authController.dashboardErrorMessage != null)
           const SizedBox(height: 16),
-        if (summariesUnavailable)
-          _UnavailableNotice(
-            isLoading: isLoading,
-            hasRefreshError: authController.dashboardErrorMessage != null,
-          )
-        else if (snapshot?.operational == true) ...[
+        ],
+        if (snapshot?.operational == true)
           _DashboardAggregate(
             snapshot: snapshot!,
             stale: authController.dashboardErrorMessage != null,
@@ -90,98 +59,52 @@ class _DashboardBody extends StatelessWidget {
             onOpenDeliveries: onOpenDeliveries,
             onOpenBatches: onOpenBatches,
             onOpenNotifications: onOpenNotifications,
-          ),
-        ] else if (isLoading && snapshot == null) ...[
-          Semantics(
-            liveRegion: true,
-            child: const Text('Checking dashboard summaries…'),
-          ),
-          const SizedBox(height: 12),
-          const _SkeletonSectionCard(),
-          const SizedBox(height: 12),
-          const _SkeletonSectionCard(),
-          const SizedBox(height: 12),
-          const _SkeletonSectionCard(),
-        ] else if (snapshot != null) ...[
-          _DashboardSectionCard(
-            title: 'Notification summary',
-            subtitle: 'Updates about your Courier work',
-            icon: Icons.notifications_none_rounded,
-            section: snapshot.section('notifications'),
-          ),
-          const SizedBox(height: 12),
-          _DashboardSectionCard(
-            title: 'Available work',
-            subtitle: 'Pickup and delivery requests offered to you',
-            icon: Icons.assignment_outlined,
-            section: snapshot.section('available_tasks'),
-          ),
-          const SizedBox(height: 12),
-          _DashboardSectionCard(
-            title: 'Active work',
-            subtitle: 'Accepted Courier work in progress',
-            icon: Icons.local_shipping_outlined,
-            section: snapshot.section('active_tasks'),
+          )
+        else ...[
+          if (previewController case final previews?)
+            _DashboardTaskPreviews(
+              controller: previews,
+              onOpenFirstMile: onOpenPickups,
+              onOpenFinalMile: onOpenDeliveries,
+            ),
+          _LegacyWorkStatus(
+            snapshot: snapshot,
+            loading: loading,
+            stale: authController.dashboardErrorMessage != null,
+            hasPreviews: previewController != null,
           ),
         ],
-        const SizedBox(height: 20),
-        if (onOpenNotifications != null) ...[
-          OutlinedButton.icon(
-            onPressed: onOpenNotifications,
-            icon: const Icon(Icons.notifications_none_rounded),
-            label: const Text('Open notifications'),
+        const SizedBox(height: 24),
+        if (pickupController != null || deliveryController != null) ...[
+          Text(
+            'Work shortcuts',
+            style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          if (pickupController != null)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.inventory_2_outlined),
+              title: const Text('Pickup orders'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: onOpenPickups,
+            ),
+          if (deliveryController != null)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.local_shipping_outlined),
+              title: const Text('Delivery work'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: onOpenDeliveries,
+            ),
         ],
-        if (onOpenMessages != null) ...[
-          OutlinedButton.icon(
-            onPressed: onOpenMessages,
-            icon: const Icon(Icons.chat_bubble_outline),
-            label: const Text('Task messages'),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (onOpenSupport != null) ...[
-          OutlinedButton.icon(
-            onPressed: onOpenSupport,
-            icon: const Icon(Icons.support_agent_outlined),
-            label: const Text('Support tickets'),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (pickupController != null) ...[
-          OutlinedButton.icon(
-            onPressed: onOpenPickups,
-            icon: const Icon(Icons.local_shipping_outlined),
-            label: const Text('Open pickup orders'),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (deliveryController != null) ...[
-          OutlinedButton.icon(
-            onPressed: onOpenDeliveries,
-            icon: const Icon(Icons.route_outlined),
-            label: const Text('Open delivery work'),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (historyController != null) ...[
-          OutlinedButton.icon(
-            onPressed: onOpenHistory,
-            icon: const Icon(Icons.history_outlined),
-            label: const Text('View delivery history'),
-          ),
-          const SizedBox(height: 12),
-        ],
-        OutlinedButton.icon(
-          onPressed: isLoading || !authController.canRetryDashboard
+        TextButton.icon(
+          onPressed: loading || !authController.canRetryDashboard
               ? null
               : authController.loadDashboard,
           icon: const Icon(Icons.refresh),
           label: const Text('Refresh dashboard'),
         ),
-        const SizedBox(height: 12),
-        TextButton(onPressed: onSignOut, child: const Text('Sign out')),
       ],
     );
   }

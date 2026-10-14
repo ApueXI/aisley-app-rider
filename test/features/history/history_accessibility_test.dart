@@ -116,7 +116,9 @@ Future<void> _checkHistoryAccessibility(WidgetTester tester) async {
     find.byType(TextField),
     find.widgetWithText(FilledButton, 'Search'),
     find.widgetWithText(TextButton, 'Clear'),
-    find.byType(Card).first,
+    if (find.byType(Card).evaluate().isNotEmpty) find.byType(Card).first,
+    if (find.byType(ListTile).evaluate().isNotEmpty)
+      find.byType(ListTile).first,
     if (find.widgetWithText(OutlinedButton, 'Retry').evaluate().isNotEmpty)
       find.widgetWithText(OutlinedButton, 'Retry'),
     if (find.widgetWithText(TextButton, 'Retry').evaluate().isNotEmpty)

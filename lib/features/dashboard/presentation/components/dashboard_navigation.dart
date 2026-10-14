@@ -1,28 +1,14 @@
 part of '../dashboard_screen.dart';
 
 mixin _DashboardNavigation on State<DashboardScreen> {
+  void _selectWork(int index);
+  Future<void> _pushPage(Widget page);
+  bool _confirmingSignOut = false;
   Future<void> _confirmSignOut() async {
-    final shouldSignOut = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Sign out?'),
-          content: const Text(
-            'You will need to sign in again to view your Courier dashboard.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Sign out'),
-            ),
-          ],
-        );
-      },
-    );
+    if (_confirmingSignOut || widget.authController.isSigningOut) return;
+    _confirmingSignOut = true;
+    final shouldSignOut = await confirmCourierSignOut(context);
+    _confirmingSignOut = false;
 
     if (shouldSignOut != true || !mounted) {
       return;
@@ -42,111 +28,99 @@ mixin _DashboardNavigation on State<DashboardScreen> {
     );
   }
 
-  Future<void> _openAccount() async {
+  Future<void> _openAccount({
+    AccountSection section = AccountSection.profile,
+  }) async {
     final accountController = widget.accountController;
     if (accountController == null || !mounted) {
       return;
     }
 
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => AccountScreen(
-          authController: widget.authController,
-          accountController: accountController,
-          policyController: widget.policyController,
-          vehicleController: widget.vehicleController,
-        ),
+    await _pushPage(
+      AccountScreen(
+        authController: widget.authController,
+        accountController: accountController,
+        section: section,
+        policyController: widget.policyController,
+        vehicleController: widget.vehicleController,
+      ),
+    );
+  }
+
+  Future<void> _openPolicies() async {
+    final controller = widget.policyController;
+    if (controller == null || !mounted) return;
+    await _pushPage(
+      PolicyScreen(
+        authController: widget.authController,
+        policyController: controller,
       ),
     );
   }
 
   Future<void> _openPickups() async {
-    final pickupController = widget.pickupController;
-    if (pickupController == null || !mounted) {
-      return;
-    }
-
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PickupScreen(
+    if (!mounted || widget.pickupController == null) return;
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      _selectWork(2);
+    } else {
+      await _pushPage(
+        PickupScreen(
           authController: widget.authController,
-          pickupController: pickupController,
+          pickupController: widget.pickupController!,
           policyController: widget.policyController,
           onOpenDelivery: _openDeliveries,
           onOpenBatches: _openBatches,
           chatController: widget.chatController,
         ),
-      ),
-    );
-    if (mounted && widget.authController.status == AuthStatus.authenticated) {
-      unawaited(
-        widget.authController.dashboard?.operational == true
-            ? widget.authController.loadDashboard()
-            : widget.dashboardPreviewController?.refreshFirstMile() ??
-                  Future<void>.value(),
       );
     }
   }
 
   Future<void> _openBatches() async {
-    final batchController = widget.batchController;
-    if (batchController == null || !mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => FinalMileBatchScreen(
+    if (!mounted || widget.batchController == null) return;
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      _selectWork(4);
+    } else {
+      await _pushPage(
+        FinalMileBatchScreen(
           authController: widget.authController,
-          batchController: batchController,
+          batchController: widget.batchController!,
           policyController: widget.policyController,
         ),
-      ),
-    );
-    if (mounted && widget.authController.status == AuthStatus.authenticated) {
-      await widget.authController.loadDashboard();
+      );
     }
   }
 
   Future<void> _openDeliveries() async {
-    final deliveryController = widget.deliveryController;
-    if (deliveryController == null || !mounted) {
-      return;
-    }
-
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => DeliveryScreen(
+    if (!mounted || widget.deliveryController == null) return;
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      _selectWork(3);
+    } else {
+      await _pushPage(
+        DeliveryScreen(
           authController: widget.authController,
-          deliveryController: deliveryController,
+          deliveryController: widget.deliveryController!,
           policyController: widget.policyController,
           onOpenPickup: _openPickups,
           chatController: widget.chatController,
         ),
-      ),
-    );
-    if (mounted && widget.authController.status == AuthStatus.authenticated) {
-      unawaited(
-        widget.authController.dashboard?.operational == true
-            ? widget.authController.loadDashboard()
-            : widget.dashboardPreviewController?.refreshFinalMile() ??
-                  Future<void>.value(),
       );
     }
   }
 
   Future<void> _openHistory() async {
-    final historyController = widget.historyController;
-    if (historyController == null || !mounted) {
-      return;
-    }
-
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => HistoryScreen(
+    if (!mounted || widget.historyController == null) return;
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      _selectWork(5);
+    } else {
+      await _pushPage(
+        HistoryScreen(
           authController: widget.authController,
-          historyController: historyController,
+          historyController: widget.historyController!,
           policyController: widget.policyController,
         ),
-      ),
-    );
+      );
+    }
   }
 
   Future<void> _openNotifications() async {
@@ -159,14 +133,11 @@ mixin _DashboardNavigation on State<DashboardScreen> {
       MaterialPageRoute<void>(
         builder: (_) => NotificationScreen(
           controller: notificationController,
-          managePolling: false,
+          managePolling: true,
           onOpenTarget: _openNotificationTarget,
         ),
       ),
     );
-    if (mounted && widget.authController.status == AuthStatus.authenticated) {
-      notificationController.startPolling();
-    }
   }
 
   Future<void> _openNotificationTarget(CourierNotification notification) async {
@@ -214,28 +185,13 @@ mixin _DashboardNavigation on State<DashboardScreen> {
     );
   }
 
-  Future<void> _openMessages() async {
-    final chatController = widget.chatController;
-    if (chatController == null || !mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ChatInboxScreen(
-          controller: chatController,
-          authController: widget.authController,
-        ),
-      ),
-    );
-  }
-
   Future<void> _openSupportTickets() async {
     final supportTicketController = widget.supportTicketController;
     if (supportTicketController == null || !mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => SupportTicketScreen(
-          controller: supportTicketController,
-          authController: widget.authController,
-        ),
+    await _pushPage(
+      SupportTicketScreen(
+        controller: supportTicketController,
+        authController: widget.authController,
       ),
     );
   }

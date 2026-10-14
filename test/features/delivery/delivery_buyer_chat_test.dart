@@ -39,6 +39,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Message Buyer'), 250);
       expect(find.text('Message Buyer'), findsOneWidget);
       expect(
         tester
@@ -131,6 +132,13 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Message Buyer'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.text('Message Buyer'));
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('Message Buyer'), findsOneWidget);
     expect(tester.takeException(), isNull);

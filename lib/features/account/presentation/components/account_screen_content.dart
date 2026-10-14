@@ -6,15 +6,16 @@ extension _AccountScreenContent on _AccountScreenState {
     final isLoading = controller.status == AccountStatus.loading;
 
     return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         _AccountHeader(
           account: account,
-          profilePhotoBytes:
-              _pendingProfilePhoto?.bytes ?? controller.profilePhoto?.bytes,
+          profilePhotoBytes: controller.profilePhoto?.bytes,
         ),
-        if (widget.policyController != null) ...[
+        if (widget.section == AccountSection.all &&
+            widget.policyController != null) ...[
           const SizedBox(height: 16),
           Card(
             child: ListTile(
@@ -29,7 +30,8 @@ extension _AccountScreenContent on _AccountScreenState {
             ),
           ),
         ],
-        if (widget.vehicleController != null) ...[
+        if (widget.section == AccountSection.all &&
+            widget.vehicleController != null) ...[
           const SizedBox(height: 16),
           Card(
             child: ListTile(
@@ -56,14 +58,17 @@ extension _AccountScreenContent on _AccountScreenState {
           const SizedBox(height: 16),
           _AccountBanner(message: controller.successMessage!, isError: false),
         ],
-        const SizedBox(height: 20),
-        _buildProfilePhotoSection(context, account),
+        if (widget.section != AccountSection.security) ...[
+          const SizedBox(height: 24),
+          _buildProfilePhotoSection(context, account),
+          const SizedBox(height: 24),
+          _buildPersonalInformationSection(context),
+          const SizedBox(height: 24),
+          _buildAccountDetailsSection(context, account),
+        ],
         const SizedBox(height: 24),
-        _buildPersonalInformationSection(context),
-        const SizedBox(height: 24),
-        _buildAccountDetailsSection(context, account),
-        const SizedBox(height: 24),
-        _buildSecuritySection(context),
+        if (widget.section != AccountSection.profile)
+          _buildSecuritySection(context),
       ],
     );
   }

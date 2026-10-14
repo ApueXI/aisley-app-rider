@@ -33,13 +33,17 @@ extension VehicleControllerUpdates on VehicleController {
 
   Future<bool> retryUpdate() async {
     final attempt = _pendingUpdate;
-    if (attempt == null || updateStatus == VehicleActionStatus.saving) {
+    if (!canRetryRateLimit ||
+        attempt == null ||
+        updateStatus == VehicleActionStatus.saving) {
       return false;
     }
     return _performUpdate(attempt);
   }
 
   Future<bool> _performUpdate(_PendingVehicleUpdate attempt) async {
+    if (!canRetryRateLimit || _disposed) return false;
+    final generation = _generation;
     updateStatus = VehicleActionStatus.saving;
     updateErrorMessage = null;
     updateSuccessMessage = null;
@@ -52,6 +56,7 @@ extension VehicleControllerUpdates on VehicleController {
         expectedRevision: attempt.expectedRevision,
         idempotencyKey: attempt.idempotencyKey,
       );
+      if (_disposed || generation != _generation) return false;
       vehicle = updatedVehicle;
       _pendingUpdate = null;
       updateStatus = VehicleActionStatus.saved;
@@ -59,6 +64,7 @@ extension VehicleControllerUpdates on VehicleController {
       _notifyVehicleListeners();
       return true;
     } on ApiException catch (error) {
+      if (_disposed || generation != _generation) return false;
       if (error.isNetworkError) {
         await _reconcileUncertainUpdate(error);
       } else {
@@ -68,11 +74,13 @@ extension VehicleControllerUpdates on VehicleController {
         await _setUpdateError(error);
       }
     } on TokenStorageException {
+      if (_disposed || generation != _generation) return false;
       updateStatus = VehicleActionStatus.secureStorageFailure;
       updateErrorMessage = 'Secure session storage is unavailable. Your vehicle was not changed.';
       updateSuccessMessage = null;
       _notifyVehicleListeners();
     } on ApiContractException {
+      if (_disposed || generation != _generation) return false;
       await _reconcileUncertainUpdate(
         const ApiException.network(
           'The save response was not understood.',

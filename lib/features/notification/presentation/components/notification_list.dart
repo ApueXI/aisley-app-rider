@@ -21,7 +21,7 @@ class _NotificationListBody extends StatelessWidget {
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         Text(
           'Courier inbox',
@@ -30,7 +30,7 @@ class _NotificationListBody extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Read-only updates about work offered or scheduled for your Courier account.',
+          'Updates about your scheduled and offered work.',
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
@@ -150,79 +150,36 @@ class _UnreadCountSummary extends StatelessWidget {
 
 class _NotificationCard extends StatelessWidget {
   const _NotificationCard({required this.notification, required this.onTap});
-
   final CourierNotification notification;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final state = notification.isRead ? 'Read' : 'Unread';
-    final label = '${notification.title}. ${notification.summary}. $state.';
-    return Semantics(
-      button: true,
-      label: label,
-      child: Card(
-        color: notification.isRead ? null : scheme.primaryContainer,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    _notificationIcon(notification.type),
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        notification.title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(notification.summary),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${notification.typeLabel} • ${_formatNotificationDate(context, notification.createdAt)} • $state',
-                        style: Theme.of(context).textTheme.bodySmall
-                            ?.copyWith(color: scheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.chevron_right, color: scheme.outline),
-              ],
-            ),
-          ),
+  Widget build(BuildContext context) => Column(
+    children: [
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        title: Text(
+          notification.title,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(notification.summary),
+            const SizedBox(height: 8),
+            Text(
+              '${notification.isRead ? 'Read' : 'Unread'} · ${_formatNotificationDate(context, notification.createdAt)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
       ),
-    );
-  }
-}
-
-IconData _notificationIcon(String type) {
-  return switch (type) {
-    'courier-task.final-mile-offered' => Icons.route_outlined,
-    'pickup-schedule.cancelled' => Icons.event_busy_outlined,
-    'pickup-schedule.reminder' => Icons.alarm_outlined,
-    _ => Icons.notifications_none_rounded,
-  };
+      const Divider(height: 1),
+    ],
+  );
 }
 
 String _formatNotificationDate(BuildContext context, DateTime value) {

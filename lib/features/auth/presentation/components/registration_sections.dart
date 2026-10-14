@@ -1,41 +1,6 @@
 part of '../registration_screen.dart';
 
 extension _RegistrationSections on _RegistrationScreenState {
-  Widget _buildHeader(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 58,
-          height: 58,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: <Color>[scheme.primary, scheme.secondary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Icon(Icons.two_wheeler_outlined, color: scheme.onPrimary),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          'Create your Courier account',
-          style: Theme.of(context).textTheme.headlineMedium
-              ?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Submit your details for Logistics approval. Fields marked by the server remain authoritative.',
-          style: Theme.of(context).textTheme.bodyLarge
-              ?.copyWith(color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 26),
-      ],
-    );
-  }
-
   Widget _buildOrganizationField(BuildContext context) {
     if (_isLoadingOrganizations) {
       return const Padding(

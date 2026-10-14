@@ -73,7 +73,7 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
             onRefresh: () => controller.retry(widget.batch.id),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 Text(
                   widget.batch.reference,

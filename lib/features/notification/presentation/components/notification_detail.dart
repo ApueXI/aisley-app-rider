@@ -65,7 +65,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 if (detailStatus == NotificationLoadStatus.loading &&
                     widget.controller.detailFor(notification.id) == null)
@@ -126,7 +126,7 @@ class _NotificationDetailCard extends StatelessWidget {
       children: [
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

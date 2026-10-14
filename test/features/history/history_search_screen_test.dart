@@ -55,7 +55,7 @@ void main() {
       );
       expect(
         find.descendant(
-          of: find.byType(Card),
+          of: find.byType(ListTile),
           matching: find.text('KNOWN-ORDER'),
         ),
         findsOneWidget,

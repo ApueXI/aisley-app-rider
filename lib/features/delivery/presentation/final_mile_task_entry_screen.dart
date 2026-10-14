@@ -196,7 +196,7 @@ class _FinalMileTaskEntryScreenState extends State<FinalMileTaskEntryScreen> {
         onRefresh: _refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           children: [
             if (loading)
               Semantics(

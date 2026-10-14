@@ -42,8 +42,9 @@ class _FinalMileBatchList extends StatelessWidget {
     }
 
     return ListView(
+      key: const PageStorageKey('final-mile-batches'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         Text(
           'Dispatch offers',
@@ -63,7 +64,7 @@ class _FinalMileBatchList extends StatelessWidget {
             onRetry: controller.load,
           ),
         ],
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         for (final batch in batches) ...[
           _FinalMileBatchCard(batch: batch, onTap: () => onOpenBatch(batch)),
           const SizedBox(height: 12),
@@ -75,83 +76,21 @@ class _FinalMileBatchList extends StatelessWidget {
 
 class _FinalMileBatchCard extends StatelessWidget {
   const _FinalMileBatchCard({required this.batch, required this.onTap});
-
   final FinalMileBatch batch;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final destinations = batch.tasks
+  Widget build(BuildContext context) => TaskRow(
+    reference: batch.reference,
+    leg:
+        '${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'}',
+    status: _batchStatusLabel(batch.status),
+    location: batch.tasks
         .map((task) => task.destination.summary)
         .toSet()
         .take(2)
-        .join(' • ');
-    return Semantics(
-      button: true,
-      label:
-          '${batch.reference}. ${batch.parcelCount} parcels. ${_batchStatusLabel(batch.status)}. Scheduled ${_formatBatchSchedule(batch.scheduledFor)}.',
-      child: Card(
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: scheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.inventory_2_outlined,
-                        color: scheme.onPrimaryContainer,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            batch.reference,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'} • ${_formatBatchSchedule(batch.scheduledFor)}',
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, color: scheme.outline),
-                  ],
-                ),
-                if (destinations.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    destinations,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: scheme.onSurfaceVariant),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                _BatchStatusChip(status: batch.status),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+        .join(' · '),
+    nextStep: 'Scheduled ${_formatBatchSchedule(batch.scheduledFor)}',
+    onTap: onTap,
+  );
 }

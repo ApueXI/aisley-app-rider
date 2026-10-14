@@ -140,7 +140,7 @@ class _FailedDeliveryAttemptFormState extends State<FailedDeliveryAttemptForm> {
           body: Form(
             key: _form,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 if (task.order?.reference != null)
                   Text('Order ${task.order!.reference}'),
@@ -225,7 +225,7 @@ class _FailedDeliveryAttemptFormState extends State<FailedDeliveryAttemptForm> {
                       semanticsLabel: 'Reporting delivery attempt',
                     ),
                   ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 FilledButton(
                   onPressed: busy || !enabled ? null : _submit,
                   child: Text(pending ? 'Retry same report' : 'Submit report'),

@@ -27,7 +27,8 @@ void main() {
       await fixture.fill(tester);
       await checkScrollableAccessibility(tester);
       expect(fixture.repository.submissions, 0);
-      await tester.binding.handlePopRoute();
+      await tester.ensureVisible(find.text('Already registered? Sign in'));
+      await tester.tap(find.text('Already registered? Sign in'));
       await tester.pumpAndSettle();
       await checkAccessibility(tester);
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
@@ -76,6 +77,7 @@ void main() {
         final fixture = RegistrationScreenFixture();
         fixture.repository.pendingOptions = pending;
         await fixture.open(tester, scenario: scenario, settle: false);
+        await fixture.fill(tester, stopAt: 3);
         await checkScrollableAccessibility(tester);
         pending.completeError(const ApiException.network('Test offline'));
         fixture.repository.pendingOptions = null;

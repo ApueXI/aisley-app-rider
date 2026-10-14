@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const _BrandMark(),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 24),
                           Text(
                             'Courier sign in',
                             style: Theme.of(context).textTheme.headlineMedium
@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Use your approved Courier account to access your work dashboard.',
+                            'Sign in to view your pickups and deliveries.',
                             style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(
                                   color: Theme.of(context)
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             validator: _validateEmail,
                           ),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _passwordController,
                             enabled: !isSubmitting,
@@ -185,9 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: isSubmitting ? null : widget.onRegister,
                             child: const Text('New Courier? Register here'),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
                           Text(
-                            'Only active Couriers with an approved Logistics affiliation can sign in.',
+                            'New accounts need Logistics approval before sign in.',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
@@ -223,34 +223,17 @@ String? _validateEmail(String? value) {
 
 class _BrandMark extends StatelessWidget {
   const _BrandMark();
-
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Semantics(
-        label: 'Aisley Courier',
-        child: Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: <Color>[scheme.primary, scheme.secondary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Icon(
-            Icons.two_wheeler_outlined,
-            color: scheme.onPrimary,
-            size: 32,
-          ),
-        ),
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: Text(
+      'AISLEY',
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.w700,
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _ErrorBanner extends StatelessWidget {
@@ -269,7 +252,7 @@ class _ErrorBanner extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: scheme.errorContainer,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

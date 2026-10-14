@@ -28,6 +28,7 @@ class DeliveryTaskScreen extends StatefulWidget {
 
 class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
     with _DeliveryPhotoSelection {
+  final _leaveGuard = GlobalKey<UnsavedChangesGuardState>();
   @override
   void initState() {
     super.initState();
@@ -71,56 +72,68 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
         final controller = widget.deliveryController;
         final task = controller.taskById(widget.task.id) ?? widget.task;
         final deliveryContext = controller.contexts[task.id];
-        return Scaffold(
-          appBar: AppBar(title: const Text('Deliver order')),
-          body: RefreshIndicator(
-            onRefresh: widget.onRefresh ?? () => controller.loadDetails(task),
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-              children: [
-                _DeliveryIdentity(task: task),
-                const SizedBox(height: 16),
-                if (widget.chatController != null &&
-                    task.isFinalMile &&
-                    (task.status == PickupTaskStatus.deliveryAssigned ||
-                        task.status == PickupTaskStatus.deliveryAccepted ||
-                        task.status == PickupTaskStatus.pickedUpFromHub ||
-                        task.status == PickupTaskStatus.inTransit ||
-                        task.status == PickupTaskStatus.outForDelivery))
-                  OutlinedButton.icon(
-                    onPressed: () => _openChat(task, 'logistics'),
-                    icon: const Icon(Icons.chat_bubble_outline),
-                    label: const Text('Message Logistics'),
-                  ),
-                if (widget.chatController != null &&
-                    ChatTaskContext.canMessageBuyer(task))
-                  OutlinedButton.icon(
-                    onPressed: () => _openChat(task, 'customer'),
-                    icon: const Icon(Icons.person_outline),
-                    label: const Text('Message Buyer'),
-                  ),
-                _DeliveryContextCard(
-                  contextData: deliveryContext,
-                  status:
-                      controller.contextStatuses[task.id] ??
-                      DeliveryLoadStatus.idle,
-                  error: controller.contextErrors[task.id],
-                  onRetry:
-                      widget.onRefresh ?? () => controller.loadDetails(task),
-                ),
-                const SizedBox(height: 16),
-                _buildAction(context, task, deliveryContext),
-                if (task.isFinalMile &&
-                    task.status == PickupTaskStatus.outForDelivery) ...[
+        return UnsavedChangesGuard(
+          key: _leaveGuard,
+          hasUnsavedChanges: _selectedPhoto != null,
+          isBusy: _isPickingPhoto || _cancelPhotoUpload != null,
+          child: Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                tooltip: 'Back',
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => _leaveGuard.currentState?.requestLeave(),
+              ),
+              title: const Text('Deliver order'),
+            ),
+            body: RefreshIndicator(
+              onRefresh: widget.onRefresh ?? () => controller.loadDetails(task),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                children: [
+                  _DeliveryIdentity(task: task),
                   const SizedBox(height: 16),
-                  FailedDeliveryAttemptCard(
-                    task: task,
-                    controller: controller,
-                    authController: widget.authController,
+                  _DeliveryContextCard(
+                    contextData: deliveryContext,
+                    status:
+                        controller.contextStatuses[task.id] ??
+                        DeliveryLoadStatus.idle,
+                    error: controller.contextErrors[task.id],
+                    onRetry:
+                        widget.onRefresh ?? () => controller.loadDetails(task),
                   ),
+                  const SizedBox(height: 16),
+                  _buildAction(context, task, deliveryContext),
+                  if (widget.chatController != null &&
+                      task.isFinalMile &&
+                      (task.status == PickupTaskStatus.deliveryAssigned ||
+                          task.status == PickupTaskStatus.deliveryAccepted ||
+                          task.status == PickupTaskStatus.pickedUpFromHub ||
+                          task.status == PickupTaskStatus.inTransit ||
+                          task.status == PickupTaskStatus.outForDelivery))
+                    OutlinedButton.icon(
+                      onPressed: () => _openChat(task, 'logistics'),
+                      icon: const Icon(Icons.chat_bubble_outline),
+                      label: const Text('Message Logistics'),
+                    ),
+                  if (widget.chatController != null &&
+                      ChatTaskContext.canMessageBuyer(task))
+                    OutlinedButton.icon(
+                      onPressed: () => _openChat(task, 'customer'),
+                      icon: const Icon(Icons.person_outline),
+                      label: const Text('Message Buyer'),
+                    ),
+                  if (task.isFinalMile &&
+                      task.status == PickupTaskStatus.outForDelivery) ...[
+                    const SizedBox(height: 16),
+                    FailedDeliveryAttemptCard(
+                      task: task,
+                      controller: controller,
+                      authController: widget.authController,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         );

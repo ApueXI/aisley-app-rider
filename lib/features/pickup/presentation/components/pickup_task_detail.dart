@@ -76,7 +76,7 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
               onRefresh: widget.onRefresh ?? widget.pickupController.load,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 children: [
                   if (status == PickupSectionStatus.loading)
                     const _PickupLoadingState()
@@ -105,11 +105,13 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
             onRefresh: widget.onRefresh ?? widget.pickupController.load,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 _TaskIdentity(task: task),
                 const SizedBox(height: 16),
                 _TaskDetails(task: task),
+                const SizedBox(height: 16),
+                _buildAction(context, task),
                 const SizedBox(height: 16),
                 if (widget.chatController != null &&
                     (task.isAssigned ||
@@ -136,7 +138,6 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                _buildAction(context, task),
               ],
             ),
           ),

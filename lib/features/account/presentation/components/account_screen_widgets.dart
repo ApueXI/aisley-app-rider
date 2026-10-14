@@ -12,16 +12,15 @@ class _AccountHeader extends StatelessWidget {
     final displayName =
         '${account.profile.firstName} ${account.profile.lastName}'.trim();
     return Card(
-      color: scheme.secondaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
-              radius: 28,
-              backgroundColor: scheme.secondary,
-              foregroundColor: scheme.onSecondary,
+              radius: 22,
+              backgroundColor: scheme.surfaceContainerHighest,
+              foregroundColor: scheme.onSurface,
               child: profilePhotoBytes == null
                   ? Text(
                       _initials(displayName),
@@ -30,8 +29,8 @@ class _AccountHeader extends StatelessWidget {
                   : ClipOval(
                       child: Image.memory(
                         profilePhotoBytes!,
-                        width: 56,
-                        height: 56,
+                        width: 44,
+                        height: 44,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Text(
                           _initials(displayName),
@@ -40,7 +39,7 @@ class _AccountHeader extends StatelessWidget {
                       ),
                     ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,13 +47,13 @@ class _AccountHeader extends StatelessWidget {
                   Text(
                     'Your Courier account',
                     style: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(color: scheme.onSecondaryContainer),
+                        ?.copyWith(color: scheme.onSurface),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     displayName,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: scheme.onSecondaryContainer,
+                      color: scheme.onSurface,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -62,7 +61,7 @@ class _AccountHeader extends StatelessWidget {
                   Text(
                     _accountStatusLabel(account.status),
                     style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: scheme.onSecondaryContainer),
+                        ?.copyWith(color: scheme.onSurface),
                   ),
                 ],
               ),
@@ -116,9 +115,7 @@ class _AccountBanner extends StatelessWidget {
     final background = isError
         ? scheme.errorContainer
         : scheme.secondaryContainer;
-    final foreground = isError
-        ? scheme.onErrorContainer
-        : scheme.onSecondaryContainer;
+    final foreground = isError ? scheme.onErrorContainer : scheme.onSurface;
     return Semantics(
       liveRegion: true,
       container: true,
@@ -127,7 +124,7 @@ class _AccountBanner extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

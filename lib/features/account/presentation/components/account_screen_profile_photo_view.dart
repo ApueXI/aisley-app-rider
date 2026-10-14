@@ -54,7 +54,7 @@ extension _AccountScreenProfilePhotoView on _AccountScreenState {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _ProfilePhotoPreview(bytes: displayedBytes),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: pendingPhoto == null
                         ? Text(
@@ -99,7 +99,7 @@ extension _AccountScreenProfilePhotoView on _AccountScreenState {
               ),
             if (controller.profilePhotoStatus ==
                 ProfilePhotoStatus.uploading) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Semantics(
                 liveRegion: true,
                 label: 'Uploading your profile photo',
@@ -110,7 +110,7 @@ extension _AccountScreenProfilePhotoView on _AccountScreenState {
             ],
             if (controller.profilePhotoStatus ==
                 ProfilePhotoStatus.deleting) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Semantics(
                 liveRegion: true,
                 label: 'Removing your profile photo',
@@ -118,11 +118,11 @@ extension _AccountScreenProfilePhotoView on _AccountScreenState {
               ),
             ],
             if (photoError != null) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               _AccountBanner(message: photoError, isError: true),
             ],
             if (controller.profilePhotoSuccessMessage != null) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               _AccountBanner(
                 message: controller.profilePhotoSuccessMessage!,
                 isError: false,

@@ -11,11 +11,11 @@ status: Active inbox/dashboard previews; photo/COD intent, private POD review, a
 
 ## Scope
 
-The supplied documentation baseline is `4c3f504` (Auth v2.6); Flutter implementation evidence remains recorded against `d7df220`, with Auth v2.6 response integration now verified by local tests against `4c3f504`; authenticated acceptance remains outstanding.
+The latest recorded backend implementation is `27a6361`, with registration-email v1 and locally adopted password-code requirements (2026-10-14). Feature contracts retain their separately adopted Auth, operational, map, failed-attempt and media baselines. The UI overhaul adopts no new API fields or permissions; deployed/authenticated acceptance remains outstanding.
 
 This guide applies to the external Flutter Courier application on Android and to local browser testing of that same app through Flutter `web-server`. It does not define the separate webapp's Customer storefront or React Admin, Seller, or Logistics dashboards. Laravel remains authoritative for identity, approval, ownership, and operational state.
 
-The current API supports Logistics discovery, Courier registration, approval-gated login, `me`, logout, an explicit password-recovery unavailability response, account management, policy consent, notifications, support tickets, first-mile identifier pickup, task-bound final-mile hub handoff, batch routes, final-mile movement, private photo POD, Logistics-reviewed completion, delivered history, and task-scoped chat with Logistics, Seller, and Buyer. Flutter implements the notification inbox, private support-ticket flow, separate read-only first-/final-mile dashboard task previews, atomic final-mile batch acceptance, Android/web QR/Code 128 candidates, Android rear-camera POD plus browser file fallback, photo upload and completion intent with COD cash confirmation, authenticated in-memory POD review for active/rejected/history detail, Logistics/Seller/Buyer task chat, and read-only pickup/delivery MapLibre routes against map baseline `51d9694`. Failed-attempt submission and linehaul trip screens remain unadopted. Authenticated support-ticket/batch/map API and COD/Logistics validation, live chat exchange, and installed-device/browser acceptance remain unverified. The Laravel dashboard aggregate remains unavailable. Background push, live route telemetry, signature proof, earnings, and offline mutations remain deferred.
+The current API supports Logistics discovery, Courier registration, approval-gated login, `me`, logout, an explicit password-recovery unavailability response, account management, policy consent, notifications, support tickets, first-mile identifier pickup, task-bound final-mile hub handoff, batch routes, final-mile movement, private photo POD, Logistics-reviewed completion, delivered history, and task-scoped chat with Logistics, Seller, and Buyer. Flutter implements the notification inbox, private support-ticket flow, separate read-only first-/final-mile dashboard task previews, atomic final-mile batch acceptance, Android/web QR/Code 128 candidates, Android rear-camera POD plus browser file fallback, photo upload and completion intent with COD cash confirmation, authenticated in-memory POD review for active/rejected/history detail, Logistics/Seller/Buyer task chat, and read-only pickup/delivery MapLibre routes against map baseline `51d9694`. Failed-attempt submission is implemented locally; recovery and linehaul trip screens remain unadopted. Authenticated support-ticket/batch/map API and COD/Logistics validation, live chat exchange, and installed-device/browser acceptance remain unverified. Dashboard v2 renders bounded operational sections with independent freshness and keeps the default-v1 scaffold fallback. Background push, live route telemetry, signature proof, earnings, and offline mutations remain deferred.
 
 ## Frontend authority
 
@@ -68,22 +68,25 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 
 - Use one app-wide `TextTheme` with a clear hierarchy for screen titles, section labels, body copy, helper text, and errors.
 - Support system text scaling without clipping, overlap, or hiding required actions. Long server messages must wrap or become scrollable.
-- Use a small, consistent spacing and radius scale. Keep form sections visually separated and avoid decorative density.
+- Use 4/8/12/16/24/32px spacing, 12px cards, and 10px buttons and fields. Keep form sections visually separated.
 - Respect `SafeArea`, keyboard insets, display cutouts, and platform navigation bars.
 
 ## Navigation and layout
 
-- Use a single, predictable authentication stack: Logistics selection → registration → pending result, or login → authenticated state.
-- Navigate to the implemented Notifications, Pickup orders, Delivery work, Delivery history, and Task messages screens from the dashboard, but distinguish a screen's existence from end-to-end backend acceptance. The notification inbox works against its adopted v1 contract; first-/final-mile dashboard previews are separate read-only task-list reads, not Laravel aggregate cards. Final-mile photo/COD validation and live chat exchange remain unverified. Do not fabricate jobs or controls for unadopted capabilities.
-- Use Flutter's adaptive navigation primitives. Phones are the primary target; tablets may use wider constrained content but must not become a desktop sidebar clone.
-- Preserve user input when validation or a recoverable network error returns. Confirm before discarding a partially completed registration.
-- Keep primary actions reachable above the keyboard when possible; use bottom action areas only when they do not obscure content or accessibility focus.
+- Use four persistent destinations: **Home**, **Work**, **Task messages**, and **Account**. Show AISLEY branding on Home and sign-in. Keep full feature names inside their destinations.
+- Home shows compact Courier and server-derived affiliation context, active work before available work, Pickup orders/Delivery work shortcuts, and Notifications. Dashboard v2 keeps independent section freshness/failure states; default-v1 responses retain bounded task-list previews. No preview length is a complete workload total.
+- Work groups **Pickup orders**, **Delivery work**, **Final-mile batches**, and **Delivery history**. Keep the bottom bar on these destination roots. Account groups **Profile**, **Security**, **Vehicle and documents**, **Policies**, **Support tickets**, and confirmed **Sign out**.
+- Open task details, ticket/notification details, forms, private previews, cameras, and maps above the shell using Navigator. Back returns to the owning destination; Back from another tab returns Home. A Work root's visible Back returns to the Work group. Notification targets retain their separate authorized entry and Back to notification detail.
+- Retain visited roots, scroll position, and filters only in session memory. Switching tabs is navigation and never submits an action. Suspend hidden-root and covered-route polling explicitly; restart only a visible, foreground destination. TickerMode alone is insufficient to stop HTTP timers.
+- The authentication gate closes pushed private routes on actual session loss. Clear account-scoped controllers/drafts according to their owning contract. Policy consent retains its separately permitted recovery state and never becomes a new session or authorization grant.
+- Phones use one-column forms; wider app windows constrain the same Navigator surface to 840px, and form content to 620px or its existing narrower limit. Wrapping labels, SafeArea, keyboard insets, visible focus, and scrollable actions apply at every width. There is no desktop sidebar or separate browser UI.
+- Preserve input across validation/recoverable failures and confirm intentional exits that discard drafts. Within a guided form, Back changes steps without discarding the draft; Sign in exits through discard protection.
 
 ## Components and interaction patterns
 
 - Use Material components (or the project's approved equivalent) with a centralized theme: buttons, text fields, dropdowns, searchable lists, dialogs, banners, progress indicators, cards, and navigation controls.
 - Give every interactive control a visible label, meaningful semantics label, disabled state, pressed/focused state, and clear success/error feedback.
-- Retain Material's default touch targets (normally at least 48 × 48 logical pixels); never shrink a custom interactive target below the shared 44 × 44 minimum. Avoid gesture-only actions; provide visible controls for back, retry, remove, and submit.
+- Keep every interactive target at least 48 × 48 logical pixels. Avoid gesture-only actions; provide visible controls for back, retry, remove, and submit.
 - Keep forms single-column on phones. Group related fields into named sections and show required markers and input examples before submission.
 - Use confirmation dialogs for sign-out, destructive local-data removal, or discarding unsaved form changes. Operational confirmation follows the owning feature spec and the focused-decision rule above.
 
@@ -97,7 +100,9 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 
 ### Registration
 
-- Organize personal, address, vehicle, and evidence sections in a scrollable form with progress or section headings.
+- Use six guided steps: email verification → personal details → address → Logistics and vehicle → evidence → review and password. Show step progress, conventional Back/Continue, and one primary action for the current step. The final review has editable summaries and explicit Submit registration.
+- Validate each step before Continue; final submission revalidates all mounted step forms and the existing request contract. Server errors open and focus the relevant step. Keep inactive step forms outside keyboard traversal and stop their animations.
+- Keep drafts and selected evidence in memory across steps. Verification expiry returns to email verification and clears passwords while preserving permitted details/evidence. Changing email requires verification again. Password clearing and uncertain-registration/sign-in reconciliation remain owned by the adopted email/Auth contracts.
 - Display age as a read-only value derived from the entered birth date; never ask the user to edit age.
 - Use Region → Province → City/Municipality → Barangay cascading selectors backed by the bundled PSGC data, plus a complete manual fallback for address fields.
 - Current registration does not require a map pin or coordinates. Do not add Geoapify, Mapbox, or another map dependency without an approved API contract.
@@ -120,16 +125,22 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 - Allow profile-photo selection only when the server capability flag is true. Show the JPEG/JPG/PNG/WebP and strict under-10-MiB policy before opening the picker, keep the local preview separate from the saved private photo, and show upload progress, cancellation, retry, missing-photo fallback, and server rejection states.
 - Fetch the saved profile photo through the authenticated private URL with the bearer token; never use a browser-style public URL, raw storage path, or unauthenticated network image widget. Confirm success only after the server response and private refresh succeed.
 - Confirm photo removal and reconcile uncertain upload/removal responses with a fresh account/photo read. Do not queue photo writes offline or expose the original filename as storage identity.
-- Registration and Account reuse the same Material **Discard unsaved changes?** dialog with **Keep editing** as the default focused action and **Discard** as the secondary choice. Only user-initiated exits that lose drafts require it; account-scope loss clears private state immediately.
+- Registration, Account, Vehicle, unsubmitted POD, and fresh chat drafts reuse the same Material **Discard unsaved changes?** dialog with **Keep editing** as the default focused action and **Discard** as the secondary choice. Only user-initiated exits that lose drafts require it; account-scope loss clears private state immediately.
 - The implemented forms use labelled password visibility controls, logical keyboard actions, and scroll/focus to the first local/server invalid control in form order, including registration selectors/uploads. Widget checks cover large text and dialog semantics; installed-device/browser and assistive-technology acceptance remain separate.
 - Use the same photo and independent OR/CR document controls on Android and local web-server. Browser selection, upload cancellation, CORS failure, and authenticated private preview need explicit feedback; keep Android's existing picker/upload behavior and verify both targets before marking web uploads supported.
 - Require current password confirmation before a password change. Clear password fields after every attempt and explain that a successful change revokes all sessions and returns to sign-in.
+
+### Vehicle and document presentation
+
+- Separate saved evidence from a locally selected replacement. Show each OR/CR independently, its loading/error state, and labelled View current/View selected, Replace, Upload, and Discard actions.
+- Full-image previews use authenticated or selected in-memory bytes with contain-fit, labelled Close/Zoom/Fit controls, and readable decode/unavailable feedback. Release private document previews with the owning screen/session; late private reads cannot restore cleared state.
+- Cooldown disables network actions and guards direct/keyboard calls, including private document reads. Duplicate preview taps issue one read. Expiry enables explicit retry without automatically replaying a request; local editing/discard remains available.
 
 ### Pickup orders
 
 - Show server-assigned Seller pickups and final-mile hub pickups in separate sections. First-mile acceptance is per task. Normal final-mile acceptance is atomic for a server-defined dispatch batch and is available through its dedicated list/detail flow. Reading a task or batch never accepts it.
 - Seller pickups offer the labelled Material **Pickup schedule** selector and **Clear schedule filter** secondary action. Choices are only IDs/references discovered on the loaded unfiltered task page, never a complete schedule catalog or an assignment control. Keep the unfiltered view available, filtered empty/error states explicit, Hub pickups unaffected, and schedule labels/route buttons stacked at narrow widths or large text sizes.
-- Show only authorized schedule, Seller/hub, pickup address, reference, and destination context. Present human-readable status labels while preserving lowercase server values in models. Do not expose Buyer contacts before the owning contract permits them. The final-mile projection may show **Parcel price** from `parcel.price`/`currency` when adopted; it is merchandise subtotal, never the COD cash amount.
+- Use compact list rows with reference, leg, human-readable status, authorized location, and next prerequisite. Details put essential context first, current-step actions next, and secondary messaging/details below. Show only authorized schedule, Seller/hub, pickup address, reference, and destination context. Present human-readable status labels while preserving lowercase server values in models. Do not expose Buyer contacts before the owning contract permits them. The final-mile projection may show **Parcel price** from `parcel.price`/`currency` when adopted; it is merchandise subtotal, never the COD cash amount.
 - For first mile, require an explicit confirmation after the QR/manual identifier candidate is resolved to the matching task. A waybill QR payload is untrusted text; the current client supports camera, scanner keyboard/paste input, and a manual Order ID/reference fallback. Final-mile hub handoff has no identifier step.
 - **Scan** opens the camera only when selected, works in the installed Android release APK and in the same Flutter app at `http://localhost:8765` through the fixed-port web-server run, and displays a visible manual-input control. Show permission denied, unavailable, busy, unsupported, and insecure-origin states with a manual alternative; release the stream when leaving the screen or switching tasks. Linux remains manual-input only.
 - Decode QR payload as `qr` and the waybill Code 128 tracking ID as `tracking_id` for **first-mile** verification; do not route tracking IDs through the QR-only resolver. Suppress repeated-frame candidates and show the matched task before explicit Seller pickup. The implemented final-mile hub-handoff control uses the accepted task and revision without QR/reference input. Do not log decoded values.
@@ -151,12 +162,13 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 
 - The implemented client offers **Message Logistics** on an eligible active offered/accepted task, **Message Seller** only while a first-mile task is accepted, and **Message Buyer** on an accepted nonterminal final-mile task. These remain secondary Material actions beside the task's operational next step. Existing threads require current server `send_allowed: true`; Buyer starts refresh the exact final-mile task. Seller and Customer web counterparts are implemented, but authenticated live exchange remains unverified; Laravel rechecks eligibility on every call.
 - Keep the task reference, leg, and safe counterpart label visible in a private thread. Render messages as plain text, show unread/read-only states, and offer explicit retry without claiming an uncertain send succeeded.
+- Keep the thread header/messages in a scrollable region and bound the recovery/composer region when the keyboard opens. Fresh text updates Back protection immediately; unresolved sends retain their separately frozen request and existing leave/retry decision.
 - Poll only while the inbox/thread is foregrounded, clear private message state on logout or affiliation loss, and keep a failed draft and its UUID idempotency key for exact retry. Do not queue offline sends or treat chat text as a delivery/status action.
 
 ### Delivery history
 
 - Use the Material **Order reference** field with primary **Search** and secondary **Clear** for full exact references. Keep the active reference visible independently of draft edits; Clear returns field focus. Wrap controls at large text and retain the submitted reference through refresh, retry, and policy recovery.
-- Present delivered final-mile records as read-only cards with order reference, delivered time, pickup/destination areas, item count, and safe proof/completion status.
+- Present delivered final-mile records as read-only rows with order reference, delivered time, pickup/destination areas, item count, and safe proof/completion status.
 - History detail may show immutable item snapshots, opaque proof references, and the adopted authenticated private photo viewer. Keep validated image bytes only in account-scoped memory and clear them when detail/session scope ends; exclude street addresses, contact phone numbers, raw storage paths, public media URLs, and mutation controls.
 - Keep cursor pagination unavailable when the server does not provide a usable cursor; distinguish an empty successful list from unavailable, unauthorized, offline, and retryable states.
 
@@ -202,3 +214,9 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 **Related documents:** `../AGENTS.md`, `docs/features/courier/auth/spec.md`, `docs/domain/Courier.md`, `docs/domain/Logistics.md`, `docs/requirements.md`, `docs/workspace.md`, `docs/schema.md`, `docs/references/user-registration-requirements.md`, and `docs/references/file-upload-requirements.md`.
 
 Private chat video uses an authorized poster and an explicit scrollable viewer with Play/Pause, seeking and Close; no autoplay. Document cards show filename/format/size and Download with a visible saved-copy explanation; use system Save As on Android and browser downloads, without inline document viewers. Keep 48px targets, keyboard/Escape/Back, loading/retry/cancel and scope cleanup accessible. Private temporary playback files and revocable blob URLs are cleared on close/access loss; explicitly exported document copies remain user-owned. See the owning media API and dated verification; installed-device accessibility remains unverified.
+
+## Approved redesign references — 2026-10-15
+
+[Lalamove's public job guide](https://www.lalamove.com/en-ae/blog/how-to-take-orders?hs_amp=true) supports clear pickup/drop-off context and explicit task steps. [Grab's driver interface article](https://www.grab.com/my/blog/driver/new-interface/) supports consolidated actions and route visibility. [J&T's public Philippines listing](https://play.google.com/store/apps/details?hl=en&id=com.jtexpress.PhClient) provides shipment-oriented presentation context; it does not establish an internal rider workflow. These are presentation references, not AISLEY API or operational authority.
+
+This overhaul changes presentation and internal navigation/visibility only. Existing repositories, DTOs, bearer storage, dependencies, authoritative transitions, retry identities, map attribution, and upload transport keep their adopted contracts. Implementation and verification evidence is recorded separately in the dated overhaul report.

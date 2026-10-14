@@ -23,7 +23,7 @@ class _SupportTicketList extends StatelessWidget {
         }.contains(controller.listStatus);
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         Text(
           'Ask Admin support for help',
@@ -32,7 +32,7 @@ class _SupportTicketList extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Support tickets are private and separate from task messages. They cannot change an Order or delivery state.',
+          'Contact platform support about an account or delivery issue.',
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
@@ -42,7 +42,7 @@ class _SupportTicketList extends StatelessWidget {
           icon: const Icon(Icons.add_comment_outlined),
           label: const Text('Create support ticket'),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         _SupportTicketFilters(controller: controller),
         const SizedBox(height: 16),
         if (controller.tickets.isNotEmpty && controller.listError != null)
@@ -149,58 +149,43 @@ class _SupportTicketFilters extends StatelessWidget {
 
 class _SupportTicketCard extends StatelessWidget {
   const _SupportTicketCard({required this.ticket, required this.onTap});
-
   final SupportTicketSummary ticket;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final unread = ticket.unreadCount;
-    return Semantics(
-      button: true,
-      label:
-          '${ticket.reference}. ${ticket.subject}. ${ticket.statusLabel}. $unread unread update${unread == 1 ? '' : 's'}.',
-      child: Card(
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.support_agent_outlined, size: 28),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ticket.subject,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${ticket.reference} • ${ticket.categoryLabel} • ${ticket.statusLabel}',
-                      ),
-                      if (unread > 0) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          '$unread unread update${unread == 1 ? '' : 's'}',
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right),
-              ],
-            ),
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label:
+        '${ticket.reference}. ${ticket.subject}. ${ticket.statusLabel}. ${ticket.unreadCount} unread updates.',
+    child: Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          title: Text(
+            ticket.subject,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              Text(
+                '${ticket.reference} · ${ticket.categoryLabel} · ${ticket.statusLabel}',
+              ),
+              if (ticket.lastActivityAt case final timestamp?)
+                Text(
+                  _formatSupportDate(context, timestamp),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              if (ticket.unreadCount > 0)
+                Text('${ticket.unreadCount} unread updates'),
+            ],
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: onTap,
         ),
-      ),
-    );
-  }
+        const Divider(height: 1),
+      ],
+    ),
+  );
 }

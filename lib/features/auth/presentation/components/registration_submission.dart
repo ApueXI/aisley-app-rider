@@ -96,6 +96,10 @@ extension _RegistrationSubmission on _RegistrationScreenState {
   }
 
   Future<void> _submit() async {
+    if (_step != 5) {
+      await _continueStep();
+      return;
+    }
     if (!_verification.verified ||
         _isSubmitting ||
         _isPickingEvidence ||
@@ -108,7 +112,10 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       _submissionError = null;
     });
 
-    final validFields = _formKey.currentState?.validate() ?? false;
+    var validFields = true;
+    for (final key in _stepFormKeys) {
+      if (key.currentState?.validate() != true) validFields = false;
+    }
     final validAddress = _validatePsgcAddress();
     if (_organization == null) {
       _fieldErrors = {

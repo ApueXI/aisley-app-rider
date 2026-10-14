@@ -29,12 +29,15 @@ const _profilePhotoTypeGroup = XTypeGroup(
   extensions: <String>['jpg', 'jpeg', 'png', 'webp'],
 );
 
+enum AccountSection { all, profile, security }
+
 class AccountScreen extends StatefulWidget {
   const AccountScreen({
     required this.authController,
     required this.accountController,
     this.policyController,
     this.vehicleController,
+    this.section = AccountSection.all,
     super.key,
   });
 
@@ -42,6 +45,7 @@ class AccountScreen extends StatefulWidget {
   final AccountController accountController;
   final PolicyController? policyController;
   final VehicleController? vehicleController;
+  final AccountSection section;
 
   @override
   State<AccountScreen> createState() => _AccountScreenState();
@@ -115,7 +119,13 @@ class _AccountScreenState extends State<AccountScreen> {
           isBusy: _hasPendingAccountMutation,
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Account'),
+              title: Text(
+                widget.section == AccountSection.security
+                    ? 'Security'
+                    : widget.section == AccountSection.profile
+                    ? 'Profile'
+                    : 'Account',
+              ),
               leading: Navigator.of(context).canPop()
                   ? IconButton(
                       tooltip: 'Back',
@@ -177,7 +187,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               if (canRetry) ...[
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 FilledButton.icon(
                   onPressed: controller.isBusy ? null : _loadAccount,
                   icon: const Icon(Icons.refresh),

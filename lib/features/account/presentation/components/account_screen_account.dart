@@ -122,7 +122,7 @@ extension _AccountScreenAccount on _AccountScreenState {
                     ),
                     validator: (value) => _required(value, 'first name'),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   TextFormField(
                     key: _fieldNavigation.fieldKey('middle_name'),
                     focusNode: _fieldNavigation.focusNode('middle_name'),
@@ -135,7 +135,7 @@ extension _AccountScreenAccount on _AccountScreenState {
                       errorText: controller.fieldError('middle_name'),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   TextFormField(
                     key: _fieldNavigation.fieldKey('last_name'),
                     focusNode: _fieldNavigation.focusNode('last_name'),
@@ -149,7 +149,7 @@ extension _AccountScreenAccount on _AccountScreenState {
                     ),
                     validator: (value) => _required(value, 'last name'),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   TextFormField(
                     key: _fieldNavigation.fieldKey('contact_number'),
                     focusNode: _fieldNavigation.focusNode('contact_number'),
@@ -165,7 +165,7 @@ extension _AccountScreenAccount on _AccountScreenState {
                     ),
                     validator: (value) => _required(value, 'contact number'),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 16),
                   Semantics(
                     button: true,
                     label: controller.status == AccountStatus.savingProfile

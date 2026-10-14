@@ -100,7 +100,7 @@ extension _AccountScreenSecurity on _AccountScreenState {
                     },
                     serverError: controller.fieldError('current_password'),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   _PasswordField(
                     fieldKey: _fieldNavigation.fieldKey('password'),
                     focusNode: _fieldNavigation.focusNode('password'),
@@ -115,7 +115,7 @@ extension _AccountScreenSecurity on _AccountScreenState {
                     },
                     serverError: controller.fieldError('password'),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   _PasswordField(
                     fieldKey: _fieldNavigation.fieldKey(
                       'password_confirmation',
@@ -147,7 +147,7 @@ extension _AccountScreenSecurity on _AccountScreenState {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 16),
                   Semantics(
                     button: true,
                     label: controller.status == AccountStatus.changingPassword

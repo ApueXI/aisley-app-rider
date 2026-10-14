@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'courier_theme.dart';
+import '../shared/presentation/courier_viewport.dart';
+import '../shared/presentation/destination_scope.dart';
 
 import '../features/account/presentation/controllers/account_controller.dart';
 import '../features/auth/presentation/controllers/auth_controller.dart';
@@ -53,10 +55,12 @@ class CourierApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aisley Courier',
+      title: 'AISLEY Courier',
       theme: buildCourierTheme(Brightness.light),
       darkTheme: buildCourierTheme(Brightness.dark),
       themeMode: ThemeMode.system,
+      navigatorObservers: [courierRouteObserver],
+      builder: (context, child) => CourierViewport(child: child!),
       home: AuthGate(
         authController: authController,
         accountController: accountController,
@@ -111,6 +115,37 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   bool _showRegistration = false;
+  bool _hasPrivateSession = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _hasPrivateSession =
+        widget.authController.status == AuthStatus.authenticated ||
+        widget.authController.status == AuthStatus.policyConsentRequired;
+    widget.authController.addListener(_sessionNavigationChanged);
+  }
+
+  void _sessionNavigationChanged() {
+    final status = widget.authController.status;
+    if (status == AuthStatus.authenticated ||
+        status == AuthStatus.policyConsentRequired) {
+      _hasPrivateSession = true;
+      return;
+    }
+    if (!_hasPrivateSession) return;
+    _hasPrivateSession = false;
+    _showRegistration = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.authController.removeListener(_sessionNavigationChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +269,7 @@ class CheckingSessionScreen extends StatelessWidget {
                   height: 36,
                   child: CircularProgressIndicator(strokeWidth: 3),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 Text(
                   'Checking your Courier session…',
                   style: Theme.of(context).textTheme.titleMedium,

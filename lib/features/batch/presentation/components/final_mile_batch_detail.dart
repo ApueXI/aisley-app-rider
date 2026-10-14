@@ -69,7 +69,7 @@ class _FinalMileBatchDetailScreenState
             onRefresh: () => controller.loadDetail(widget.scheduleId),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 _BatchSummary(batch: batch),
                 if (batch.isAccepted && controller.routeController != null)
@@ -96,7 +96,7 @@ class _FinalMileBatchDetailScreenState
                     onRetry: () => controller.loadDetail(widget.scheduleId),
                   ),
                 ],
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 Text(
                   'Parcels',
                   style: Theme.of(context).textTheme.titleLarge

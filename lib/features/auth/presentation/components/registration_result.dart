@@ -21,7 +21,7 @@ extension _RegistrationResult on _RegistrationScreenState {
                       size: 64,
                       color: scheme.primary,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Text(
                       'Application submitted',
                       textAlign: TextAlign.center,

@@ -34,14 +34,14 @@ extension _RegistrationFields on _RegistrationScreenState {
         if (constraints.maxWidth < 520) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [first, const SizedBox(height: 14), second],
+            children: [first, const SizedBox(height: 12), second],
           );
         }
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: first),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(child: second),
           ],
         );

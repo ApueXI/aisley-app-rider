@@ -45,6 +45,11 @@ void main() {
         await enter(tester, 'Address line 2 (optional)', 'Unit 2');
         final before = _draft(tester);
         await fixture.submit(tester);
+        expect(
+          fixture.repository.submissions,
+          1,
+          reason: 'The server failure must follow one explicit registration submission.',
+        );
         expect(_draft(tester), before);
         expect(
           tester.widget<TextField>(field('Password')).controller!.text,
@@ -54,7 +59,10 @@ void main() {
           tester.widget<TextField>(field('Confirm password')).controller!.text,
           isEmpty,
         );
-        expect(find.text('test-image.png'), findsNWidgets(2));
+        expect(
+          find.text('test-image.png', skipOffstage: false),
+          findsNWidgets(2),
+        );
         if (failure == 'duplicate email') {
           final email = tester.widget<TextField>(field('Email'));
           expect(email.decoration!.errorText, duplicateEmailMessage);
@@ -138,7 +146,7 @@ Map<String, Object?> _draft(WidgetTester tester) => {
   ])
     label: tester.widget<TextField>(field(label)).controller!.text,
   for (final dropdown in tester.widgetList<DropdownButtonFormField<String>>(
-    find.byType(DropdownButtonFormField<String>),
+    find.byType(DropdownButtonFormField<String>, skipOffstage: false),
   ))
     dropdown.decoration.labelText!: dropdown.initialValue,
 };

@@ -7,12 +7,14 @@ class UnsavedChangesGuard extends StatefulWidget {
     required this.child,
     this.isBusy = false,
     this.onLeave,
+    this.onBack,
     super.key,
   });
 
   final bool hasUnsavedChanges;
   final bool isBusy;
   final VoidCallback? onLeave;
+  final VoidCallback? onBack;
   final Widget child;
 
   @override
@@ -91,7 +93,13 @@ class UnsavedChangesGuardState extends State<UnsavedChangesGuard> {
               !widget.hasUnsavedChanges &&
               !widget.isBusy),
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) requestLeave();
+        if (!didPop) {
+          if (widget.onBack case final onBack?) {
+            if (!widget.isBusy) onBack();
+          } else {
+            requestLeave();
+          }
+        }
       },
       child: widget.child,
     );

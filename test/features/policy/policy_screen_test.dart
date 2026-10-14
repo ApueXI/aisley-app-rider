@@ -1,3 +1,5 @@
+import '../../helpers/accessibility.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,6 +15,46 @@ import 'package:aisley_app/features/policy/presentation/controllers/policy_contr
 import 'package:aisley_app/features/policy/presentation/policy_screen.dart';
 
 void main() {
+  for (final scenario in AccessibilityScenario.matrix) {
+    accessibilityTest(
+      'consent sign-out confirms once ${scenario.name}',
+      scenario,
+      (tester) async {
+        final repository = _WidgetAuthRepository();
+        final auth = AuthController(
+          authRepository: repository,
+          dashboardRepository: _WidgetDashboardRepository(),
+        )..status = AuthStatus.policyConsentRequired;
+        final policy = PolicyController(policyApi: _WidgetPolicyApi());
+        await tester.pumpWidget(
+          scenario.app(
+            PolicyScreen(
+              authController: auth,
+              policyController: policy,
+              requiredForAccess: true,
+              showSignOutAction: true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Sign out'));
+        await tester.pumpAndSettle();
+        expect(repository.logoutCalls, 0);
+        await checkAccessibility(tester);
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(auth.status, AuthStatus.policyConsentRequired);
+        expect(repository.logoutCalls, 0);
+        await tester.tap(find.byTooltip('Sign out'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Sign out'));
+        await tester.pumpAndSettle();
+        expect(repository.logoutCalls, 1);
+        expect(auth.status, AuthStatus.signedOut);
+        await unmount(tester, [auth, policy]);
+      },
+    );
+  }
   testWidgets(
     'shows safe policy text, explicit confirmation, and history entry',
     (tester) async {
@@ -165,6 +207,7 @@ class _WidgetPolicyApi implements PolicyApi {
 }
 
 class _WidgetAuthRepository implements AuthRepository {
+  int logoutCalls = 0;
   @override
   Future<bool> hasStoredToken() async => false;
 
@@ -194,7 +237,9 @@ class _WidgetAuthRepository implements AuthRepository {
   Future<CourierIdentity> currentCourier() async => throw UnimplementedError();
 
   @override
-  Future<void> logout() async {}
+  Future<void> logout() async {
+    logoutCalls++;
+  }
 
   @override
   Future<void> clearStoredToken() async {}

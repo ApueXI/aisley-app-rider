@@ -1,11 +1,11 @@
 {
-    "name": "aisley_app",
-    "short_name": "aisley_app",
+    "name": "AISLEY Courier",
+    "short_name": "AISLEY",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F7F7F8",
+    "theme_color": "#C00065",
+    "description": "AISLEY Courier pickups, deliveries and task messages.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

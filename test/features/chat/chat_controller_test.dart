@@ -298,7 +298,7 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
-      expect(find.textContaining('No task conversation found'), findsOneWidget);
+      expect(find.textContaining('No messages yet'), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), 'Hello');
       await tester.tap(find.byTooltip('Send message'));
