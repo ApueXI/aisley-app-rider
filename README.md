@@ -36,19 +36,27 @@ From the cloned repository root:
 ```bash
 git clone <repository-url>
 cd aisley_app
+cp .env.example .env
 flutter pub get
 flutter doctor -v
 flutter analyze
 flutter test
 ```
 
-The app uses `http://127.0.0.1:8000` by default, so the normal Linux development command remains `flutter run -d linux`. To use another API origin, pass the non-secret build setting with `--dart-define`; the app appends `/api/v1` itself, so do not include that suffix:
+The app loads the project-root `.env` asset before creating API clients. Set the four values in your local configuration for your environment:
 
-```bash
-flutter run -d linux --dart-define=API_BASE_URL=http://192.0.2.10:8000
+```dotenv
+MAPS_ENABLED=true
+GEOAPIFY_API_KEY=
+API_BASE_URL=http://127.0.0.1:8000
+STOREFRONT_ORIGIN=
 ```
 
-Append the same `--dart-define=API_BASE_URL=...` option to another `flutter run` or `flutter build` command when that target needs a different origin. Use HTTPS outside local development. Dart defines are compiled into the client, so use them only for non-secret configuration such as the public API origin; never put passwords, bearer tokens, signing keys, provider credentials, or other secrets in them. The app does not read or bundle `.env` files.
+`API_BASE_URL` is the Laravel origin without `/api/v1`; the app appends that prefix. A blank value keeps `http://127.0.0.1:8000`; Android emulators normally use `http://10.0.2.2:8000`. Use HTTPS outside local development. `MAPS_ENABLED=false` disables map rendering and style/tile requests while keeping route stops and delivery actions available; blank defaults to `true` to preserve existing behavior. The flag also accepts `1`/`0` and never overrides server authorization or availability.
+
+`GEOAPIFY_API_KEY` and `STOREFRONT_ORIGIN` are loaded as optional configuration. Current Courier features do not consume them: maps use the authenticated Laravel proxy, and the app has no storefront navigation. Leave these values blank unless needed by a separately approved feature; never use a server-only Geoapify key here.
+
+The `.env` file stays Git-ignored but is bundled into Android, desktop, and web builds, where its contents are readable. Keep it limited to public client configuration; never include passwords, bearer tokens, private provider keys, or other secrets. Values support comments, optional `export`, and single/double quotes; multiline values and variable interpolation are unsupported. Run or rebuild the app after changing `.env`; the usual `flutter run` and `flutter build` commands need no Dart defines. A missing `.env` stops asset builds; runtime loading or parsing failures use the existing startup error/retry screen without logging its contents.
 
 If the Laravel API is running on another machine, use a development-machine address reachable from the target platform and configure the API's CORS policy for browser runs. The app shows a recoverable network state when the API is unavailable.
 
@@ -164,7 +172,7 @@ flutter build windows --release
 
 [Courier quality checks](.github/workflows/flutter-quality.yml) runs on every push and pull request, with no branch or path filters, and supports manual dispatch from GitHub Actions. Its single `quality` job uses Ubuntu 24.04, a 15-minute timeout, read-only repository permissions, and cancellation of superseded runs on the same ref. It caches the Flutter SDK and dependencies; the dependency cache key includes the lockfile hash.
 
-Run the same checks locally, in order:
+CI creates its public test configuration from `.env.example`. Run the same checks locally after creating your `.env`, in order:
 
 ```bash
 flutter pub get --enforce-lockfile

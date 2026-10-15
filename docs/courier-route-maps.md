@@ -38,6 +38,14 @@ added. Android retains existing camera/upload permissions and adds Internet.
 Flutter web uses the plugin's existing automatic MapLibre JS/CSS loader; it
 needs WebGL2 and CDN access, and stays the same app on localhost port 8765.
 
+The Flutter `.env` setting `MAPS_ENABLED=false` disables map rendering and all
+style/tile requests locally. Ordered route reads, readable stops, and delivery
+actions remain available. Blank defaults to enabled for compatibility; enabling
+the client flag never overrides server authorization or map availability.
+Courier maps continue to use the authenticated API proxy, without sending the
+optional public `GEOAPIFY_API_KEY` to a provider. See
+[configuration](../README.md#clone-and-configure).
+
 `401` clears the existing session; `403` follows account/affiliation denial or
 policy consent handling. `404` is unavailable, `409` requires batch/schedule
 recovery, `422` is an invalid request, and `429` obeys seconds or HTTP-date

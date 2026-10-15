@@ -84,7 +84,8 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
     }
 
     try {
-      const config = AppConfig.fromEnvironment;
+      final config = await AppConfig.load();
+      if (!mounted) return;
       final tokenStorage = SecureTokenStorage();
       final apiClient = ApiClient(config: config, tokenStorage: tokenStorage);
       final mapSecurity = CourierMapSecurity(client: apiClient, config: config);

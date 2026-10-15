@@ -11,8 +11,10 @@ import '../networking/api_contract_exception.dart';
 /// pass image bytes to per-map image sources instead. Never give the SDK tokens.
 class CourierMapSecurity extends ChangeNotifier {
   CourierMapSecurity({required this._client, required AppConfig config})
-    : tileOrigin = config.endpoint('/courier/map-tiles/');
+    : mapsEnabled = config.mapsEnabled,
+      tileOrigin = config.endpoint('/courier/map-tiles/');
   final ApiClient _client;
+  final bool mapsEnabled;
   final Uri tileOrigin;
   int _generation = 0;
   int get generation => _generation;
@@ -92,6 +94,7 @@ class CourierMapSecurity extends ChangeNotifier {
   }
 
   Future<int> loadStyle() async {
+    if (!mapsEnabled) throw const MapDisabled();
     final epoch = _generation;
     final response = await _client.get(
       '/courier/map-style',
@@ -108,6 +111,7 @@ class CourierMapSecurity extends ChangeNotifier {
   }
 
   Future<Uint8List> tile(int z, int x, int y) async {
+    if (!mapsEnabled) throw const MapDisabled();
     if (z < 0 || z > 18 || x < 0 || y < 0 || x >= 1 << z || y >= 1 << z) {
       throw const ApiContractException('map.tile.coordinate');
     }
@@ -153,4 +157,8 @@ class CourierMapSecurity extends ChangeNotifier {
 
 class MapSessionEnded implements Exception {
   const MapSessionEnded();
+}
+
+class MapDisabled implements Exception {
+  const MapDisabled();
 }

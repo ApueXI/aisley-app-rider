@@ -48,7 +48,7 @@ class _RouteMapViewState extends State<RouteMapView> {
       _startupTimer?.cancel();
       if ((kIsWeb || defaultTargetPlatform == TargetPlatform.android) &&
           RouteMapScope.maybeOf(context)?.renderer == null &&
-          _security != null &&
+          _security?.mapsEnabled == true &&
           widget.data.positions.isNotEmpty) {
         _startupTimer = Timer(const Duration(seconds: 25), _fail);
       }
@@ -65,7 +65,7 @@ class _RouteMapViewState extends State<RouteMapView> {
       _security?.addListener(_sessionEnded);
     }
     if (_startupTimer == null &&
-        security != null &&
+        security?.mapsEnabled == true &&
         RouteMapScope.maybeOf(context)?.renderer == null &&
         (kIsWeb || defaultTargetPlatform == TargetPlatform.android) &&
         widget.data.positions.isNotEmpty) {
@@ -241,12 +241,13 @@ class _RouteMapViewState extends State<RouteMapView> {
   Widget build(BuildContext context) {
     final scope = RouteMapScope.maybeOf(context);
     final injected = scope?.renderer;
-    if (injected != null) {
+    if (scope != null && scope.security.mapsEnabled && injected != null) {
       return injected(context, widget.data, () => widget.onFailure(null));
     }
     final supported = kIsWeb || defaultTargetPlatform == TargetPlatform.android;
     if (!supported ||
         scope == null ||
+        !scope.security.mapsEnabled ||
         _failed ||
         widget.data.positions.isEmpty) {
       return Padding(
