@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class AppConfig {
@@ -10,9 +11,20 @@ class AppConfig {
     this.storefrontOrigin = '',
   });
 
-  factory AppConfig.fromDotEnv(String source) {
+  factory AppConfig.fromDotEnv(
+    String source, {
+    bool isRelease = kReleaseMode,
+    bool isWeb = kIsWeb,
+    TargetPlatform? platform,
+  }) {
     final values = _parseDotEnv(source);
-    final baseUrl = values['API_BASE_URL'] ?? '';
+    final useDeployedApi =
+        isRelease &&
+        !isWeb &&
+        (platform ?? defaultTargetPlatform) == TargetPlatform.android;
+    final baseUrl = useDeployedApi
+        ? _deployedApiUrl(values['DEPLOYED_API_URL'] ?? '')
+        : values['API_BASE_URL'] ?? '';
     final mapsEnabled = switch (values['MAPS_ENABLED']?.toLowerCase() ?? '') {
       '' || 'true' || '1' => true,
       'false' || '0' => false,
@@ -69,6 +81,7 @@ Map<String, String> _parseDotEnv(String source) {
     'MAPS_ENABLED',
     'GEOAPIFY_API_KEY',
     'API_BASE_URL',
+    'DEPLOYED_API_URL',
     'STOREFRONT_ORIGIN',
   };
   final values = <String, String>{};
@@ -98,4 +111,23 @@ Map<String, String> _parseDotEnv(String source) {
     values[key] = value;
   }
   return values;
+}
+
+String _deployedApiUrl(String value) {
+  final baseUrl = value.trim();
+  final uri = Uri.tryParse(baseUrl);
+  if (uri == null ||
+      uri.scheme != 'https' ||
+      uri.host.isEmpty ||
+      uri.userInfo.isNotEmpty ||
+      (uri.path.isNotEmpty && uri.path != '/') ||
+      uri.hasQuery ||
+      uri.hasFragment ||
+      (uri.hasPort && (uri.port < 1 || uri.port > 65535)) ||
+      RegExp(r'\s').hasMatch(baseUrl)) {
+    throw const FormatException(
+      'DEPLOYED_API_URL must be an HTTPS origin in .env.',
+    );
+  }
+  return baseUrl;
 }

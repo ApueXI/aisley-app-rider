@@ -43,16 +43,21 @@ flutter analyze
 flutter test
 ```
 
-The app loads the project-root `.env` asset before creating API clients. Set the four values in your local configuration for your environment:
+The app loads the project-root `.env` asset before creating API clients. Set the public values for your environment:
 
 ```dotenv
 MAPS_ENABLED=true
 GEOAPIFY_API_KEY=
 API_BASE_URL=http://127.0.0.1:8000
+DEPLOYED_API_URL=https://api.example.com
 STOREFRONT_ORIGIN=
 ```
 
-`API_BASE_URL` is the Laravel origin without `/api/v1`; the app appends that prefix. A blank value keeps `http://127.0.0.1:8000`; Android emulators normally use `http://10.0.2.2:8000`. Use HTTPS outside local development. `MAPS_ENABLED=false` disables map rendering and style/tile requests while keeping route stops and delivery actions available; blank defaults to `true` to preserve existing behavior. The flag also accepts `1`/`0` and never overrides server authorization or availability.
+`API_BASE_URL` is the Laravel origin for debug/profile runs and all web/desktop builds, without `/api/v1`; the app appends that prefix. A blank value keeps `http://127.0.0.1:8000`; Android emulators normally use `http://10.0.2.2:8000`. Use HTTPS outside local development.
+
+Android release builds automatically use `DEPLOYED_API_URL`, including release APKs, app bundles and `flutter run --release` on Android. Set it to your deployed Laravel HTTPS origin, optionally with a port and trailing slash, without `/api/v1`, credentials, a query or a fragment. A missing, blank or invalid deployed origin shows the existing startup error/retry screen; it never falls back to the local API. Web and desktop release builds continue using `API_BASE_URL`.
+
+`MAPS_ENABLED=false` disables map rendering and style/tile requests while keeping route stops and delivery actions available; blank defaults to `true` to preserve existing behavior. The flag also accepts `1`/`0` and never overrides server authorization or availability.
 
 `GEOAPIFY_API_KEY` and `STOREFRONT_ORIGIN` are loaded as optional configuration. Current Courier features do not consume them: maps use the authenticated Laravel proxy, and the app has no storefront navigation. Leave these values blank unless needed by a separately approved feature; never use a server-only Geoapify key here.
 
@@ -130,7 +135,7 @@ The shared multipart sender now keeps Android/native readable-path uploads and u
 
 ## Run on Android and build an APK
 
-Android uses the existing `android/` runner. To build an installable release APK:
+Android uses the existing `android/` runner. Set `DEPLOYED_API_URL` in your local `.env` to the deployed HTTPS origin, then build an installable release APK:
 
 ```bash
 flutter build apk --release

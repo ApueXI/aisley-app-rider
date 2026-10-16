@@ -7,25 +7,29 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AppConfig dotenv', () {
-    test('loads all four public values from the .env asset', () async {
-      final bundle = _ConfigBundle('''
+    test(
+      'loads public settings and the local API from the .env asset',
+      () async {
+        final bundle = _ConfigBundle('''
 MAPS_ENABLED=false
 GEOAPIFY_API_KEY=public-test-key
 API_BASE_URL=https://api.example.test
+DEPLOYED_API_URL=https://deployed.example.test
 STOREFRONT_ORIGIN=https://shop.example.test
 ''');
 
-      final config = await AppConfig.load(bundle: bundle);
+        final config = await AppConfig.load(bundle: bundle);
 
-      expect(bundle.requests, ['.env']);
-      expect(config.mapsEnabled, isFalse);
-      expect(config.geoapifyApiKey, 'public-test-key');
-      expect(config.storefrontOrigin, 'https://shop.example.test');
-      expect(
-        config.endpoint('/courier/auth/me').toString(),
-        'https://api.example.test/api/v1/courier/auth/me',
-      );
-    });
+        expect(bundle.requests, ['.env']);
+        expect(config.mapsEnabled, isFalse);
+        expect(config.geoapifyApiKey, 'public-test-key');
+        expect(config.storefrontOrigin, 'https://shop.example.test');
+        expect(
+          config.endpoint('/courier/auth/me').toString(),
+          'https://api.example.test/api/v1/courier/auth/me',
+        );
+      },
+    );
 
     test('blank and absent values retain the existing local defaults', () {
       for (final source in [
@@ -90,6 +94,8 @@ API_BASE_URL=https://api.example.test
     for (final source in [
       'MAPS_ENABLED=unsupported-value',
       'API_BASE_URL',
+      'DEPLOYED_API_URL',
+      'DEPLOYED_API_URL="unclosed-public-value',
       'GEOAPIFY_API_KEY="unclosed-public-value',
       'STOREFRONT_ORIGIN="https://shop.example.test" trailing-value',
     ]) {
