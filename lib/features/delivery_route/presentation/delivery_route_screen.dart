@@ -109,9 +109,7 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
                       ),
                     const SizedBox(height: 12),
                     if (controller.mapFailed)
-                      const Text(
-                        'Map could not be loaded. Route stops remain available below.',
-                      )
+                      const Text('Map could not be loaded.')
                     else if (points != null &&
                         points.positions.isNotEmpty &&
                         route.status != DeliveryRouteStatus.unknown)

@@ -120,9 +120,7 @@ class _PickupRouteScreenState extends State<PickupRouteScreen> {
                       const LinearProgressIndicator(),
                     _RouteStatusBanner(manifest: manifest),
                     if (_mapFailed)
-                      const Text(
-                        'Map could not be loaded. Route stops remain available below.',
-                      )
+                      const Text('Map could not be loaded.')
                     else if (manifest.status == RouteManifestStatus.ready ||
                         manifest.status == RouteManifestStatus.unavailable)
                       RouteMapView(
@@ -132,7 +130,11 @@ class _PickupRouteScreenState extends State<PickupRouteScreen> {
                       ),
                     const SizedBox(height: 16),
                     if (manifest.stops.isEmpty)
-                      const _PickupEmptyState(title: 'route stops')
+                      FilledButton.icon(
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text('Back to pickup tasks'),
+                      )
                     else
                       ..._routeStopWidgets(context, manifest.stops),
                     if (error != null) ...[
@@ -173,13 +175,15 @@ class _RouteSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Authorized stop order',
+          manifest?.stops.isNotEmpty == true
+              ? 'Authorized stop order'
+              : 'Pickup route',
           style: Theme.of(context).textTheme.titleLarge
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
         Text(
-          'This is a schedule-scoped pickup sequence. It is not a Buyer delivery route.',
+          'Pickup stops for this schedule.',
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
@@ -207,23 +211,32 @@ class _RouteStatusBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final hasStops = manifest.stops.isNotEmpty;
     final (message, icon) = switch (manifest.status) {
       RouteManifestStatus.pending => (
-        'The route manifest is still being prepared. Pickup details remain available.',
+        hasStops
+            ? 'The pickup route is still being prepared. Available stops are listed below.'
+            : 'The pickup route is still being prepared.',
         Icons.hourglass_top_outlined,
       ),
       RouteManifestStatus.ready => (
-        manifest.stops.any((s) => s.reachable == false)
+        !hasStops
+            ? 'Route stops were not provided.'
+            : manifest.stops.any((s) => s.reachable == false)
             ? 'Partial route — some stops are unreachable. All authorized stops are listed below.'
             : 'The server provided an ordered pickup route returning to the hub.',
         Icons.route_outlined,
       ),
       RouteManifestStatus.unavailable => (
-        'Route presentation is unavailable. Continue with the authorized stop and address list.',
+        hasStops
+            ? 'Route presentation is unavailable. Available stops and addresses are listed below.'
+            : 'Route stops are unavailable.',
         Icons.route_outlined,
       ),
       RouteManifestStatus.unknown => (
-        'The server returned an unsupported route state. Continue with the stop list if present.',
+        hasStops
+            ? 'This pickup route cannot be displayed. Available stops are listed below.'
+            : 'This pickup route cannot be displayed.',
         Icons.info_outline,
       ),
     };
@@ -235,7 +248,16 @@ class _RouteStatusBanner extends StatelessWidget {
           children: [
             Icon(icon, color: scheme.primary),
             const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            Expanded(
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  hasStops
+                      ? message
+                      : '$message Return to pickup tasks for pickup addresses.',
+                ),
+              ),
+            ),
           ],
         ),
       ),

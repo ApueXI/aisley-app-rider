@@ -252,11 +252,7 @@ class _RouteMapViewState extends State<RouteMapView> {
         widget.data.positions.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Text(
-          _failed
-              ? 'Map could not be loaded. Route stops remain available below.'
-              : 'Map unavailable. Route stops remain available below.',
-        ),
+        child: Text(_failed ? 'Map could not be loaded.' : 'Map unavailable.'),
       );
     }
     final first = widget.data.positions.first;

@@ -64,10 +64,7 @@ void main() {
       );
       await tester.pump(const Duration(seconds: 30));
 
-      expect(
-        find.text('Map unavailable. Route stops remain available below.'),
-        findsOneWidget,
-      );
+      expect(find.text('Map unavailable.'), findsOneWidget);
       expect(find.text('Stop 1: authorized destination'), findsOneWidget);
       expect(renderCalls, 0);
       expect(requests, 0);
