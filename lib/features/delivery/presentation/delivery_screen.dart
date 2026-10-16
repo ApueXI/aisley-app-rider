@@ -1,3 +1,7 @@
+import '../../../shared/presentation/unsaved_changes_guard.dart';
+import '../../../shared/presentation/task_row.dart';
+import '../../../shared/presentation/destination_scope.dart';
+
 import 'package:flutter/material.dart';
 import 'package:file_selector/file_selector.dart';
 
@@ -69,7 +73,10 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
       builder: (context, child) {
         final controller = widget.deliveryController;
         return Scaffold(
-          appBar: AppBar(title: const Text('Delivery work')),
+          appBar: AppBar(
+            leading: destinationBackButton(context),
+            title: const Text('Delivery work'),
+          ),
           body: RefreshIndicator(
             onRefresh: controller.load,
             child: _DeliveryListBody(

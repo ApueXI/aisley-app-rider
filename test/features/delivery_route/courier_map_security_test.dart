@@ -43,6 +43,29 @@ void main() {
     expect(await map.loadStyle(), 18);
     map.dispose();
   });
+  test('disabled maps never request styles or tiles', () async {
+    final disabled = AppConfig.fromDotEnv('''
+API_BASE_URL=https://api.example
+MAPS_ENABLED=false
+GEOAPIFY_API_KEY=unused-public-key
+''');
+    var requests = 0;
+    final map = CourierMapSecurity(
+      config: disabled,
+      client: ApiClient(
+        config: disabled,
+        tokenStorage: RouteTestStorage(),
+        client: MockClient((_) async {
+          requests++;
+          return http.Response('{}', 200);
+        }),
+      ),
+    );
+    await expectLater(map.loadStyle(), throwsA(isA<MapDisabled>()));
+    await expectLater(map.tile(1, 0, 0), throwsA(isA<MapDisabled>()));
+    expect(requests, 0);
+    map.dispose();
+  });
   test('tile URL checks reject lookalike hosts paths queries and alternate schemes', () {
     final map = security();
     expect(

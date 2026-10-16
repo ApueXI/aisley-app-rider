@@ -8,8 +8,6 @@ const _registrationFieldOrder = <String>[
   'contact_number',
   'birth_date',
   'email',
-  'password',
-  'password_confirmation',
   'logistics_organization_id',
   'address.address_line_1',
   'address.address_line_2',
@@ -22,6 +20,8 @@ const _registrationFieldOrder = <String>[
   'plate_number',
   'government_id',
   'vehicle_registration',
+  'password',
+  'password_confirmation',
 ];
 
 extension _RegistrationInteraction on _RegistrationScreenState {
@@ -64,8 +64,17 @@ extension _RegistrationInteraction on _RegistrationScreenState {
     unawaited(_leaveGuardKey.currentState?.requestLeave());
   }
 
-  Future<void> _revealRegistrationError() => _fieldNavigation.revealFirstError(
-    _registrationFieldOrder,
-    errors: _fieldErrors,
-  );
+  Future<void> _revealRegistrationError() async {
+    for (final key in _registrationFieldOrder) {
+      if (_serverError(key) != null ||
+          _fieldNavigation.fieldKey(key).currentState?.hasError == true) {
+        _goToStep(_stepForField(key));
+        break;
+      }
+    }
+    await _fieldNavigation.revealFirstError(
+      _registrationFieldOrder,
+      errors: _fieldErrors,
+    );
+  }
 }

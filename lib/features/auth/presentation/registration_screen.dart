@@ -19,6 +19,12 @@ import 'controllers/auth_controller.dart';
 part 'components/registration_data.dart';
 part 'components/registration_submission.dart';
 part 'components/registration_form.dart';
+part 'components/registration_step_navigation.dart';
+part 'components/registration_step_personal.dart';
+part 'components/registration_step_address.dart';
+part 'components/registration_step_logistics.dart';
+part 'components/registration_step_evidence.dart';
+part 'components/registration_step_review.dart';
 part 'components/registration_sections.dart';
 part 'components/registration_address.dart';
 part 'components/registration_fields.dart';
@@ -35,11 +41,13 @@ class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({
     required this.authController,
     required this.onSignIn,
+    this.verificationClock,
     super.key,
   });
 
   final AuthController authController;
   final VoidCallback onSignIn;
+  final DateTime Function()? verificationClock;
 
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();
@@ -47,7 +55,11 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   late final RegistrationEmailController _verification;
-  final _formKey = GlobalKey<FormState>();
+  final _emailVerificationFocus = FocusNode(debugLabel: 'registration_email');
+  int _step = 0;
+  bool _wasVerified = false;
+  final _stepScrolls = List.generate(6, (_) => ScrollController());
+  final _stepFormKeys = List.generate(5, (_) => GlobalKey<FormState>());
   final _leaveGuardKey = GlobalKey<UnsavedChangesGuardState>();
   final _fieldNavigation = FormFieldNavigation();
   final _psgcDataSource = PsgcAddressDataSource();
@@ -102,6 +114,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     super.initState();
     _verification = RegistrationEmailController(
       widget.authController.registrationEmailRepository,
+      clock: widget.verificationClock,
     );
     _verification.addListener(_onVerificationChanged);
     widget.authController.addListener(_onDraftChanged);
@@ -118,7 +131,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         _emailController.text != _verification.verifiedEmail) {
       _emailController.text = _verification.verifiedEmail;
     }
-    setState(() {});
+    setState(() {
+      if (_verification.verified && !_wasVerified) _step = 1;
+      if (!_verification.verified && _wasVerified) {
+        _step = 0;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_verification.verified) {
+            _emailVerificationFocus.requestFocus();
+          }
+        });
+        _passwordController.clear();
+        _passwordConfirmationController.clear();
+      }
+      _wasVerified = _verification.verified;
+    });
   }
 
   @override
@@ -126,6 +152,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     widget.authController.removeListener(_onDraftChanged);
     _cancelUpload?.call();
     _fieldNavigation.dispose();
+    _emailVerificationFocus.dispose();
+    for (final controller in _stepScrolls) {
+      controller.dispose();
+    }
     for (final controller in _textControllers) {
       controller.removeListener(_onDraftChanged);
       controller.dispose();
@@ -146,6 +176,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       hasUnsavedChanges: _hasUnsavedChanges,
       isBusy: _isSubmitting || _isPickingEvidence,
       onLeave: widget.onSignIn,
+      onBack: _step > 0 && _result == null ? _backRegistration : null,
       child: FocusTraversalGroup(child: _buildRegistrationForm(context)),
     );
   }

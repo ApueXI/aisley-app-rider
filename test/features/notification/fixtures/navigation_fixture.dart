@@ -192,7 +192,7 @@ class NavigationFixture {
     await tester.scrollUntilVisible(
       find.text('Work updated'),
       150,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find.byType(Scrollable).first,
     );
     await tester.ensureVisible(find.text('Work updated'));
     await tester.pumpAndSettle();

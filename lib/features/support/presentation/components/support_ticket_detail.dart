@@ -112,8 +112,9 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen>
           body: RefreshIndicator(
             onRefresh: controller.refreshDetail,
             child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 if (!unavailable) ...[
                   _SupportTicketSummaryCard(ticket: ticket),
@@ -179,7 +180,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen>
                       ticket.unreadCount == 0 ? 'Already read' : 'Mark as read',
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: _reply,
                     maxLength: 2000,

@@ -1,3 +1,6 @@
+import '../../../shared/presentation/unsaved_changes_guard.dart';
+import '../../../shared/presentation/private_image_screen.dart';
+
 import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
@@ -33,6 +36,7 @@ class VehicleScreen extends StatefulWidget {
 }
 
 class _VehicleScreenState extends State<VehicleScreen> {
+  final _leaveGuard = GlobalKey<UnsavedChangesGuardState>();
   final _formKey = GlobalKey<FormState>();
   final _plateController = TextEditingController();
   final _makeController = TextEditingController();
@@ -62,6 +66,14 @@ class _VehicleScreenState extends State<VehicleScreen> {
   @override
   void initState() {
     super.initState();
+    widget.authController.addListener(_sessionChanged);
+    for (final controller in [
+      _plateController,
+      _makeController,
+      _modelController,
+    ]) {
+      controller.addListener(_draftChanged);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadVehicle();
@@ -69,8 +81,31 @@ class _VehicleScreenState extends State<VehicleScreen> {
     });
   }
 
+  void _draftChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _sessionChanged() {
+    if (widget.authController.status == AuthStatus.authenticated) return;
+    for (final cancel in _cancelUploads.values) {
+      cancel?.call();
+    }
+    _pendingDocuments.clear();
+    _selectionErrors.clear();
+    _plateController.clear();
+    _makeController.clear();
+    _modelController.clear();
+    _leaveGuard.currentState?.leaveWithoutConfirmation();
+  }
+
   @override
   void dispose() {
+    widget.authController.removeListener(_sessionChanged);
+    for (final cancel in _cancelUploads.values) {
+      cancel?.call();
+    }
+    _pendingDocuments.clear();
+    widget.vehicleController.clearDocumentPreviews();
     _plateController.dispose();
     _makeController.dispose();
     _modelController.dispose();
@@ -83,14 +118,30 @@ class _VehicleScreenState extends State<VehicleScreen> {
       animation: widget.vehicleController,
       builder: (context, child) {
         final vehicle = widget.vehicleController.vehicle;
-        return Scaffold(
-          appBar: AppBar(title: const Text('Vehicle management')),
-          body: vehicle == null
-              ? _buildVehicleState(context)
-              : RefreshIndicator(
-                  onRefresh: _refreshVehicle,
-                  child: _buildVehicleForm(context, vehicle),
-                ),
+        return UnsavedChangesGuard(
+          key: _leaveGuard,
+          hasUnsavedChanges:
+              _hasLocalVehicleEdits() ||
+              _pendingDocuments.values.any((value) => value != null),
+          isBusy:
+              widget.vehicleController.isBusy ||
+              _isPicking.values.any((value) => value),
+          child: Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                tooltip: 'Back',
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => _leaveGuard.currentState?.requestLeave(),
+              ),
+              title: const Text('Vehicle management'),
+            ),
+            body: vehicle == null
+                ? _buildVehicleState(context)
+                : RefreshIndicator(
+                    onRefresh: _refreshVehicle,
+                    child: _buildVehicleForm(context, vehicle),
+                  ),
+          ),
         );
       },
     );

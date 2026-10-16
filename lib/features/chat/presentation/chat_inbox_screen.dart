@@ -1,3 +1,5 @@
+import '../../../shared/presentation/destination_scope.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -23,6 +25,25 @@ class ChatInboxScreen extends StatefulWidget {
 
 class _ChatInboxScreenState extends State<ChatInboxScreen>
     with WidgetsBindingObserver {
+  bool _destinationVisible = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final visible = DestinationScope.of(context)?.visible ?? true;
+    if (_destinationVisible == visible) return;
+    _destinationVisible = visible;
+    if (!visible) {
+      widget.controller.stopPolling();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isVisible()) return;
+        unawaited(widget.controller.loadInbox());
+        widget.controller.startPollingInbox(isVisible: _isVisible);
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +71,7 @@ class _ChatInboxScreenState extends State<ChatInboxScreen>
 
   bool _isVisible() =>
       mounted &&
+      _destinationVisible &&
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
       ModalRoute.of(context)?.isCurrent == true;
 

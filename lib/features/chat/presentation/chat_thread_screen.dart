@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../../auth/presentation/controllers/auth_controller.dart';
 import '../domain/chat_models.dart';
-import '../../../core/chat_media/image_widgets.dart';
 import 'controllers/chat_controller.dart';
-import 'chat_message_row.dart';
+import 'chat_thread_body.dart';
+import '../../../shared/presentation/unsaved_changes_guard.dart';
+import '../../../shared/presentation/destination_scope.dart';
 
 class ChatThreadScreen extends StatefulWidget {
   const ChatThreadScreen({
@@ -27,12 +28,19 @@ class ChatThreadScreen extends StatefulWidget {
 }
 
 class _ChatThreadScreenState extends State<ChatThreadScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
+  final _leaveGuard = GlobalKey<UnsavedChangesGuardState>();
+  ModalRoute<void>? _route;
   final _text = TextEditingController();
-  bool _allowPop = false, _leaving = false;
+  bool _leaving = false;
   Future<void> _leave() async {
     if (_leaving) return;
     _leaving = true;
+    if (widget.controller.pendingAttempt == null) {
+      _leaving = false;
+      await _leaveGuard.currentState?.requestLeave();
+      return;
+    }
     final hasDraft =
         _text.text.isNotEmpty ||
         widget.controller.pendingAttempt != null ||
@@ -42,6 +50,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen>
         await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
+                scrollable: true,
                 title: const Text('Leave conversation?'),
                 content: Text(
                   widget.controller.pendingAttempt != null
@@ -51,6 +60,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen>
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
+                    autofocus: true,
                     child: const Text('Stay'),
                   ),
                   TextButton(
@@ -70,14 +80,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen>
       _text.clear();
       widget.controller.media?.clear();
     }
-    setState(() => _allowPop = true);
-    await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.pop(context);
+    await _leaveGuard.currentState?.leaveWithoutConfirmation();
   }
 
   @override
   void initState() {
     super.initState();
+    _text.addListener(_draftChanged);
     WidgetsBinding.instance.addObserver(this);
     widget.authController.addListener(_clearDraftOnSessionChange);
     widget.controller.addListener(_clearDraftOnScopeChange);
@@ -119,8 +128,33 @@ class _ChatThreadScreenState extends State<ChatThreadScreen>
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
       ModalRoute.of(context)?.isCurrent == true;
 
+  void _draftChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route == _route) return;
+    courierRouteObserver.unsubscribe(this);
+    _route = route;
+    if (route != null) courierRouteObserver.subscribe(this, route);
+  }
+
+  @override
+  void didPushNext() => widget.controller.stopPolling();
+  @override
+  void didPopNext() {
+    if (_isVisible()) {
+      widget.controller.startPollingThread(isVisible: _isVisible);
+    }
+  }
+
   @override
   void dispose() {
+    courierRouteObserver.unsubscribe(this);
+    _text.removeListener(_draftChanged);
     WidgetsBinding.instance.removeObserver(this);
     widget.authController.removeListener(_clearDraftOnSessionChange);
     widget.controller.removeListener(_clearDraftOnScopeChange);
@@ -205,15 +239,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen>
                 ? task != null &&
                       controller.threadStatus == ChatLoadStatus.empty
                 : thread.sendAllowed == true);
-        return PopScope(
-          canPop:
-              _allowPop ||
-              _text.text.isEmpty &&
-                  controller.pendingAttempt == null &&
-                  controller.media?.hasImages != true,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) _leave();
-          },
+        return UnsavedChangesGuard(
+          key: _leaveGuard,
+          hasUnsavedChanges:
+              _text.text.isNotEmpty ||
+              controller.media?.hasImages == true ||
+              controller.pendingAttempt != null,
+          onBack: _leave,
           child: Scaffold(
             appBar: AppBar(
               title: Text('Message $title'),
@@ -223,128 +255,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen>
                 icon: const Icon(Icons.arrow_back),
               ),
             ),
-            body: Column(
-              children: [
-                ListTile(
-                  title: Text(thread?.counterpartyLabel ?? title),
-                  subtitle: Text(
-                    '${task?.leg == 'first_mile' ? 'First mile' : 'Final mile'} · ${thread?.taskReference ?? task?.reference ?? thread?.orderReference ?? 'Task'}',
-                  ),
-                ),
-                if ((thread != null && thread.sendAllowed != true) ||
-                    task?.canCompose == false)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Read-only conversation. Replies are unavailable here.',
-                    ),
-                  ),
-                if (controller.threadError case final error?)
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      children: [
-                        Text(error),
-                        if (controller.canRetry)
-                          TextButton(
-                            onPressed: controller.refreshActive,
-                            child: const Text('Retry'),
-                          ),
-                      ],
-                    ),
-                  ),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: controller.refreshActive,
-                    child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        if (controller.threadStatus == ChatLoadStatus.loading &&
-                            controller.messages.isEmpty)
-                          const Center(child: CircularProgressIndicator()),
-                        if (controller.threadStatus == ChatLoadStatus.empty)
-                          const Text(
-                            'No task conversation found in the current inbox. Your first message will open or resume the server-authorized thread.',
-                          ),
-                        if (controller.canLoadOlder)
-                          TextButton(
-                            onPressed: controller.loadOlder,
-                            child: const Text('Load older messages'),
-                          ),
-                        for (final message in controller.messages)
-                          ChatMessageRow(
-                            key: ValueKey((message.conversationId, message.id)),
-                            message: message,
-                            media: controller.media,
-                          ),
-                        if (controller.media != null)
-                          ChatImageComposer(
-                            controller: controller.media!,
-                            contextValue: controller.mediaContext,
-                            enabled:
-                                sendable && controller.pendingAttempt == null,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (controller.sendError case final error?)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Semantics(liveRegion: true, child: Text(error)),
-                  ),
-                if (controller.pendingAttempt != null &&
-                    controller.sendStatus != ChatSendStatus.sending &&
-                    !controller.unresolvedSend)
-                  TextButton(
-                    onPressed: _discardPending,
-                    child: const Text('Discard pending retry'),
-                  ),
-                if (sendable)
-                  SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _text,
-                              enabled:
-                                  controller.pendingAttempt == null &&
-                                  controller.sendStatus !=
-                                      ChatSendStatus.sending,
-                              maxLength: 2000,
-                              minLines: 1,
-                              maxLines: 4,
-                              textCapitalization: TextCapitalization.sentences,
-                              decoration: const InputDecoration(
-                                labelText: 'Message',
-                                hintText: 'Type a message',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton.filled(
-                            tooltip: controller.pendingAttempt == null
-                                ? 'Send message'
-                                : 'Retry same message',
-                            onPressed:
-                                controller.sendStatus ==
-                                        ChatSendStatus.sending ||
-                                    !controller.canRetry ||
-                                    (controller.media != null &&
-                                        !controller.media!.ready)
-                                ? null
-                                : _send,
-                            icon: const Icon(Icons.send),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
+            body: ChatThreadBody(
+              controller: controller,
+              text: _text,
+              title: title,
+              sendable: sendable,
+              onSend: _send,
+              onDiscardPending: _discardPending,
             ),
           ),
         );

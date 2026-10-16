@@ -25,8 +25,9 @@ class _DeliveryListBody extends StatelessWidget {
         status != DeliveryLoadStatus.loaded &&
         status != DeliveryLoadStatus.empty;
     return ListView(
+      key: const PageStorageKey('delivery-work'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         Text(
           'Final-mile deliveries',
@@ -34,12 +35,7 @@ class _DeliveryListBody extends StatelessWidget {
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
-        Text(
-          'Move only the delivery assigned to you. The server confirms every state and handoff.',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         if ((status == DeliveryLoadStatus.idle ||
                 status == DeliveryLoadStatus.loading) &&
             tasks.isEmpty)
@@ -72,77 +68,25 @@ class _DeliveryListBody extends StatelessWidget {
 
 class _DeliveryTaskCard extends StatelessWidget {
   const _DeliveryTaskCard({required this.task, required this.onTap});
-
   final PickupTask task;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final destination = task.destinationArea?.areaSummary;
-    final order = task.order?.reference ?? 'Order reference unavailable';
-    final details = <String>[
-      'Final-mile delivery',
-      _deliveryStatusLabel(task.rawStatus),
-      'Order $order',
-      if (destination != null && destination != 'Location unavailable')
-        'Destination $destination',
-    ];
-    return Semantics(
-      button: true,
-      label: details.join('. '),
-      child: Card(
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    Icons.local_shipping_outlined,
-                    color: scheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        destination == null ||
-                                destination == 'Location unavailable'
-                            ? 'Destination area unavailable'
-                            : 'To $destination',
-                      ),
-                      const SizedBox(height: 10),
-                      _DeliveryStatusPill(
-                        label: _deliveryStatusLabel(task.rawStatus),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.chevron_right, color: scheme.outline),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => TaskRow(
+    reference: task.order?.reference ?? 'Order reference unavailable',
+    leg: 'Final mile',
+    status: _deliveryStatusLabel(task.rawStatus),
+    location:
+        'To ${task.destinationArea?.areaSummary ?? 'Destination area unavailable'}',
+    nextStep: switch (task.status) {
+      PickupTaskStatus.deliveryAssigned => 'Review the final-mile batch',
+      PickupTaskStatus.deliveryAccepted => 'Complete hub handoff first',
+      PickupTaskStatus.pickedUpFromHub => 'Start transit',
+      PickupTaskStatus.inTransit => 'Continue to out for delivery',
+      PickupTaskStatus.outForDelivery => 'Photo proof and delivery intent',
+      PickupTaskStatus.delivered => 'Delivery completed',
+      _ => 'Open to review current work',
+    },
+    onTap: onTap,
+  );
 }

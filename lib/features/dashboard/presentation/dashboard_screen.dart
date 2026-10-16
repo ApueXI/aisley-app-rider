@@ -1,5 +1,10 @@
 import 'dart:async';
 
+import '../../../shared/presentation/destination_scope.dart';
+import '../../../shared/presentation/sign_out_confirmation.dart';
+import '../../vehicle/presentation/vehicle_screen.dart';
+import '../../policy/presentation/policy_screen.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../account/domain/account_models.dart';
@@ -37,6 +42,8 @@ part 'components/dashboard_aggregate.dart';
 part 'components/dashboard_status.dart';
 part 'components/dashboard_task_previews.dart';
 part 'components/dashboard_navigation.dart';
+part 'components/dashboard_destinations.dart';
+part 'components/dashboard_shell_content.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({
@@ -73,56 +80,151 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen>
-    with WidgetsBindingObserver, _DashboardNavigation {
+    with WidgetsBindingObserver, RouteAware, _DashboardNavigation {
+  int _tab = 0;
+  int _workIndex = 1;
+  final _visited = <int>{0};
+  bool _routeVisible = true;
+  bool _foreground = true;
+  ModalRoute<void>? _route;
+
+  int get _index => switch (_tab) {
+    0 => 0,
+    1 => _workIndex,
+    2 => 6,
+    _ => 7,
+  };
+
   @override
   void initState() {
     super.initState();
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
     WidgetsBinding.instance.addObserver(this);
-    widget.authController.addListener(_clearPreviewsIfAccessLost);
+    widget.authController.addListener(_handleSession);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        unawaited(_refreshDashboard(refreshNotifications: false));
-        widget.notificationController?.startPolling();
-        final accountController = widget.accountController;
-        if (accountController != null && accountController.account == null) {
-          unawaited(accountController.loadAccount());
-        }
+      if (!mounted) return;
+      unawaited(_refreshDashboard(refreshNotifications: false));
+      _syncPolling();
+      final account = widget.accountController;
+      if (account != null && account.account == null) {
+        unawaited(account.loadAccount());
       }
     });
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final notificationController = widget.notificationController;
-    if (state == AppLifecycleState.resumed) {
-      notificationController?.startPolling();
-      if (widget.authController.status == AuthStatus.authenticated) {
-        unawaited(_refreshDashboard(refreshNotifications: false));
-      }
-    } else if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      notificationController?.stopPolling();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != _route) {
+      courierRouteObserver.unsubscribe(this);
+      _route = route;
+      if (route != null) courierRouteObserver.subscribe(this, route);
     }
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    widget.authController.removeListener(_clearPreviewsIfAccessLost);
+  void didPushNext() => _setRouteVisible(false);
+  @override
+  void didPopNext() {
+    _setRouteVisible(true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _syncPolling();
+    });
+    if (_tab == 0) unawaited(_refreshDashboard());
+  }
+
+  void _setRouteVisible(bool value) {
+    if (!mounted || _routeVisible == value) return;
+    setState(() => _routeVisible = value);
+    _syncPolling();
+  }
+
+  void _syncPolling() {
+    final visible =
+        _routeVisible &&
+        _foreground &&
+        widget.authController.status == AuthStatus.authenticated;
+    if (visible && _tab == 0) {
+      widget.notificationController?.startPolling();
+    } else {
+      widget.notificationController?.stopPolling();
+    }
+    if (!visible || _tab != 2) widget.chatController?.stopPolling();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() => _foreground = state == AppLifecycleState.resumed);
+    _syncPolling();
+    if (_foreground && _routeVisible && _tab == 0) {
+      unawaited(_refreshDashboard(refreshNotifications: false));
+    }
+  }
+
+  void _handleSession() {
+    if (widget.authController.status == AuthStatus.authenticated) return;
     widget.notificationController?.stopPolling();
+    widget.chatController?.stopPolling();
+    widget.dashboardPreviewController?.clear();
+    if (widget.authController.status == AuthStatus.policyConsentRequired) {
+      return;
+    }
+    // A session gate must cover every pushed private destination immediately.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+    });
+  }
+
+  @override
+  void dispose() {
+    courierRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    widget.authController.removeListener(_handleSession);
+    widget.notificationController?.stopPolling();
+    widget.chatController?.stopPolling();
     super.dispose();
   }
 
-  void _clearPreviewsIfAccessLost() {
-    if (widget.authController.status != AuthStatus.authenticated) {
-      widget.dashboardPreviewController?.clear();
+  void _selectTab(int tab) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _tab = tab;
+      _visited.add(_index);
+    });
+    _syncPolling();
+    if (tab == 0) unawaited(_refreshDashboard());
+  }
+
+  @override
+  void _selectWork(int index) {
+    setState(() {
+      _tab = 1;
+      _workIndex = index;
+      _visited.add(index);
+    });
+    _syncPolling();
+  }
+
+  @override
+  Future<void> _pushPage(Widget page) async {
+    final wasVisible = _routeVisible;
+    _setRouteVisible(false);
+    await Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => page));
+    if (mounted && widget.authController.status == AuthStatus.authenticated) {
+      _setRouteVisible(wasVisible && ModalRoute.of(context)?.isCurrent == true);
+      _syncPolling();
     }
   }
 
   Future<void> _refreshDashboard({bool refreshNotifications = true}) async {
     if (widget.authController.status != AuthStatus.authenticated) return;
     await widget.authController.loadDashboard();
+    if (!mounted || widget.authController.status != AuthStatus.authenticated) {
+      return;
+    }
     await Future.wait<void>([
       if (widget.authController.dashboard?.operational != true)
         if (widget.dashboardPreviewController case final controller?)
@@ -133,192 +235,87 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.authController,
-      builder: (context, child) {
-        final courier = widget.authController.courier;
-        if (courier == null) {
-          return const SizedBox.shrink();
-        }
-
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: widget.authController,
+    builder: (context, _) {
+      if (widget.authController.status != AuthStatus.authenticated) {
+        final needsPolicy =
+            widget.authController.status == AuthStatus.policyConsentRequired;
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Courier dashboard'),
-            actions: [
-              if (widget.pickupController != null ||
-                  widget.batchController != null ||
-                  widget.deliveryController != null ||
-                  widget.historyController != null)
-                PopupMenuButton<String>(
-                  tooltip: 'Courier work',
-                  icon: const Icon(Icons.local_shipping_outlined),
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'pickup':
-                        _openPickups();
-                      case 'batches':
-                        _openBatches();
-                      case 'delivery':
-                        _openDeliveries();
-                      case 'history':
-                        _openHistory();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    if (widget.pickupController != null)
-                      const PopupMenuItem<String>(
-                        value: 'pickup',
-                        child: Text('Pickup orders'),
-                      ),
-                    if (widget.batchController != null)
-                      const PopupMenuItem<String>(
-                        value: 'batches',
-                        child: Text('Final-mile batches'),
-                      ),
-                    if (widget.deliveryController != null)
-                      const PopupMenuItem<String>(
-                        value: 'delivery',
-                        child: Text('Delivery work'),
-                      ),
-                    if (widget.historyController != null)
-                      const PopupMenuItem<String>(
-                        value: 'history',
-                        child: Text('Delivery history'),
-                      ),
-                  ],
-                ),
-              if (widget.notificationController != null)
-                AnimatedBuilder(
-                  animation: widget.notificationController!,
-                  builder: (context, child) {
-                    final count = widget.notificationController!.unreadCount;
-                    final label = count == null
-                        ? 'Notifications'
-                        : '$count unread notification${count == 1 ? '' : 's'}';
-                    return Semantics(
-                      button: true,
-                      label: label,
-                      child: IconButton(
-                        onPressed: _openNotifications,
-                        tooltip: 'Notifications',
-                        icon: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            const Icon(Icons.notifications_none_rounded),
-                            if (count != null && count > 0)
-                              Positioned(
-                                right: -5,
-                                top: -5,
-                                child: Container(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 18,
-                                    minHeight: 18,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.error,
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                  child: Text(
-                                    count > 99 ? '99+' : '$count',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onError,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              if (widget.accountController != null)
-                IconButton(
-                  onPressed: _openAccount,
-                  tooltip: 'Account settings',
-                  icon: const Icon(Icons.manage_accounts_outlined),
-                ),
-              IconButton(
-                onPressed: widget.authController.isSigningOut
-                    ? null
-                    : _confirmSignOut,
-                tooltip: 'Sign out',
-                icon: widget.authController.isSigningOut
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.logout),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          body: RefreshIndicator(
-            onRefresh: _refreshDashboard,
-            child: widget.accountController == null
-                ? _DashboardBody(
-                    authController: widget.authController,
-                    onSignOut: _confirmSignOut,
-                    pickupController: widget.pickupController,
-                    onOpenPickups: _openPickups,
-                    deliveryController: widget.deliveryController,
-                    historyController: widget.historyController,
-                    onOpenDeliveries: _openDeliveries,
-                    onOpenHistory: _openHistory,
-                    onOpenBatches: widget.batchController == null
-                        ? null
-                        : _openBatches,
-                    onOpenNotifications: widget.notificationController == null
-                        ? null
-                        : _openNotifications,
-                    onOpenMessages: widget.chatController == null
-                        ? null
-                        : _openMessages,
-                    onOpenSupport: widget.supportTicketController == null
-                        ? null
-                        : _openSupportTickets,
-                    previewController: widget.dashboardPreviewController,
-                  )
-                : AnimatedBuilder(
-                    animation: widget.accountController!,
-                    builder: (context, child) => _DashboardBody(
-                      authController: widget.authController,
-                      onSignOut: _confirmSignOut,
-                      pickupController: widget.pickupController,
-                      onOpenPickups: _openPickups,
-                      deliveryController: widget.deliveryController,
-                      historyController: widget.historyController,
-                      onOpenDeliveries: _openDeliveries,
-                      onOpenHistory: _openHistory,
-                      onOpenBatches: widget.batchController == null
-                          ? null
-                          : _openBatches,
-                      onOpenNotifications: widget.notificationController == null
-                          ? null
-                          : _openNotifications,
-                      onOpenMessages: widget.chatController == null
-                          ? null
-                          : _openMessages,
-                      onOpenSupport: widget.supportTicketController == null
-                          ? null
-                          : _openSupportTickets,
-                      previewController: widget.dashboardPreviewController,
-                      profilePhoto: widget.accountController!.profilePhoto,
-                    ),
+          appBar: AppBar(title: const Text('AISLEY Courier')),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    needsPolicy
+                        ? 'Review the current policies before opening Courier work.'
+                        : 'Session ended.',
                   ),
+                  if (needsPolicy && widget.policyController != null)
+                    TextButton(
+                      onPressed: _openPolicies,
+                      child: const Text('Review policies'),
+                    ),
+                ],
+              ),
+            ),
           ),
         );
-      },
-    );
-  }
+      }
+      if (widget.authController.courier == null) return const SizedBox.shrink();
+      return PopScope(
+        canPop: _tab == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _selectTab(0);
+        },
+        child: Scaffold(
+          body: IndexedStack(
+            index: _index,
+            children: [
+              for (var i = 0; i < 8; i++)
+                DestinationScope(
+                  visible: i == _index && _routeVisible && _foreground,
+                  onBack: i >= 2 && i <= 5 ? () => _selectWork(1) : null,
+                  child: TickerMode(
+                    enabled: i == _index && _routeVisible && _foreground,
+                    child: _visited.contains(i)
+                        ? _destination(i)
+                        : const SizedBox.shrink(),
+                  ),
+                ),
+            ],
+          ),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _tab,
+            onDestinationSelected: _selectTab,
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.local_shipping_outlined),
+                selectedIcon: Icon(Icons.local_shipping),
+                label: 'Work',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.chat_bubble_outline),
+                selectedIcon: Icon(Icons.chat_bubble),
+                label: 'Task messages',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Account',
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }

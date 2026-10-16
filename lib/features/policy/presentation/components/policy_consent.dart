@@ -22,7 +22,10 @@ class PolicyScreen extends StatefulWidget {
 
 class _PolicyScreenState extends State<PolicyScreen>
     with WidgetsBindingObserver {
+  bool _confirmingSignOut = false;
   final Map<PolicyType, int> _confirmedVersions = <PolicyType, int>{};
+
+  void _updateConfirmation(VoidCallback callback) => setState(callback);
 
   PolicyController get controller => widget.policyController;
 
@@ -87,6 +90,11 @@ class _PolicyScreenState extends State<PolicyScreen>
   }
 
   Future<void> _signOut() async {
+    if (_confirmingSignOut || widget.authController.isSigningOut) return;
+    _confirmingSignOut = true;
+    final confirmed = await confirmCourierSignOut(context);
+    _confirmingSignOut = false;
+    if (!mounted || !confirmed) return;
     final didSignOut = await widget.authController.signOut();
     if (!mounted || didSignOut) {
       return;
@@ -209,7 +217,7 @@ class _PolicyScreenState extends State<PolicyScreen>
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         Semantics(
           header: true,
@@ -221,14 +229,14 @@ class _PolicyScreenState extends State<PolicyScreen>
         ),
         const SizedBox(height: 8),
         Text(
-          'Review the current Terms of Service and Privacy Policy. Acceptance is recorded only after the server confirms it.',
+          'Read the current Terms of Service and Privacy Policy.',
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         if (widget.requiredForAccess) ...[
           const SizedBox(height: 16),
           const _PolicyBanner(
-            message: 'Accept every required current policy before Courier dashboard access is restored.',
+            message: 'Accept the required policies to continue to your work.',
             isError: false,
           ),
         ],
@@ -252,7 +260,7 @@ class _PolicyScreenState extends State<PolicyScreen>
             isError: true,
           ),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         if (items.isEmpty)
           const _NoPublishedPolicyView()
         else
@@ -271,129 +279,6 @@ class _PolicyScreenState extends State<PolicyScreen>
           ),
         ],
       ],
-    );
-  }
-
-  Widget _buildPolicyCard(BuildContext context, PolicyConsentItem item) {
-    final type = item.type!;
-    final document = controller.documentFor(type);
-    final version = item.currentVersion;
-    final documentIsStale =
-        document != null &&
-        (controller.isDocumentStale(type) ||
-            document.version.version != version);
-    final isConfirmed = version != null && _confirmedVersions[type] == version;
-    final isAccepted = item.accepted && item.acceptedVersion == version;
-    final scheme = Theme.of(context).colorScheme;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 18),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.policy_outlined, color: scheme.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    item.label,
-                    style: Theme.of(context).textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (version == null)
-              Text(
-                'No published version is currently available.',
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: scheme.onSurfaceVariant),
-              )
-            else if (document == null)
-              Text(
-                'The current version could not be loaded. Refresh to try again.',
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: scheme.onSurfaceVariant),
-              )
-            else ...[
-              if (documentIsStale) ...[
-                const _PolicyBanner(
-                  message: 'This displayed policy may be stale. Refresh before accepting it.',
-                  isError: true,
-                ),
-                const SizedBox(height: 12),
-              ],
-              Text(
-                'Version ${document.version.version} • ${_formatDate(context, document.version.publishedAt)}',
-                style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: scheme.onSurfaceVariant),
-              ),
-              if (document.version.changeSummary != null) ...[
-                const SizedBox(height: 10),
-                Text(
-                  document.version.changeSummary!,
-                  style: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ],
-              const SizedBox(height: 14),
-              SelectableText(
-                document.version.content,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 14),
-              if (isAccepted)
-                _AcceptedPolicyLabel(item: item, version: version)
-              else if (item.required && !documentIsStale) ...[
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: isConfirmed,
-                  onChanged: controller.state == PolicyViewState.accepting
-                      ? null
-                      : (checked) {
-                          setState(() {
-                            if (checked == true) {
-                              _confirmedVersions[type] = version;
-                            } else {
-                              _confirmedVersions.remove(type);
-                            }
-                          });
-                        },
-                  title: Text(
-                    'I have read and agree to the current ${item.label}, version $version.',
-                  ),
-                  controlAffinity: ListTileControlAffinity.leading,
-                ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: !isConfirmed || controller.isBusy
-                      ? null
-                      : () => _accept(type),
-                  child: Text(
-                    controller.state == PolicyViewState.accepting
-                        ? 'Saving…'
-                        : 'Accept ${item.label}',
-                  ),
-                ),
-              ],
-            ],
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () => _openHistory(type),
-                icon: const Icon(Icons.history),
-                label: const Text('View published history'),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

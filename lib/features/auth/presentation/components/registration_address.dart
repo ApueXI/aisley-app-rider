@@ -59,14 +59,14 @@ extension _RegistrationAddress on _RegistrationScreenState {
 
     if (_isLoadingPsgcRegion) {
       children.addAll(const <Widget>[
-        SizedBox(height: 14),
+        SizedBox(height: 12),
         LinearProgressIndicator(),
       ]);
     } else if (_psgcRegionTree != null) {
       final provinceOptions = _psgcProvinceOptions;
       if (provinceOptions.isNotEmpty) {
         children.addAll(<Widget>[
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           _psgcDropdown<PsgcAddressNode>(
             fieldKey: 'address.province',
             label: 'Province',
@@ -78,7 +78,7 @@ extension _RegistrationAddress on _RegistrationScreenState {
         ]);
       } else {
         children.addAll(<Widget>[
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           _textField(
             controller: _provinceController,
             label: 'Province / administrative area',
@@ -93,7 +93,7 @@ extension _RegistrationAddress on _RegistrationScreenState {
       final cityOptions = _psgcCityOptions;
       if (cityOptions.isNotEmpty) {
         children.addAll(<Widget>[
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           _psgcDropdown<PsgcAddressNode>(
             fieldKey: 'address.city_municipality',
             label: 'City / municipality',
@@ -105,7 +105,7 @@ extension _RegistrationAddress on _RegistrationScreenState {
         ]);
       } else {
         children.addAll(<Widget>[
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           _textField(
             controller: _cityMunicipalityController,
             label: 'City / municipality',
@@ -118,7 +118,7 @@ extension _RegistrationAddress on _RegistrationScreenState {
 
       if (_psgcCity != null && _psgcBarangayOptions.isNotEmpty) {
         children.addAll(<Widget>[
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           _psgcDropdown<PsgcAddressNode>(
             fieldKey: 'address.barangay',
             label: 'Barangay',
@@ -130,7 +130,7 @@ extension _RegistrationAddress on _RegistrationScreenState {
         ]);
       } else if (_psgcCity != null) {
         children.addAll(<Widget>[
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           _textField(
             controller: _barangayController,
             label: 'Barangay',
@@ -186,7 +186,7 @@ extension _RegistrationAddress on _RegistrationScreenState {
             serverKey: 'address.province',
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
         _twoColumn(
           _textField(
             controller: _cityMunicipalityController,
@@ -215,6 +215,9 @@ extension _RegistrationAddress on _RegistrationScreenState {
     required ValueChanged<T?> onSelected,
     IconData? icon,
   }) {
+    // Re-enable a searchable control when its previously hidden step opens.
+    final focus = _fieldNavigation.focusNode(fieldKey);
+    focus.canRequestFocus = !_isSubmitting;
     return KeyedSubtree(
       key: _fieldNavigation.anchorKey(fieldKey),
       child: DropdownMenu<T>(
@@ -222,12 +225,13 @@ extension _RegistrationAddress on _RegistrationScreenState {
           '$fieldKey-${selected == null ? '' : labelFor(selected)}',
         ),
         enabled: !_isSubmitting && options.isNotEmpty,
-        focusNode: _fieldNavigation.focusNode(fieldKey),
+        focusNode: focus,
         width: double.infinity,
         menuHeight: 360,
         label: Text(label),
         hintText: options.isEmpty ? 'No options available' : 'Type to search',
         errorText: _serverError(fieldKey),
+        requestFocusOnTap: true,
         enableFilter: true,
         enableSearch: true,
         initialSelection: selected,

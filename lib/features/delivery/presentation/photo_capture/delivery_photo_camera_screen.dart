@@ -242,7 +242,7 @@ class _CameraUnavailable extends StatelessWidget {
             const Icon(Icons.no_photography_outlined, size: 48),
             const SizedBox(height: 16),
             _CameraFailureNotice(failure: failure),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),

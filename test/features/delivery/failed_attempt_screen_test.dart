@@ -66,6 +66,7 @@ void main() {
         await reveal(tester, find.byType(TextFormField));
         await tester.enterText(find.byType(TextFormField), 'Building closed');
         await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
         await reveal(tester, find.text('Submit report'));
         await tester.tap(find.text('Submit report'));
         await tester.pumpAndSettle();

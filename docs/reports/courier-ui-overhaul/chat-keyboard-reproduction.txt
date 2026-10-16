@@ -1,0 +1,18 @@
+UI-001 reproduction — 2026-10-15
+
+Source: unchanged ChatThreadScreen composition from ee62d69 / bef3374.
+Harness: synthetic sendable task, multiline text and long send-recovery notice;
+320×640 logical viewport, 2× text, light theme, 280px keyboard inset.
+The updated shared theme was already applied during this diagnostic.
+No account, private media, operational mutation or installed keyboard was used.
+
+flutter test --no-pub test/features/chat/chat_layout_test.dart
+  --plain-name "chat composer keyboard 320.0 2.0 light"
+
+Expected: null
+Actual: FlutterError:<A RenderFlex overflowed by 1140 pixels on the bottom.>
+
+The same stress fixture passes with the replacement scrollable thread body.
+The retained chat_layout_test.dart covers both phone sizes, scales and themes,
+plus immediate system-Back draft protection. The failing baseline source was
+temporary and was removed after reproduction; this excerpt preserves evidence.

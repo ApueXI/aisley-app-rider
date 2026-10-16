@@ -1,3 +1,6 @@
+import '../../../shared/presentation/task_row.dart';
+import '../../../shared/presentation/destination_scope.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../auth/presentation/controllers/auth_controller.dart';
@@ -43,7 +46,10 @@ class _FinalMileBatchScreenState extends State<FinalMileBatchScreen> {
       animation: widget.batchController,
       builder: (context, child) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Final-mile batches')),
+          appBar: AppBar(
+            leading: destinationBackButton(context),
+            title: const Text('Final-mile batches'),
+          ),
           body: RefreshIndicator(
             onRefresh: widget.batchController.load,
             child: _FinalMileBatchList(

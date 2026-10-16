@@ -1,3 +1,6 @@
+import '../../../shared/presentation/task_row.dart';
+import '../../../shared/presentation/destination_scope.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/networking/api_client.dart';
@@ -103,7 +106,10 @@ class _PickupScreenState extends State<PickupScreen> {
       animation: _controller,
       builder: (context, child) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Pickup orders')),
+          appBar: AppBar(
+            leading: destinationBackButton(context),
+            title: const Text('Pickup orders'),
+          ),
           body: RefreshIndicator(
             onRefresh: _controller.load,
             child: _PickupListBody(

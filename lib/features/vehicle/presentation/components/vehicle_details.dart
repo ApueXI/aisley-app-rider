@@ -20,33 +20,37 @@ extension _VehicleScreenDetails on _VehicleScreenState {
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                controller.loadStatus == VehicleLoadStatus.forbidden
-                    ? Icons.lock_outline
-                    : Icons.two_wheeler_outlined,
-                size: 52,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                controller.errorMessage ??
-                    'Vehicle information is not available right now.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              if (canRetry) ...[
-                const SizedBox(height: 18),
-                FilledButton.icon(
-                  onPressed: controller.loadStatus == VehicleLoadStatus.loading
-                      ? null
-                      : _loadVehicle,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  controller.loadStatus == VehicleLoadStatus.forbidden
+                      ? Icons.lock_outline
+                      : Icons.two_wheeler_outlined,
+                  size: 52,
                 ),
+                const SizedBox(height: 16),
+                Text(
+                  controller.errorMessage ??
+                      'Vehicle information is not available right now.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                if (canRetry) ...[
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed:
+                        controller.loadStatus == VehicleLoadStatus.loading ||
+                            !controller.canRetryRateLimit
+                        ? null
+                        : _loadVehicle,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -59,13 +63,13 @@ extension _VehicleScreenDetails on _VehicleScreenState {
     final updateBusy = controller.updateStatus == VehicleActionStatus.saving;
 
     return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         Card(
-          color: scheme.secondaryContainer,
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -82,9 +86,9 @@ extension _VehicleScreenDetails on _VehicleScreenState {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Vehicle changes update the same Courier-owned record. They do not create another vehicle or reset Logistics approval.',
+                        'Keep your vehicle details and documents current. Logistics receives an update after you save.',
                         style: Theme.of(context).textTheme.bodySmall
-                            ?.copyWith(color: scheme.onSecondaryContainer),
+                            ?.copyWith(color: scheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -116,7 +120,13 @@ extension _VehicleScreenDetails on _VehicleScreenState {
             isError: false,
           ),
         ],
-        const SizedBox(height: 22),
+        if (!controller.canRetryRateLimit) ...[
+          const SizedBox(height: 12),
+          const Text(
+            'Please wait before loading or saving vehicle information again.',
+          ),
+        ],
+        const SizedBox(height: 24),
         Text(
           'Vehicle details',
           style: Theme.of(context).textTheme.titleLarge
@@ -133,7 +143,7 @@ extension _VehicleScreenDetails on _VehicleScreenState {
           key: _formKey,
           child: Card(
             child: Padding(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
@@ -168,7 +178,7 @@ extension _VehicleScreenDetails on _VehicleScreenState {
                         ? 'Choose a vehicle type.'
                         : null,
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _plateController,
                     enabled: !updateBusy,
@@ -192,7 +202,7 @@ extension _VehicleScreenDetails on _VehicleScreenState {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _makeController,
                     enabled: !updateBusy,
@@ -207,7 +217,7 @@ extension _VehicleScreenDetails on _VehicleScreenState {
                     ),
                     validator: (value) => _maxLength(value, 'Make', 255),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _modelController,
                     enabled: !updateBusy,
@@ -222,14 +232,16 @@ extension _VehicleScreenDetails on _VehicleScreenState {
                     ),
                     validator: (value) => _maxLength(value, 'Model', 255),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 16),
                   Semantics(
                     button: true,
                     label: updateBusy
                         ? 'Saving vehicle details'
                         : 'Save vehicle details',
                     child: FilledButton.icon(
-                      onPressed: updateBusy ? null : _saveVehicle,
+                      onPressed: updateBusy || !controller.canRetryRateLimit
+                          ? null
+                          : _saveVehicle,
                       icon: updateBusy
                           ? const SizedBox(
                               width: 20,
@@ -255,7 +267,9 @@ extension _VehicleScreenDetails on _VehicleScreenState {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: TextButton.icon(
-                        onPressed: updateBusy ? null : controller.retryUpdate,
+                        onPressed: updateBusy || !controller.canRetryRateLimit
+                            ? null
+                            : controller.retryUpdate,
                         icon: const Icon(Icons.refresh),
                         label: const Text('Retry vehicle save'),
                       ),

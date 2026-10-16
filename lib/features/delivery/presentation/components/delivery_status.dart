@@ -132,7 +132,7 @@ class _DeliveryStatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         label,
@@ -155,7 +155,7 @@ class _DeliveryLoadingCard extends StatelessWidget {
       label: 'Loading delivery work',
       child: const Card(
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           child: Center(child: CircularProgressIndicator()),
         ),
       ),

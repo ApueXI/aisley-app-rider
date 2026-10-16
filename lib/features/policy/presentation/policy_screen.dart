@@ -1,3 +1,5 @@
+import '../../../shared/presentation/sign_out_confirmation.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import '../domain/policy_models.dart';
 import 'controllers/policy_controller.dart';
 
 part 'components/policy_consent.dart';
+part 'components/policy_current_card.dart';
 part 'components/policy_history.dart';
 part 'components/policy_version.dart';
 part 'components/policy_widgets.dart';

@@ -35,7 +35,7 @@ class _PickupLoadingState extends StatelessWidget {
       label: 'Loading pickup work',
       child: const Card(
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           child: Center(child: CircularProgressIndicator()),
         ),
       ),

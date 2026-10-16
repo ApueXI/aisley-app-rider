@@ -81,7 +81,7 @@ class _BatchErrorState extends StatelessWidget {
               const Icon(Icons.error_outline, size: 36),
               const SizedBox(height: 12),
               Text(message, textAlign: TextAlign.center),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               if (_canRetryBatchLoad(status))
                 OutlinedButton.icon(
                   onPressed: onRetry,

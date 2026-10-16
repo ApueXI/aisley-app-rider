@@ -1,3 +1,5 @@
+import '../../../shared/presentation/destination_scope.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -31,7 +33,35 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
+  ModalRoute<void>? _route;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route == _route) return;
+    courierRouteObserver.unsubscribe(this);
+    _route = route;
+    if (route != null) courierRouteObserver.subscribe(this, route);
+  }
+
+  @override
+  void didPushNext() {
+    if (widget.managePolling) widget.controller.stopPolling();
+  }
+
+  @override
+  void didPopNext() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          widget.managePolling &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        widget.controller.startPolling();
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -53,7 +83,8 @@ class _NotificationScreenState extends State<NotificationScreen>
     if (!widget.managePolling) {
       return;
     }
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed &&
+        ModalRoute.of(context)?.isCurrent == true) {
       widget.controller.startPolling();
     } else if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
@@ -64,6 +95,7 @@ class _NotificationScreenState extends State<NotificationScreen>
 
   @override
   void dispose() {
+    courierRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     if (widget.managePolling) {
       widget.controller.stopPolling();
@@ -103,6 +135,7 @@ class _NotificationScreenState extends State<NotificationScreen>
   }
 
   Future<void> _openNotification(CourierNotification notification) async {
+    if (widget.managePolling) widget.controller.stopPolling();
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => NotificationDetailScreen(
@@ -112,5 +145,10 @@ class _NotificationScreenState extends State<NotificationScreen>
         ),
       ),
     );
+    if (mounted &&
+        widget.managePolling &&
+        ModalRoute.of(context)?.isCurrent == true) {
+      widget.controller.startPolling();
+    }
   }
 }

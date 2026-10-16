@@ -290,6 +290,8 @@ void main() {
             tester.getSize(imageTap).shortestSide,
             greaterThanOrEqualTo(44),
           );
+          await tester.drag(find.byType(ListView).first, const Offset(0, 3000));
+          await tester.pumpAndSettle();
           expect(find.text('First mile · TASK-1'), findsOneWidget);
           expect(tester.takeException(), isNull);
           await fixture.unmount(tester);

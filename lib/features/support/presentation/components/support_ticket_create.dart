@@ -122,12 +122,12 @@ class _SupportTicketCreateScreenState extends State<SupportTicketCreateScreen> {
               ),
             ),
             body: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 const Text(
                   'Describe one issue for Admin support. Do not include passwords, payment details, or private evidence.',
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _subject,
                   maxLength: 150,

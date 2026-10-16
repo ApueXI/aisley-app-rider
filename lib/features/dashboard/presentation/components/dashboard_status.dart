@@ -1,55 +1,5 @@
 part of '../dashboard_screen.dart';
 
-class _UnavailableNotice extends StatelessWidget {
-  const _UnavailableNotice({
-    required this.isLoading,
-    required this.hasRefreshError,
-  });
-
-  final bool isLoading;
-  final bool hasRefreshError;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    const availability =
-        'Notification, available work and active work summaries '
-        'are not available yet. Open Notifications, Pickup orders or Delivery work '
-        'to check current updates.';
-    final text = isLoading
-        ? 'Refreshing dashboard summaries… $availability'
-        : hasRefreshError
-        ? 'Showing summary availability from the last successful refresh. $availability'
-        : availability;
-
-    return Semantics(
-      liveRegion: true,
-      container: true,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.info_outline, color: scheme.onSurfaceVariant),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                text,
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: scheme.onSurfaceVariant),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _DashboardErrorBanner extends StatelessWidget {
   const _DashboardErrorBanner({required this.message, required this.onRetry});
 
@@ -101,53 +51,79 @@ class _DashboardErrorBanner extends StatelessWidget {
   }
 }
 
-class _SkeletonSectionCard extends StatelessWidget {
-  const _SkeletonSectionCard();
+class _LegacyWorkStatus extends StatelessWidget {
+  const _LegacyWorkStatus({
+    required this.snapshot,
+    required this.loading,
+    required this.stale,
+    required this.hasPreviews,
+  });
+  final DashboardSnapshot? snapshot;
+  final bool loading, stale, hasPreviews;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(14),
-              ),
+    final data = snapshot;
+    if (data == null) {
+      return loading
+          ? const Column(
+              children: [
+                Text('Checking work…'),
+                SizedBox(height: 12),
+                LinearProgressIndicator(),
+              ],
+            )
+          : const SizedBox.shrink();
+    }
+    final unavailable =
+        const ['active_tasks', 'available_tasks', 'notifications'].every(
+          (key) => data.section(key).state == DashboardSectionState.unavailable,
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (loading) const Text('Refreshing work…'),
+        if (stale)
+          const Text(
+            'Showing earlier work information. Refresh before acting.',
+          ),
+        if (unavailable)
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              hasPreviews
+                  ? 'Work summaries are unavailable. Showing limited work previews.'
+                  : 'Work summaries are unavailable. Open a work list for current tasks.',
             ),
-            const SizedBox(width: 14),
-            Expanded(
+          )
+        else
+          for (final key in const [
+            'active_tasks',
+            'available_tasks',
+            'notifications',
+          ])
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 130,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: scheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: scheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                  Text(switch (key) {
+                    'active_tasks' => 'Active work',
+                    'available_tasks' => 'Available work',
+                    _ => 'Notifications',
+                  }, style: Theme.of(context).textTheme.titleMedium),
+                  Text(switch (data.section(key).state) {
+                    DashboardSectionState.unavailable => 'Unavailable',
+                    DashboardSectionState.failed => 'Could not load',
+                    DashboardSectionState.stale => 'Needs refresh',
+                    DashboardSectionState.empty => 'Nothing to show',
+                    DashboardSectionState.available => 'Ready',
+                    _ => 'Availability not checked',
+                  }),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

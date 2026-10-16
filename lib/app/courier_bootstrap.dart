@@ -37,6 +37,8 @@ import '../features/support/presentation/controllers/support_ticket_controller.d
 import '../features/vehicle/data/vehicle_repository.dart';
 import '../features/vehicle/presentation/controllers/vehicle_controller.dart';
 import 'courier_app.dart';
+import 'courier_theme.dart';
+import '../shared/presentation/courier_viewport.dart';
 
 class CourierBootstrapApp extends StatefulWidget {
   const CourierBootstrapApp({super.key});
@@ -82,7 +84,8 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
     }
 
     try {
-      const config = AppConfig.fromEnvironment;
+      final config = await AppConfig.load();
+      if (!mounted) return;
       final tokenStorage = SecureTokenStorage();
       final apiClient = ApiClient(config: config, tokenStorage: tokenStorage);
       final mapSecurity = CourierMapSecurity(client: apiClient, config: config);
@@ -247,11 +250,11 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
     }
 
     return MaterialApp(
-      title: 'Aisley Courier',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE6007A)),
-        useMaterial3: true,
-      ),
+      title: 'AISLEY Courier',
+      theme: buildCourierTheme(Brightness.light),
+      darkTheme: buildCourierTheme(Brightness.dark),
+      themeMode: ThemeMode.system,
+      builder: (context, child) => CourierViewport(child: child!),
       home: Scaffold(
         body: SafeArea(
           child: Center(
@@ -275,7 +278,7 @@ class _StartupLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       liveRegion: true,
-      label: 'Starting Aisley Courier',
+      label: 'Starting AISLEY Courier',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -284,9 +287,9 @@ class _StartupLoading extends StatelessWidget {
             height: 36,
             child: CircularProgressIndicator(strokeWidth: 3),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Text(
-            'Starting Aisley Courier…',
+            'Starting AISLEY Courier…',
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ],

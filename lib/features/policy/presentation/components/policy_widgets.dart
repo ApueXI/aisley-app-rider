@@ -48,7 +48,7 @@ class _PolicyStateView extends StatelessWidget {
               const SizedBox(height: 8),
               Text(message, textAlign: TextAlign.center),
               if (onRetry != null) ...[
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 FilledButton.icon(
                   onPressed: onRetry,
                   icon: const Icon(Icons.refresh),

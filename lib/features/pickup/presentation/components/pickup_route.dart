@@ -100,7 +100,7 @@ class _PickupRouteScreenState extends State<PickupRouteScreen> {
               onRefresh: _refresh,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 children: [
                   _RouteSummary(schedule: widget.schedule, manifest: manifest),
                   const SizedBox(height: 16),

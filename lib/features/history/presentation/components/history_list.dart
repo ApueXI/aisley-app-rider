@@ -26,8 +26,9 @@ class _HistoryListBody extends StatelessWidget {
         status != HistoryLoadStatus.empty;
 
     return SingleChildScrollView(
+      key: const PageStorageKey('delivery-history'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -38,14 +39,14 @@ class _HistoryListBody extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Read-only records of final-mile deliveries completed under your Courier assignment.',
+            'Search completed deliveries by their full order reference.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           _HistoryReferenceSearch(controller: controller),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           if ((status == HistoryLoadStatus.idle ||
                   status == HistoryLoadStatus.loading) &&
               items.isEmpty)
@@ -99,84 +100,18 @@ class _HistoryListBody extends StatelessWidget {
 
 class _HistoryItemCard extends StatelessWidget {
   const _HistoryItemCard({required this.item, required this.onTap});
-
   final DeliveryHistoryItem item;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final order = item.order?.displayReference ?? 'Order reference unavailable';
-    final pickup = item.pickupArea?.areaSummary;
-    final destination = item.destinationArea?.areaSummary;
-    final summary = <String>[
-      'Completed delivery $order',
-      if (item.deliveredAt != null)
-        'Delivered ${_formatHistoryTimestamp(item.deliveredAt!)}',
-      if (pickup != null && pickup != 'Location unavailable') 'From $pickup',
-      if (destination != null && destination != 'Location unavailable')
-        'To $destination',
-      if (item.itemCount != null) '${item.itemCount} item(s)',
-    ];
-    return Semantics(
-      button: true,
-      label: summary.join('. '),
-      child: Card(
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    Icons.history_outlined,
-                    color: scheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.deliveredAt == null
-                            ? 'Delivered time unavailable'
-                            : _formatHistoryTimestamp(item.deliveredAt!),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _areaRouteLabel(item),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 8),
-                      _HistoryStatusPill(
-                        label: _historyStatusLabel(item.status),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.chevron_right, color: scheme.outline),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => TaskRow(
+    reference: item.order?.displayReference ?? 'Order reference unavailable',
+    leg: 'Final mile',
+    status: _historyStatusLabel(item.status),
+    location: _areaRouteLabel(item),
+    nextStep: item.deliveredAt == null
+        ? 'Delivered time unavailable'
+        : 'Delivered ${_formatHistoryTimestamp(item.deliveredAt!)}',
+    onTap: onTap,
+  );
 }

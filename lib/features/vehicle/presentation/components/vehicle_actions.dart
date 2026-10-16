@@ -46,7 +46,8 @@ extension _VehicleScreenActions on _VehicleScreenState {
   }
 
   Future<void> _saveVehicle() async {
-    if (_vehicleController.updateStatus == VehicleActionStatus.saving ||
+    if (!_vehicleController.canRetryRateLimit ||
+        _vehicleController.updateStatus == VehicleActionStatus.saving ||
         !_formKey.currentState!.validate()) {
       return;
     }
@@ -162,7 +163,8 @@ extension _VehicleScreenActions on _VehicleScreenState {
 
   Future<void> _uploadDocument(VehicleDocumentKind kind) async {
     final selection = _pendingDocuments[kind];
-    if (selection == null ||
+    if (!_vehicleController.canRetryRateLimit ||
+        selection == null ||
         _vehicleController.documentActionStatus(kind) ==
             VehicleActionStatus.uploading) {
       return;
@@ -222,6 +224,32 @@ extension _VehicleScreenActions on _VehicleScreenState {
   Future<void> _viewDocument(VehicleDocumentKind kind) async {
     await _vehicleController.loadDocument(kind);
     await _closeIfSessionEnded();
+    if (mounted &&
+        _authController.status == AuthStatus.authenticated &&
+        _vehicleController.documentPreview(kind) != null &&
+        _vehicleController.documentPreviewStatus(kind) ==
+            VehicleDocumentPreviewStatus.available) {
+      await _openDocumentPreview(kind, selected: false);
+    }
+  }
+
+  Future<void> _openDocumentPreview(
+    VehicleDocumentKind kind, {
+    required bool selected,
+  }) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PrivateImageScreen(
+          title: '${selected ? 'Selected' : 'Saved'} ${kind.shortLabel}',
+          changes: Listenable.merge([_authController, _vehicleController]),
+          isAuthorized: () =>
+              _authController.status == AuthStatus.authenticated,
+          readBytes: () => selected
+              ? _pendingDocuments[kind]?.bytes
+              : _vehicleController.documentPreview(kind)?.bytes,
+        ),
+      ),
+    );
   }
 
   Future<void> _discardDocument(VehicleDocumentKind kind) async {

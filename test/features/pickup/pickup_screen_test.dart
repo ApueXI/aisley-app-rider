@@ -57,6 +57,13 @@ void main() {
       );
       await tester.drag(find.byType(ListView), const Offset(0, -600));
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Message Seller'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(find.text('Message Seller'));
+      await tester.pumpAndSettle();
       expect(find.text('Message Seller'), findsOneWidget);
       await tester.tap(find.text('Message Seller'));
       await tester.pump();

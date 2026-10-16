@@ -102,6 +102,9 @@ class VehicleController extends ChangeNotifier {
   final Map<VehicleDocumentKind, _PendingDocumentUpload> _pendingDocuments =
       <VehicleDocumentKind, _PendingDocumentUpload>{};
   Timer? _retryTimer;
+  int _generation = 0;
+  int _previewGeneration = 0;
+  bool _disposed = false;
   bool _loading = false;
   bool _authFailureNotified = false;
 
@@ -143,7 +146,17 @@ class VehicleController extends ChangeNotifier {
   String? documentPreviewError(VehicleDocumentKind kind) =>
       _documentPreviewErrors[kind];
 
+  void clearDocumentPreviews() {
+    _previewGeneration++;
+    _documentPreviews.clear();
+    _documentPreviewStatuses.clear();
+    _documentPreviewErrors.clear();
+  }
+
   void clear() {
+    _generation++;
+    _previewGeneration++;
+    _loading = false;
     _retryTimer?.cancel();
     _retryTimer = null;
     vehicle = null;
@@ -168,11 +181,15 @@ class VehicleController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _generation++;
+    _disposed = true;
     _retryTimer?.cancel();
     super.dispose();
   }
 
-  void _notifyVehicleListeners() => notifyListeners();
+  void _notifyVehicleListeners() {
+    if (!_disposed) notifyListeners();
+  }
 
   static String _newUuid() {
     final random = Random.secure();

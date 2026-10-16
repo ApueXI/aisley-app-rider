@@ -21,8 +21,9 @@ class _PickupListBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = pickupController;
     return ListView(
+      key: const PageStorageKey('pickup-work'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         Text(
           'Assigned pickup work',
@@ -186,7 +187,7 @@ class _PickupSection extends StatelessWidget {
           ],
           if (page?.hasMore == true)
             Text(
-              'More first-mile work is available on the server. Refresh to load the latest bounded list.',
+              'This is a limited pickup list. More work may be available.',
               style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: scheme.onSurfaceVariant),
             ),
@@ -205,92 +206,28 @@ class _PickupSection extends StatelessWidget {
 
 class _PickupTaskCard extends StatelessWidget {
   const _PickupTaskCard({required this.task, required this.onTap});
-
   final PickupTask task;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final order = task.order?.displayReference ?? 'Order reference unavailable';
-    final waybill =
-        task.waybill?.displayReference ?? 'Waybill reference unavailable';
-    final pickup = task.pickup;
-    final destination = task.destinationArea?.areaSummary;
-    final details = <String>[
-      _taskLegLabel(task),
-      _taskStatusLabel(task.rawStatus),
-      'Order $order',
-      'Waybill $waybill',
-      if (pickup?.name != null) pickup!.name!,
-      if (destination != null && destination != 'Location unavailable')
-        'Destination: $destination',
-    ];
-
-    return Semantics(
-      button: true,
-      label: details.join('. '),
-      child: Card(
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    task.isFirstMile
-                        ? Icons.storefront_outlined
-                        : Icons.local_shipping_outlined,
-                    color: scheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        pickup?.name ?? _taskLegLabel(task),
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        destination == null ||
-                                destination == 'Location unavailable'
-                            ? 'Destination area unavailable'
-                            : 'To $destination',
-                        style: Theme.of(context).textTheme.bodySmall
-                            ?.copyWith(color: scheme.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: 10),
-                      _PickupStatusLabel(status: task.rawStatus),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.chevron_right, color: scheme.outline),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => TaskRow(
+    reference: task.order?.displayReference ?? 'Order reference unavailable',
+    leg: _taskLegLabel(task),
+    status: _taskStatusLabel(task.rawStatus),
+    location: [
+      ?task.pickup?.name,
+      if (task.destinationArea?.areaSummary case final area?) 'To $area',
+    ].join(' · '),
+    nextStep: switch (task.status) {
+      PickupTaskStatus.assigned => 'Review the pickup offer',
+      PickupTaskStatus.accepted => 'Verify the parcel before confirming pickup',
+      PickupTaskStatus.deliveryAssigned => 'Review the final-mile batch',
+      PickupTaskStatus.deliveryAccepted => 'Request hub handoff confirmation',
+      PickupTaskStatus.pickedUpFromHub => 'Continue to delivery work',
+      _ => 'Open to review current work',
+    },
+    onTap: onTap,
+  );
 }
 
 class _ScheduleGroupHeader extends StatelessWidget {

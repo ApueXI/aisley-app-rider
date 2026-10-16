@@ -13,7 +13,7 @@ class PolicyVersionScreen extends StatelessWidget {
         title: Text('${document.label} v${document.version.version}'),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
           Semantics(
             header: true,
@@ -30,10 +30,10 @@ class PolicyVersionScreen extends StatelessWidget {
                 ?.copyWith(color: scheme.onSurfaceVariant),
           ),
           if (document.version.changeSummary != null) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Text(document.version.changeSummary!),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           SelectableText(
             document.version.content,
             style: Theme.of(context).textTheme.bodyMedium,

@@ -20,12 +20,12 @@ void main() {
     addTearDown(auth.dispose);
     await _show(tester, auth);
 
-    expect(find.textContaining('are not available yet'), findsOneWidget);
     expect(
-      find.textContaining('Open Notifications, Pickup orders'),
+      find.textContaining('Work summaries are unavailable'),
       findsOneWidget,
     );
-    expect(find.text('Summary unavailable'), findsNothing);
+    expect(find.textContaining('Open a work list'), findsOneWidget);
+    expect(find.text('Unavailable'), findsNothing);
     expect(find.text('No items available'), findsNothing);
     expect(find.textContaining('aggregate'), findsNothing);
     expect(find.text('Accept'), findsNothing);
@@ -44,11 +44,14 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Checking dashboard summaries…'), findsOneWidget);
-    expect(find.textContaining('are not available yet'), findsNothing);
+    expect(find.text('Checking work…'), findsOneWidget);
+    expect(find.textContaining('Work summaries are unavailable'), findsNothing);
     pending.complete(_scaffold);
     await tester.pumpAndSettle();
-    expect(find.textContaining('are not available yet'), findsOneWidget);
+    expect(
+      find.textContaining('Work summaries are unavailable'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('failed first read shows recovery without a false empty state', (
@@ -65,13 +68,16 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Retry'), findsOneWidget);
-    expect(find.textContaining('are not available yet'), findsNothing);
+    expect(find.textContaining('Work summaries are unavailable'), findsNothing);
     expect(find.text('Nothing to show'), findsNothing);
     expect(find.textContaining('private connection detail'), findsNothing);
     repository.error = null;
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('are not available yet'), findsOneWidget);
+    expect(
+      find.textContaining('Work summaries are unavailable'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('failed refresh retains last known availability and a retry', (
@@ -85,8 +91,11 @@ void main() {
     await auth.loadDashboard();
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('last successful refresh'), findsOneWidget);
-    expect(find.textContaining('are not available yet'), findsOneWidget);
+    expect(find.textContaining('earlier work information'), findsOneWidget);
+    expect(
+      find.textContaining('Work summaries are unavailable'),
+      findsOneWidget,
+    );
     expect(
       find.textContaining('Check your connection and retry'),
       findsOneWidget,
@@ -107,11 +116,11 @@ void main() {
     final refresh = auth.loadDashboard();
     await tester.pump();
 
+    expect(find.textContaining('Refreshing work'), findsOneWidget);
     expect(
-      find.textContaining('Refreshing dashboard summaries'),
+      find.textContaining('Work summaries are unavailable'),
       findsOneWidget,
     );
-    expect(find.textContaining('are not available yet'), findsOneWidget);
     pending.complete(_scaffold);
     await refresh;
     await tester.pumpAndSettle();
@@ -131,7 +140,10 @@ void main() {
         findsOneWidget,
       );
       expect(find.textContaining('dashboard.sections'), findsNothing);
-      expect(find.textContaining('are not available yet'), findsNothing);
+      expect(
+        find.textContaining('Work summaries are unavailable'),
+        findsNothing,
+      );
       expect(find.text('Nothing to show'), findsNothing);
     },
   );
@@ -154,11 +166,15 @@ void main() {
     addTearDown(auth.dispose);
     await _show(tester, auth);
 
-    expect(find.text('Summary unavailable'), findsOneWidget);
+    expect(find.text('Unavailable'), findsOneWidget);
     expect(find.text('Could not load'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Needs refresh'), 100);
+    await tester.scrollUntilVisible(
+      find.text('Needs refresh'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Needs refresh'), findsOneWidget);
-    expect(find.textContaining('are not available yet'), findsNothing);
+    expect(find.textContaining('Work summaries are unavailable'), findsNothing);
   });
 
   testWidgets('notice and retry remain accessible at large text sizes', (
@@ -174,8 +190,12 @@ void main() {
     addTearDown(auth.dispose);
     await _show(tester, auth, scale: 2);
 
-    final notice = find.textContaining('are not available yet');
-    await tester.scrollUntilVisible(notice, 100);
+    final notice = find.textContaining('Work summaries are unavailable');
+    await tester.scrollUntilVisible(
+      notice,
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     final liveRegions = find.ancestor(
       of: notice,
       matching: find.byWidgetPredicate(
@@ -185,13 +205,17 @@ void main() {
     expect(liveRegions, findsOneWidget);
     expect(
       tester.getSemantics(liveRegions).label,
-      contains('are not available yet'),
+      contains('Work summaries are unavailable'),
     );
     expect(tester.takeException(), isNull);
     repository.error = const ApiException.network('offline');
     await auth.loadDashboard();
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Retry'), -100);
+    await tester.scrollUntilVisible(
+      find.text('Retry'),
+      -100,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(tester.takeException(), isNull);
     semantics.dispose();
   });

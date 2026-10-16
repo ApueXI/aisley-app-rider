@@ -15,6 +15,73 @@ import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
 import 'fixtures/delivery_screen_fixture.dart';
 
 void main() {
+  testWidgets('Back protects an unsent POD photo without submitting proof', (
+    tester,
+  ) async {
+    final repository = WidgetDeliveryRepository();
+    final controller = DeliveryController(deliveryRepository: repository)
+      ..tasks = <PickupTask>[outForDeliveryTask];
+    final auth = deliveryAuthController();
+    final launcher = WidgetPhotoCaptureLauncher(
+      result: DeliveryPhotoCaptureResult.captured(
+        XFile.fromData(
+          Uint8List.fromList(<int>[0xff, 0xd8, 0xff, 0xd9]),
+          name: 'synthetic-pod.jpg',
+          mimeType: 'image/jpeg',
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => DeliveryTaskScreen(
+                    authController: auth,
+                    deliveryController: controller,
+                    task: outForDeliveryTask,
+                    photoCaptureLauncher: launcher,
+                  ),
+                ),
+              ),
+              child: const Text('Open delivery'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open delivery'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Open camera for POD'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.text('Open camera for POD'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open camera for POD'));
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Discard unsaved changes?'), findsOneWidget);
+    await tester.tap(find.text('Keep editing'));
+    await tester.pumpAndSettle();
+    expect(find.text('Retake photo'), findsOneWidget);
+    expect(repository.uploadedPhoto, isNull);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(find.text('Open delivery'), findsOneWidget);
+    expect(repository.uploadedPhoto, isNull);
+    expect(repository.completionEvidenceId, isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    controller.dispose();
+    auth.dispose();
+  });
+
   testWidgets(
     'camera capture can be previewed, replaced, removed, and uploaded',
     (tester) async {

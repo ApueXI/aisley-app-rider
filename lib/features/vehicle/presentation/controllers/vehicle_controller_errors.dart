@@ -73,8 +73,10 @@ extension VehicleControllerErrors on VehicleController {
   }
 
   Future<void> _reconcileUncertainUpdate(ApiException error) async {
+    final generation = _generation;
     try {
       final refreshedVehicle = await vehicleRepository.fetchVehicle();
+      if (_disposed || generation != _generation) return;
       vehicle = refreshedVehicle;
       updateStatus = _actionStateFor(error);
       updateErrorMessage = 'The save result was uncertain. We refreshed your vehicle; review the values and retry the same save if needed.';
@@ -82,12 +84,15 @@ extension VehicleControllerErrors on VehicleController {
       updateFieldErrors = const <String, List<String>>{};
       _notifyVehicleListeners();
     } on ApiException catch (refreshError) {
+      if (_disposed || generation != _generation) return;
       await _setUpdateError(refreshError);
     } on TokenStorageException {
+      if (_disposed || generation != _generation) return;
       updateStatus = VehicleActionStatus.secureStorageFailure;
       updateErrorMessage = 'Secure session storage is unavailable. The save result is uncertain.';
       _notifyVehicleListeners();
     } on ApiContractException {
+      if (_disposed || generation != _generation) return;
       updateStatus = VehicleActionStatus.failed;
       updateErrorMessage = 'The save result was uncertain and could not be reconciled. Refresh before retrying.';
       _notifyVehicleListeners();
@@ -98,8 +103,10 @@ extension VehicleControllerErrors on VehicleController {
     VehicleDocumentKind kind,
     ApiException error,
   ) async {
+    final generation = _generation;
     try {
       final refreshedVehicle = await vehicleRepository.fetchVehicle();
+      if (_disposed || generation != _generation) return;
       vehicle = refreshedVehicle;
       _documentStatuses[kind] = _actionStateFor(error);
       _documentErrors[kind] =
@@ -108,12 +115,15 @@ extension VehicleControllerErrors on VehicleController {
       _documentFieldErrors[kind] = const <String, List<String>>{};
       _notifyVehicleListeners();
     } on ApiException catch (refreshError) {
+      if (_disposed || generation != _generation) return;
       await _setDocumentError(kind, refreshError);
     } on TokenStorageException {
+      if (_disposed || generation != _generation) return;
       _documentStatuses[kind] = VehicleActionStatus.secureStorageFailure;
       _documentErrors[kind] = 'Secure session storage is unavailable. The upload result is uncertain.';
       _notifyVehicleListeners();
     } on ApiContractException {
+      if (_disposed || generation != _generation) return;
       _documentStatuses[kind] = VehicleActionStatus.failed;
       _documentErrors[kind] = 'The upload result was uncertain and could not be reconciled. Refresh before retrying.';
       _notifyVehicleListeners();
@@ -121,19 +131,24 @@ extension VehicleControllerErrors on VehicleController {
   }
 
   Future<void> _refreshAfterConflict() async {
+    final generation = _generation;
     try {
       final refreshedVehicle = await vehicleRepository.fetchVehicle();
+      if (_disposed || generation != _generation) return;
       vehicle = refreshedVehicle;
       _notifyVehicleListeners();
     } on ApiException catch (error) {
+      if (_disposed || generation != _generation) return;
       loadStatus = _loadStateFor(error);
       errorMessage = _messageForError(error, subject: 'vehicle information');
       _notifyVehicleListeners();
     } on TokenStorageException {
+      if (_disposed || generation != _generation) return;
       loadStatus = VehicleLoadStatus.secureStorageFailure;
       errorMessage = 'Secure session storage is unavailable. Refresh could not be completed.';
       _notifyVehicleListeners();
     } on ApiContractException {
+      if (_disposed || generation != _generation) return;
       loadStatus = VehicleLoadStatus.failed;
       errorMessage =
           'The refreshed vehicle response was not understood. Please retry.';

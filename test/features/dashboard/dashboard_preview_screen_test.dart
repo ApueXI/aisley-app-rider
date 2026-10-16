@@ -53,10 +53,14 @@ void main() {
     expect(find.textContaining('private network detail'), findsNothing);
     expect(find.text('Accept'), findsNothing);
     await tester.scrollUntilVisible(
-      find.textContaining('are not available yet'),
+      find.textContaining('Work summaries are unavailable'),
       150,
+      scrollable: find.byType(Scrollable).first,
     );
-    expect(find.textContaining('are not available yet'), findsOneWidget);
+    expect(
+      find.textContaining('Work summaries are unavailable'),
+      findsOneWidget,
+    );
     expect(find.textContaining('aggregate'), findsNothing);
     expect(find.text('No items available'), findsNothing);
 
@@ -94,7 +98,7 @@ void main() {
     expect(repository.firstReads, greaterThanOrEqualTo(2));
     expect(repository.mutations, 0);
 
-    await tester.pageBack();
+    await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(repository.firstReads, greaterThanOrEqualTo(3));
     expect(repository.mutations, 0);

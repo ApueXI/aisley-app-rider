@@ -21,8 +21,18 @@ void main() {
     Future<void> leave(WidgetTester tester) async {
       if (exit == 'System Back') {
         await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        if (find.text('Sign in destination').evaluate().isEmpty &&
+            find.byType(AlertDialog).evaluate().isEmpty) {
+          await tester.binding.handlePopRoute();
+        }
       } else if (exit == 'Back') {
-        await tester.tap(find.byTooltip('Return to sign in'));
+        await tester.tap(find.byTooltip('Back'));
+        await tester.pumpAndSettle();
+        if (find.text('Sign in destination').evaluate().isEmpty &&
+            find.byType(AlertDialog).evaluate().isEmpty) {
+          await tester.tap(find.byTooltip('Back'));
+        }
       } else {
         await tester.ensureVisible(find.text('Already registered? Sign in'));
         await tester.tap(find.text('Already registered? Sign in'));
@@ -64,11 +74,14 @@ void main() {
   testWidgets(
     'selected evidence alone is protected and cancelled exit retains it',
     (tester) async {
-      await RegistrationScreenFixture().open(tester);
+      final fixture = RegistrationScreenFixture();
+      await fixture.open(tester);
+      await fixture.fill(tester, evidence: false);
       await tester.ensureVisible(find.text('Choose').first);
       await tester.tap(find.text('Choose').first);
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Return to sign in'));
+      await tester.ensureVisible(find.text('Already registered? Sign in'));
+      await tester.tap(find.text('Already registered? Sign in'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Keep editing'));
       await tester.pumpAndSettle();
@@ -79,7 +92,9 @@ void main() {
   testWidgets(
     'password toggles are independent and keyboard Next/Tab follow field order',
     (tester) async {
-      await RegistrationScreenFixture().open(tester);
+      final fixture = RegistrationScreenFixture();
+      await fixture.open(tester);
+      await fixture.fill(tester);
       await enter(tester, 'Password', 'TestInput123');
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.byTooltip('Show password'));
@@ -179,8 +194,11 @@ void main() {
         tester.widget<TextField>(field('Confirm password')).controller!.text,
         isEmpty,
       );
-      expect(find.text('test-image.png'), findsNWidgets(2));
-      expect(find.text('Invalid postal code.'), findsOneWidget);
+      expect(
+        find.text('test-image.png', skipOffstage: false),
+        findsNWidgets(2),
+      );
+      expect(find.textContaining('Invalid postal code.'), findsWidgets);
     },
   );
 
@@ -231,7 +249,8 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await RegistrationScreenFixture().open(tester, textScale: 1.8);
       await enter(tester, 'First name', 'Ana');
-      await tester.binding.handlePopRoute();
+      await tester.ensureVisible(find.text('Already registered? Sign in'));
+      await tester.tap(find.text('Already registered? Sign in'));
       await tester.pumpAndSettle();
       expect(find.bySemanticsLabel('Keep editing'), findsOneWidget);
       expect(find.bySemanticsLabel('Discard'), findsOneWidget);
@@ -285,7 +304,8 @@ void main() {
         tester.widget<TextField>(field('Password')).controller!.text,
         isEmpty,
       );
-      await tester.binding.handlePopRoute();
+      await tester.ensureVisible(find.text('Already registered? Sign in'));
+      await tester.tap(find.text('Already registered? Sign in'));
       await tester.pumpAndSettle();
       expect(find.text('Discard unsaved changes?'), findsOneWidget);
     },

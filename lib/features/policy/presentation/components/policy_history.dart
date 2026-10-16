@@ -80,7 +80,7 @@ class _PolicyHistoryScreenState extends State<PolicyHistoryScreen> {
     String? error,
   ) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         Text(
           'Published history',
@@ -97,7 +97,7 @@ class _PolicyHistoryScreenState extends State<PolicyHistoryScreen> {
           const SizedBox(height: 16),
           _PolicyBanner(message: error, isError: true),
         ],
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         if (history.versions.isEmpty)
           const _NoPublishedPolicyView()
         else

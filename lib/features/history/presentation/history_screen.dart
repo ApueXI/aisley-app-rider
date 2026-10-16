@@ -1,3 +1,6 @@
+import '../../../shared/presentation/task_row.dart';
+import '../../../shared/presentation/destination_scope.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../auth/presentation/controllers/auth_controller.dart';
@@ -46,7 +49,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
       animation: widget.historyController,
       builder: (context, child) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Delivery history')),
+          appBar: AppBar(
+            leading: destinationBackButton(context),
+            title: const Text('Delivery history'),
+          ),
           body: RefreshIndicator(
             onRefresh: widget.historyController.load,
             child: _HistoryListBody(

@@ -33,7 +33,7 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  video_player: 2.11.1
+  video_player: ^2.14.1
   path_provider: 2.1.6
   web: 1.1.1
   cupertino_icons: ^2.0.0
@@ -67,6 +67,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - lib/psgc-address-data/data/list-of-all-regions.json
     - lib/psgc-address-data/data/0100000000-region-i-ilocos-region/
     - lib/psgc-address-data/data/0200000000-region-ii-cagayan-valley/

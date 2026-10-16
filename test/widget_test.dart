@@ -1,3 +1,6 @@
+import 'features/auth/fixtures/registration_screen_fixture.dart'
+    as registration;
+
 import 'package:aisley_app/features/auth/data/registration_email.dart';
 import 'package:aisley_app/features/account/domain/password_challenge.dart';
 
@@ -25,15 +28,9 @@ void main() {
   testWidgets('registration allows Truck and retains the selected value', (
     WidgetTester tester,
   ) async {
-    final controller = AuthController(
-      authRepository: _FakeAuthRepository(),
-      dashboardRepository: _FakeDashboardRepository(),
-    );
-    await controller.initialize();
-    await tester.pumpWidget(CourierApp(authController: controller));
-    await tester.tap(find.text('New Courier? Register here'));
-    await _verifyRegistrationEmail(tester);
-    await _pumpUntilFound(tester, find.text('Logistics organization'));
+    final fixture = registration.RegistrationScreenFixture();
+    await fixture.open(tester);
+    await fixture.fill(tester, stopAt: 3);
 
     final dropdown = find.byWidgetPredicate(
       (widget) =>
@@ -67,12 +64,12 @@ void main() {
     await tester.pumpWidget(CourierApp(authController: controller));
     await tester.tap(find.text('New Courier? Register here'));
     await _verifyRegistrationEmail(tester);
-    await _pumpUntilFound(tester, find.text('Logistics organization'));
+    await _pumpUntilFound(tester, find.text('Personal details'));
 
-    expect(find.text('Create your Courier account'), findsOneWidget);
-    expect(find.text('Logistics organization'), findsOneWidget);
-    expect(find.text('Required evidence'), findsOneWidget);
-    expect(find.textContaining('No map pin is required'), findsOneWidget);
+    expect(find.text('Step 2 of 6 · Personal details'), findsOneWidget);
+    expect(find.text('First name'), findsOneWidget);
+    expect(find.text('Continue'), findsOneWidget);
+    expect(find.text('Required evidence'), findsNothing);
   });
 
   testWidgets('registration explains local validation failures at the top', (
@@ -87,15 +84,13 @@ void main() {
     await tester.pumpWidget(CourierApp(authController: controller));
     await tester.tap(find.text('New Courier? Register here'));
     await _verifyRegistrationEmail(tester);
-    await _pumpUntilFound(tester, find.text('Logistics organization'));
-    await tester.ensureVisible(find.text('Submit registration'));
-    await tester.tap(find.text('Submit registration'));
+    await _pumpUntilFound(tester, find.text('Personal details'));
+    await tester.ensureVisible(find.text('Continue'));
+    await tester.tap(find.text('Continue'));
     await tester.pump();
 
     expect(
-      find.text(
-        'Some required information is missing or invalid. Review the highlighted fields below before submitting.',
-      ),
+      find.text('Review the highlighted fields before continuing.'),
       findsOneWidget,
     );
     expect(find.text('Enter your first name.'), findsOneWidget);
@@ -121,12 +116,12 @@ void main() {
     await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Courier dashboard'), findsOneWidget);
+    expect(find.text('AISLEY'), findsOneWidget);
     expect(find.text('Available work'), findsNothing);
     expect(find.text('Summary unavailable'), findsNothing);
     expect(
       find.text(
-        'Notification, available work and active work summaries are not available yet. Open Notifications, Pickup orders or Delivery work to check current updates.',
+        'Work summaries are unavailable. Open a work list for current tasks.',
       ),
       findsOneWidget,
     );
@@ -224,9 +219,7 @@ void main() {
     expect(find.text('Policy & consent'), findsOneWidget);
     expect(find.text('Platform policies'), findsOneWidget);
     expect(
-      find.text(
-        'Accept every required current policy before Courier dashboard access is restored.',
-      ),
+      find.text('Accept the required policies to continue to your work.'),
       findsOneWidget,
     );
   });

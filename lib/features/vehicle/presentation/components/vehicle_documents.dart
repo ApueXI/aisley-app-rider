@@ -21,7 +21,7 @@ extension _VehicleScreenDocuments on _VehicleScreenState {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -63,7 +63,7 @@ extension _VehicleScreenDocuments on _VehicleScreenState {
               ),
               const SizedBox(height: 4),
               Text(
-                'Local preview — upload to save this document.',
+                'Selected image · Upload to save',
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: scheme.onSurfaceVariant),
               ),
@@ -82,7 +82,7 @@ extension _VehicleScreenDocuments on _VehicleScreenState {
               _PrivateDocumentPreview(bytes: preview.bytes, kind: kind),
             ],
             if (busy) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Semantics(
                 liveRegion: true,
                 label: 'Uploading ${kind.shortLabel}',
@@ -92,32 +92,48 @@ extension _VehicleScreenDocuments on _VehicleScreenState {
               Text('Uploading…', style: Theme.of(context).textTheme.bodySmall),
             ],
             if (actionError != null) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               _VehicleBanner(message: actionError, isError: true),
             ],
             if (controller.documentPreviewError(kind) != null &&
                 actionError == null) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               _VehicleBanner(
                 message: controller.documentPreviewError(kind)!,
                 isError: true,
               ),
             ],
             if (controller.documentActionSuccessMessage(kind) != null) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               _VehicleBanner(
                 message: controller.documentActionSuccessMessage(kind)!,
                 isError: false,
               ),
             ],
+            if (!controller.canRetryRateLimit)
+              const Text(
+                'Please wait before loading or saving documents again.',
+              ),
             const SizedBox(height: 16),
             Wrap(
               spacing: 10,
               runSpacing: 10,
               children: [
+                if (selection != null)
+                  TextButton.icon(
+                    onPressed: () => _openDocumentPreview(kind, selected: true),
+                    icon: const Icon(Icons.visibility_outlined),
+                    label: Text('View selected ${kind.shortLabel}'),
+                  ),
                 if (currentDocument != null && selection == null)
                   OutlinedButton.icon(
-                    onPressed: busy ? null : () => _viewDocument(kind),
+                    onPressed:
+                        busy ||
+                            !controller.canRetryRateLimit ||
+                            previewStatus ==
+                                VehicleDocumentPreviewStatus.loading
+                        ? null
+                        : () => _viewDocument(kind),
                     icon: const Icon(Icons.visibility_outlined),
                     label: Text(
                       previewStatus == VehicleDocumentPreviewStatus.loading
@@ -138,7 +154,9 @@ extension _VehicleScreenDocuments on _VehicleScreenState {
                 ),
                 if (selection != null)
                   FilledButton.icon(
-                    onPressed: busy ? null : () => _uploadDocument(kind),
+                    onPressed: busy || !controller.canRetryRateLimit
+                        ? null
+                        : () => _uploadDocument(kind),
                     icon: const Icon(Icons.cloud_upload_outlined),
                     label: Text('Upload ${kind.shortLabel}'),
                   ),
@@ -152,7 +170,9 @@ extension _VehicleScreenDocuments on _VehicleScreenState {
                         actionStatus == VehicleActionStatus.timeout ||
                         actionStatus == VehicleActionStatus.failed))
                   TextButton.icon(
-                    onPressed: busy ? null : () => _retryDocument(kind),
+                    onPressed: busy || !controller.canRetryRateLimit
+                        ? null
+                        : () => _retryDocument(kind),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry upload'),
                   ),
@@ -188,12 +208,12 @@ class _LocalDocumentPreview extends StatelessWidget {
       label: 'Local vehicle document preview',
       image: true,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         child: Image.memory(
           selection.bytes,
           width: 124,
           height: 92,
-          fit: BoxFit.cover,
+          fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) => _brokenPreview(context),
         ),
       ),
@@ -213,12 +233,12 @@ class _PrivateDocumentPreview extends StatelessWidget {
       label: 'Current private ${kind.shortLabel} preview',
       image: true,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         child: Image.memory(
           bytes,
           width: 124,
           height: 92,
-          fit: BoxFit.cover,
+          fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) => _brokenPreview(context),
         ),
       ),
