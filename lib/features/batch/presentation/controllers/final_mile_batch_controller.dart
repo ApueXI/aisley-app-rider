@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
@@ -6,10 +7,12 @@ import '../../../../core/networking/api_client.dart';
 import '../../../../core/networking/api_contract_exception.dart';
 import '../../../../core/security/token_storage.dart';
 import '../../data/final_mile_batch_repository.dart';
+import '../../../pickup/data/pickup_repository.dart';
 import '../../domain/final_mile_batch_models.dart';
 import '../../../delivery_route/presentation/delivery_route_controller.dart';
 
 part 'final_mile_batch_controller_actions.dart';
+part 'parcel_decision_controller.dart';
 part 'final_mile_batch_controller_reads.dart';
 part 'final_mile_batch_controller_support.dart';
 
@@ -53,12 +56,18 @@ enum FinalMileBatchActionStatus {
 class FinalMileBatchController extends ChangeNotifier {
   FinalMileBatchController({
     required this.repository,
+    this.parcelRepository,
     this.onAuthFailure,
     this.onBatchAccepted,
     this.routeController,
   });
 
   final FinalMileBatchRepository repository;
+  final PickupRepository? parcelRepository;
+  String? decidingTask;
+  final Map<String, ({String? reason, String key})> _pendingDecisions = {};
+  final Map<String, String> parcelErrors = {};
+  bool get hasUncertainDecision => _pendingDecisions.isNotEmpty;
   final DeliveryRouteController? routeController;
   final BatchAuthFailureHandler? onAuthFailure;
   final BatchAcceptedHandler? onBatchAccepted;
@@ -127,6 +136,9 @@ class FinalMileBatchController extends ChangeNotifier {
     _actionStatuses.clear();
     _actionErrors.clear();
     _uncertainAcceptances.clear();
+    decidingTask = null;
+    _pendingDecisions.clear();
+    parcelErrors.clear();
     _notify();
   }
 

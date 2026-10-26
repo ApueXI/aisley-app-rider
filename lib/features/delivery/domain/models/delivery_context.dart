@@ -151,15 +151,22 @@ class DeliveryContext {
 }
 
 class DeliveryCodCollection {
-  const DeliveryCodCollection({required this.amount, required this.currency});
+  const DeliveryCodCollection({
+    required this.amount,
+    required this.currency,
+    this.isCod = true,
+  });
 
+  final bool isCod;
   final String amount;
   final String currency;
 
   String get displayAmount => '$currency $amount';
 
   bool matches(DeliveryCodCollection other) =>
-      amount == other.amount && currency == other.currency;
+      isCod == other.isCod &&
+      amount == other.amount &&
+      currency == other.currency;
 }
 
 List<FailedDeliveryAttempt> _failedAttempts(Object? value) {

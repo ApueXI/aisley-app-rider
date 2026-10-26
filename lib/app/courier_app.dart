@@ -1,3 +1,5 @@
+import '../features/linehaul/presentation/linehaul_controller.dart';
+
 import 'package:flutter/material.dart';
 
 import 'courier_theme.dart';
@@ -27,6 +29,7 @@ class CourierApp extends StatelessWidget {
     required this.authController,
     this.accountController,
     this.batchController,
+    this.linehaulController,
     this.policyController,
     this.pickupController,
     this.deliveryController,
@@ -42,6 +45,7 @@ class CourierApp extends StatelessWidget {
   final AuthController authController;
   final AccountController? accountController;
   final FinalMileBatchController? batchController;
+  final LinehaulController? linehaulController;
   final PolicyController? policyController;
   final PickupController? pickupController;
   final DeliveryController? deliveryController;
@@ -65,6 +69,7 @@ class CourierApp extends StatelessWidget {
         authController: authController,
         accountController: accountController,
         batchController: batchController,
+        linehaulController: linehaulController,
         policyController: policyController,
         pickupController: pickupController,
         deliveryController: deliveryController,
@@ -84,6 +89,7 @@ class AuthGate extends StatefulWidget {
     required this.authController,
     this.accountController,
     this.batchController,
+    this.linehaulController,
     this.policyController,
     this.pickupController,
     this.deliveryController,
@@ -99,6 +105,7 @@ class AuthGate extends StatefulWidget {
   final AuthController authController;
   final AccountController? accountController;
   final FinalMileBatchController? batchController;
+  final LinehaulController? linehaulController;
   final PolicyController? policyController;
   final PickupController? pickupController;
   final DeliveryController? deliveryController;
@@ -174,6 +181,7 @@ class _AuthGateState extends State<AuthGate> {
             authController: authController,
             accountController: widget.accountController,
             batchController: widget.batchController,
+            linehaulController: widget.linehaulController,
             policyController: widget.policyController,
             pickupController: widget.pickupController,
             deliveryController: widget.deliveryController,

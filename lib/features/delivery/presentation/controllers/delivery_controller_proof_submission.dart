@@ -7,7 +7,7 @@ extension DeliveryControllerProofSubmission on DeliveryController {
     void Function(void Function() cancel)? onCancel,
   }) async {
     if (!task.isFinalMile ||
-        task.status != PickupTaskStatus.outForDelivery ||
+        !task.canSubmitDelivery ||
         isCompletionPending(task) ||
         !canStartAction(task)) {
       return false;
@@ -46,8 +46,7 @@ extension DeliveryControllerProofSubmission on DeliveryController {
         throw const ApiContractException('delivery.task.identity');
       }
       _replaceTask(current);
-      if (current.status != PickupTaskStatus.outForDelivery ||
-          current.revision == null) {
+      if (!current.canSubmitDelivery || current.revision == null) {
         _actionStatuses[task.id] = DeliveryActionStatus.conflict;
         _actionErrors[task.id] = 'This delivery task or its revision changed. Refresh before submitting photo proof.';
         _notifyDeliveryListeners();
@@ -90,7 +89,7 @@ extension DeliveryControllerProofSubmission on DeliveryController {
     void Function(void Function() cancel)? onCancel,
   }) async {
     if (!task.isFinalMile ||
-        task.status != PickupTaskStatus.outForDelivery ||
+        !task.canSubmitDelivery ||
         isCompletionPending(task) ||
         !canStartAction(task)) {
       return false;

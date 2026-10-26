@@ -63,8 +63,8 @@ class ApiChatMediaRepository
       acceptedTypeGroups: [
         const XTypeGroup(
           label: 'Chat image',
-          extensions: ['jpg', 'jpeg', 'png', 'webp'],
-          mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+          extensions: ['jpg', 'jpeg', 'png'],
+          mimeTypes: ['image/jpeg', 'image/png'],
         ),
       ],
     );
@@ -91,7 +91,6 @@ class ApiChatMediaRepository
     final mime = switch (file.name.split('.').last.toLowerCase()) {
       'jpg' || 'jpeg' => 'image/jpeg',
       'png' => 'image/png',
-      'webp' => 'image/webp',
       _ => '',
     };
     return SelectedChatImage(bytes, file.name, mime);

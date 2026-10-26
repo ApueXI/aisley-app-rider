@@ -8,7 +8,7 @@ extension DeliveryControllerCompletion on DeliveryController {
   }) async {
     final normalizedEvidenceId = evidenceId.trim();
     if (!task.isFinalMile ||
-        task.status != PickupTaskStatus.outForDelivery ||
+        !task.canSubmitDelivery ||
         normalizedEvidenceId.isEmpty ||
         isCompletionPending(task) ||
         completions[task.id]?.isDelivered == true ||
@@ -82,7 +82,7 @@ extension DeliveryControllerCompletion on DeliveryController {
         return false;
       }
       if (current.revision == null ||
-          current.taskStatus != 'out_for_delivery') {
+          !isDeliverySubmissionStatus(current.taskStatus)) {
         _actionStatuses[task.id] = DeliveryActionStatus.conflict;
         _actionErrors[task.id] = 'This delivery changed. Refresh the task before sending it to Logistics for review.';
         _notifyDeliveryListeners();
@@ -105,7 +105,7 @@ extension DeliveryControllerCompletion on DeliveryController {
       evidenceId: normalizedEvidenceId,
       expectedRevision: current.revision!,
       idempotencyKey: DeliveryController._newUuid(),
-      codCollected: true,
+      codCollected: currentCollection.isCod,
     );
     _pendingCompletions[task.id] = attempt;
     _actionStatuses[task.id] = DeliveryActionStatus.idle;
@@ -125,7 +125,7 @@ extension DeliveryControllerCompletion on DeliveryController {
     _PendingCompletionAttempt attempt,
   ) async {
     if (!task.isFinalMile ||
-        task.status != PickupTaskStatus.outForDelivery ||
+        !task.canSubmitDelivery ||
         isCompletionPending(task) ||
         completions[task.id]?.isDelivered == true ||
         !canStartAction(task)) {

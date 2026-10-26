@@ -10,74 +10,104 @@ import 'package:aisley_app/features/batch/domain/final_mile_batch_models.dart';
 import 'package:aisley_app/features/dashboard/data/dashboard_repository.dart';
 import 'package:aisley_app/features/dashboard/domain/dashboard_models.dart';
 
+import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
+
+import '../../pickup/fixtures/schedule_filter_repository.dart';
+
 class WidgetBatchRepository implements FinalMileBatchRepository {
   var accepted = false;
   ApiException? readError;
   Completer<FinalMileBatch>? pendingRead;
   var acceptCalls = 0;
-
+  final acceptedIds = <String>{}, rejectedIds = <String>{};
   @override
-  Future<List<FinalMileBatch>> fetchBatches() async => <FinalMileBatch>[
-    _batch(
-      accepted ? FinalMileBatchStatus.accepted : FinalMileBatchStatus.offered,
-    ),
-  ];
-
+  Future<List<FinalMileBatch>> fetchBatches() async =>
+      rejectedIds.length == 2 ? [] : [batch()];
   @override
   Future<FinalMileBatch> fetchBatch(String scheduleId) async {
     if (pendingRead case final pending?) return pending.future;
     if (readError case final error?) throw error;
-    return _batch(
-      accepted ? FinalMileBatchStatus.accepted : FinalMileBatchStatus.offered,
-    );
+    return batch();
   }
 
   @override
   Future<FinalMileBatch> acceptBatch(String scheduleId) async {
     acceptCalls++;
     accepted = true;
-    return _batch(FinalMileBatchStatus.accepted);
+    return batch();
   }
-}
 
-FinalMileBatch _batch(FinalMileBatchStatus status) {
-  return FinalMileBatch(
+  FinalMileBatch batch() => FinalMileBatch(
     id: 'schedule-1',
     reference: 'DSP-100',
     scheduledFor: DateTime.utc(2026, 9, 27, 1, 30),
-    parcelCount: 2,
-    status: status,
-    tasks: const <FinalMileBatchTask>[
-      FinalMileBatchTask(
-        id: 'task-1',
-        status: 'delivery_assigned',
-        orderReference: 'ORD-100',
-        parcel: FinalMileBatchParcel(
-          itemCount: 3,
-          price: '1250.00',
-          currency: 'PHP',
-        ),
-        destination: FinalMileBatchDestination(
-          cityMunicipality: 'Makati City',
-          province: 'Metro Manila',
-        ),
-      ),
-      FinalMileBatchTask(
-        id: 'task-2',
-        status: 'delivery_assigned',
-        orderReference: 'ORD-101',
-        parcel: FinalMileBatchParcel(
-          itemCount: 1,
-          price: '499.50',
-          currency: 'PHP',
-        ),
-        destination: FinalMileBatchDestination(
-          cityMunicipality: 'Pasig City',
-          province: 'Metro Manila',
-        ),
-      ),
+    parcelCount: 2 - rejectedIds.length,
+    status: accepted || acceptedIds.length + rejectedIds.length == 2
+        ? FinalMileBatchStatus.accepted
+        : FinalMileBatchStatus.offered,
+    tasks: [
+      for (var i = 1; i <= 2; i++)
+        if (!rejectedIds.contains('task-$i'))
+          FinalMileBatchTask(
+            id: 'task-$i',
+            status: accepted || acceptedIds.contains('task-$i')
+                ? 'delivery_accepted'
+                : 'delivery_assigned',
+            orderReference: i == 1 ? 'ORD-100' : 'ORD-101',
+            parcel: FinalMileBatchParcel(
+              itemCount: i == 1 ? 3 : 1,
+              price: i == 1 ? '1250.00' : '499.50',
+              currency: 'PHP',
+            ),
+            destination: FinalMileBatchDestination(
+              cityMunicipality: i == 1 ? 'Makati City' : 'Pasig City',
+              province: 'Metro Manila',
+            ),
+          ),
     ],
   );
+}
+
+class WidgetParcelRepository extends ScheduleFilterRepository {
+  WidgetParcelRepository(this.batch);
+  final WidgetBatchRepository batch;
+  Object? error;
+  Completer<PickupTask>? pending;
+  final accepted = <String>[],
+      rejected = <String>[],
+      keys = <String>[],
+      reasons = <String>[];
+  @override
+  Future<PickupTask> acceptFinalMileTask(String taskId) async {
+    accepted.add(taskId);
+    if (error != null) throw error!;
+    if (pending != null) return pending!.future;
+    batch.acceptedIds.add(taskId);
+    return PickupTask(
+      id: taskId,
+      leg: PickupTaskLeg.finalMile,
+      rawStatus: 'delivery_accepted',
+      revision: 2,
+    );
+  }
+
+  @override
+  Future<FinalMileRejectionResult> rejectFinalMileTask({
+    required String taskId,
+    required String reason,
+    required String idempotencyKey,
+  }) async {
+    rejected.add(taskId);
+    keys.add(idempotencyKey);
+    reasons.add(reason);
+    if (error != null) throw error!;
+    batch.rejectedIds.add(taskId);
+    return FinalMileRejectionResult(
+      taskId: taskId,
+      status: 'rejected',
+      rejectionReason: reason,
+    );
+  }
 }
 
 AuthController batchAuthController() {

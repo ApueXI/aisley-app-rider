@@ -75,7 +75,7 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
         return UnsavedChangesGuard(
           key: _leaveGuard,
           hasUnsavedChanges: _selectedPhoto != null,
-          isBusy: _isPickingPhoto || _cancelPhotoUpload != null,
+          isBusy: _isPickingPhoto || controller.isActionBusy(task),
           child: Scaffold(
             appBar: AppBar(
               leading: IconButton(
@@ -86,7 +86,11 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
               title: const Text('Deliver order'),
             ),
             body: RefreshIndicator(
-              onRefresh: widget.onRefresh ?? () => controller.loadDetails(task),
+              onRefresh: () async {
+                if (controller.isActionBusy(task)) return;
+                await (widget.onRefresh?.call() ??
+                    controller.loadDetails(task));
+              },
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -123,8 +127,7 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                       icon: const Icon(Icons.person_outline),
                       label: const Text('Message Buyer'),
                     ),
-                  if (task.isFinalMile &&
-                      task.status == PickupTaskStatus.outForDelivery) ...[
+                  if (task.isFinalMile && task.canSubmitDelivery) ...[
                     const SizedBox(height: 16),
                     FailedDeliveryAttemptCard(
                       task: task,
@@ -173,20 +176,12 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
     if (task.status == PickupTaskStatus.delivered) {
       return _CompletedDeliveryCard();
     }
-    if (task.status == PickupTaskStatus.deliveryAssigned ||
-        task.status == PickupTaskStatus.deliveryAccepted) {
-      return _BeforeHubPickupCard(onOpenPickup: widget.onOpenPickup);
-    }
-    if (task.status == PickupTaskStatus.pickedUpFromHub ||
-        task.status == PickupTaskStatus.inTransit) {
-      return _MovementCard(
-        task: task,
-        controller: widget.deliveryController,
-        onOpenPolicies: _openPolicies,
-        showPolicyAction: widget.policyController != null,
+    if (task.status == PickupTaskStatus.deliveryAssigned) {
+      return const Text(
+        'Review and accept this parcel from Final-mile batches first.',
       );
     }
-    if (task.isFinalMile && task.status == PickupTaskStatus.outForDelivery) {
+    if (task.canSubmitDelivery) {
       return _ProofAndCompletionCard(
         task: task,
         controller: widget.deliveryController,
@@ -201,7 +196,7 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
           _selectedPhoto = null;
           _photoSelectionError = null;
         }),
-        onSubmitPhoto: () => _submitPhoto(task),
+        onSubmitPhoto: () => _confirmDelivered(task),
         onCancelUpload: () => _cancelPhotoUpload?.call(),
         onOpenPolicies: _openPolicies,
         showPolicyAction: widget.policyController != null,

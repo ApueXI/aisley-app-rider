@@ -53,7 +53,7 @@ class _FinalMileBatchList extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Review every parcel before accepting. One acceptance takes responsibility for the entire batch.',
+          'Review each parcel, then accept or reject it individually.',
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),

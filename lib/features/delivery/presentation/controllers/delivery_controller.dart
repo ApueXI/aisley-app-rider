@@ -13,6 +13,7 @@ import '../../domain/delivery_models.dart';
 import '../../domain/failed_delivery_attempt.dart';
 import '../../domain/delivery_proof_photo.dart';
 
+part 'delivery_controller_delivered.dart';
 part 'delivery_controller_failed_attempts.dart';
 part 'delivery_controller_reads.dart';
 part 'delivery_controller_movement.dart';
@@ -140,9 +141,14 @@ class DeliveryController extends ChangeNotifier {
 
   Duration? actionRetryAfter(PickupTask task) => _actionRetryAfter[task.id];
 
+  final Set<String> _deliveredBusy = {};
+  bool isSubmittingDelivered(PickupTask task) =>
+      _deliveredBusy.contains(task.id);
+
   bool isActionBusy(PickupTask task) {
     final status = actionStatus(task);
-    return _failedAttemptBusy.contains(task.id) ||
+    return _deliveredBusy.contains(task.id) ||
+        _failedAttemptBusy.contains(task.id) ||
         status == DeliveryActionStatus.moving ||
         status == DeliveryActionStatus.loading ||
         status == DeliveryActionStatus.proofSubmitting ||
@@ -237,6 +243,7 @@ class DeliveryController extends ChangeNotifier {
     _failedAttemptBlocked.clear();
     _failedAttemptKeyConflicts.clear();
     _invalidatedProofTasks.clear();
+    _deliveredBusy.clear();
     _pendingMovements.clear();
     _pendingProofs.clear();
     _pendingCompletions.clear();

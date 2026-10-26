@@ -78,12 +78,59 @@ mixin _DeliveryPhotoSelection on State<DeliveryTaskScreen> {
     }
   }
 
-  Future<void> _submitPhoto(PickupTask task) async {
-    final photo = _selectedPhoto;
-    if (photo == null) return;
-    final submitted = await widget.deliveryController.submitProof(
+  Future<void> _confirmDelivered(PickupTask task) async {
+    final controller = widget.deliveryController;
+    final payment = await controller.prepareDeliveryPayment(task);
+    if (!mounted || payment == null) return;
+    var cashConfirmed = !payment.isCod;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, update) => AlertDialog(
+          scrollable: true,
+          title: Text(
+            payment.isCod ? 'Confirm COD collection' : 'Confirm delivery',
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (payment.isCod)
+                Text('Amount to collect: ${payment.displayAmount}'),
+              if (payment.isCod)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: cashConfirmed,
+                  onChanged: (value) =>
+                      update(() => cashConfirmed = value == true),
+                  title: Text('I collected ${payment.displayAmount} in full.'),
+                )
+              else
+                const Text('This Order is prepaid and paid.'),
+              const Text(
+                'Submit the photo and Delivered request for Logistics confirmation.',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: cashConfirmed
+                  ? () => Navigator.pop(dialogContext, true)
+                  : null,
+              child: const Text('Delivered'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    await controller.submitDelivered(
       task,
-      photo: photo,
+      photo: _selectedPhoto,
+      confirmedCollection: payment,
       onCancel: (cancel) {
         if (mounted) setState(() => _cancelPhotoUpload = cancel);
       },
@@ -91,7 +138,10 @@ mixin _DeliveryPhotoSelection on State<DeliveryTaskScreen> {
     if (!mounted) return;
     setState(() {
       _cancelPhotoUpload = null;
-      if (submitted) _selectedPhoto = null;
+      if (!controller.hasPendingProof(task) &&
+          controller.proofs[task.id] != null) {
+        _selectedPhoto = null;
+      }
     });
   }
 }

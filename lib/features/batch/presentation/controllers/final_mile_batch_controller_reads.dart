@@ -2,7 +2,7 @@ part of 'final_mile_batch_controller.dart';
 
 extension FinalMileBatchControllerReads on FinalMileBatchController {
   Future<void> load() async {
-    if (_listInFlight || !canRetryRateLimit) return;
+    if (_listInFlight || decidingTask != null || !canRetryRateLimit) return;
     final epoch = ++_epoch;
     _listInFlight = true;
     _authFailureNotified = false;
@@ -43,7 +43,8 @@ extension FinalMileBatchControllerReads on FinalMileBatchController {
   }
 
   Future<void> loadDetail(String scheduleId) async {
-    if (detailStatus(scheduleId) == FinalMileBatchLoadStatus.loading ||
+    if (decidingTask != null ||
+        detailStatus(scheduleId) == FinalMileBatchLoadStatus.loading ||
         !canRetryRateLimit) {
       return;
     }

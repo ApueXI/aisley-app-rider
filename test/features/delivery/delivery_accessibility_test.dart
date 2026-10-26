@@ -54,14 +54,10 @@ void main() {
           findsOneWidget,
         );
         await checkScrollableAccessibility(tester);
-        await reveal(tester, find.text('Submit photo proof'));
-        await tester.tap(find.text('Submit photo proof'));
+        await reveal(tester, find.text('Delivered'));
+        await tester.tap(find.text('Delivered'));
         await tester.pumpAndSettle();
-        await checkScrollableAccessibility(tester);
-        expect(repository.completionEvidenceId, isNull);
-        await reveal(tester, find.text('Submit Delivered intent'));
-        await tester.tap(find.text('Submit Delivered intent'));
-        await tester.pumpAndSettle();
+        expect(repository.uploadedPhoto, isNull);
         expect(find.text('Amount to collect: PHP 115.00'), findsOneWidget);
         expect(
           tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
@@ -75,17 +71,21 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
         await tester.pumpAndSettle();
         expect(repository.completionEvidenceId, isNull);
-        final collection = await controller.prepareCodCompletion(
-          outForDeliveryTask,
-        );
-        await controller.submitCompletion(
-          outForDeliveryTask,
-          evidenceId: 'proof-1',
-          confirmedCollection: collection!,
+        await tester.tap(find.text('Delivered'));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.byType(CheckboxListTile));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(CheckboxListTile));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Delivered'),
+          ),
         );
         await tester.pumpAndSettle();
         await checkScrollableAccessibility(tester);
-        expect(find.text('Submit Delivered intent'), findsNothing);
+        expect(find.text('Delivered'), findsNothing);
         expect(
           controller.completions[outForDeliveryTask.id]!.isDelivered,
           isFalse,
@@ -136,7 +136,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         await checkScrollableAccessibility(tester);
-        expect(find.text('Submit Delivered intent'), findsNothing);
+        expect(find.text('Delivered'), findsNothing);
         await reveal(tester, find.text('Refresh task'));
         await focusByKeyboard(
           tester,

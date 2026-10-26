@@ -93,6 +93,14 @@ class NavigationPickupRepository implements PickupRepository {
 }
 
 class NavigationDeliveryRepository implements DeliveryRepository {
+  @override
+  Future<CompletionProjection> fetchCompletion(String taskId) async =>
+      CompletionProjection(
+        taskId: taskId,
+        taskStatus: 'in_transit',
+        completionStatus: null,
+        revision: 3,
+      );
   final contextReads = <String>[];
   int mutations = 0;
   Object? error;

@@ -12,7 +12,7 @@ import 'controllers/final_mile_batch_controller.dart';
 
 part 'components/final_mile_batch_list.dart';
 part 'components/final_mile_batch_detail.dart';
-part 'components/final_mile_batch_acceptance.dart';
+part 'components/parcel_decision_card.dart';
 part 'components/final_mile_batch_status.dart';
 
 class FinalMileBatchScreen extends StatefulWidget {

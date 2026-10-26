@@ -300,7 +300,7 @@ void main() {
         revision: 7,
       ),
       outForDeliveryTask.copyWith(rawStatus: 'delivered'),
-      outForDeliveryTask.copyWith(rawStatus: 'in_transit'),
+      outForDeliveryTask.copyWith(rawStatus: 'delivery_assigned'),
     ]) {
       expect(
         await c.reportFailedAttempt(

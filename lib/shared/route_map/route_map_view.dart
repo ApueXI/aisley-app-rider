@@ -13,7 +13,14 @@ import 'route_marker_image.dart';
 import 'route_tiles.dart';
 
 class RouteMapView extends StatefulWidget {
-  const RouteMapView({required this.data, required this.onFailure, super.key});
+  const RouteMapView({
+    required this.data,
+    required this.onFailure,
+    this.semanticLabel = 'Route map. H marks the Logistics hub. Numbered stops are listed below.',
+    this.legend = 'H: Logistics hub • Numbers: stop order',
+    super.key,
+  });
+  final String semanticLabel, legend;
   final RouteMapData data;
   final void Function(ApiException? error) onFailure;
   @override
@@ -270,7 +277,7 @@ class _RouteMapViewState extends State<RouteMapView> {
         SizedBox(
           height: 300,
           child: Semantics(
-            label: 'Route map. H marks the Logistics hub. Numbered stops are listed below.',
+            label: widget.semanticLabel,
             child: MapLibreMap(
               key: ValueKey(_mapVersion),
               annotationOrder: const [AnnotationType.symbol],
@@ -316,7 +323,7 @@ class _RouteMapViewState extends State<RouteMapView> {
             ),
           ],
         ),
-        const Text('H: Logistics hub • Numbers: stop order'),
+        Text(widget.legend),
         const Text('© Geoapify • OpenStreetMap contributors • OpenMapTiles'),
       ],
     );

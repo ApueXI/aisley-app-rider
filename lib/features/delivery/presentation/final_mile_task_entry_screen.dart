@@ -82,6 +82,7 @@ class _FinalMileTaskEntryScreenState extends State<FinalMileTaskEntryScreen> {
 
   Future<void> _refresh() async {
     if (_sessionEnded ||
+        _delivery.tasks.any(_delivery.isActionBusy) ||
         !_pickup.canRetryRateLimit ||
         !_delivery.canRetryRateLimit) {
       return;
@@ -136,8 +137,7 @@ class _FinalMileTaskEntryScreenState extends State<FinalMileTaskEntryScreen> {
             consent: status == PickupSectionStatus.consentRequired,
           );
         }
-        if (task.status == PickupTaskStatus.deliveryAssigned ||
-            task.status == PickupTaskStatus.deliveryAccepted) {
+        if (task.status == PickupTaskStatus.deliveryAssigned) {
           return PickupTaskDetailScreen(
             key: ValueKey('pickup:${task.id}:${task.rawStatus}'),
             authController: widget.authController,
@@ -149,9 +149,7 @@ class _FinalMileTaskEntryScreenState extends State<FinalMileTaskEntryScreen> {
             onRefresh: _refresh,
           );
         }
-        if (task.status == PickupTaskStatus.pickedUpFromHub ||
-            task.status == PickupTaskStatus.inTransit ||
-            task.status == PickupTaskStatus.outForDelivery) {
+        if (task.canSubmitDelivery) {
           final contextStatus = _delivery.contextStatuses[task.id];
           if (contextStatus != null &&
               contextStatus != DeliveryLoadStatus.loaded &&

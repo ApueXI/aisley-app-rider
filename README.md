@@ -196,3 +196,5 @@ flutter devices
 ```
 
 Keep API calls in the client/repository layers, keep bearer tokens in secure storage, and follow the rules in [AGENTS.md](AGENTS.md) before changing Courier behavior.
+
+Platform contract adoption on 2026-10-26 is recorded in [the sync verification record](docs/references/platform-sync-2026-10-26.md).

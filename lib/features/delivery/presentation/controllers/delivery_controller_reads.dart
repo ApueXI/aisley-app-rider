@@ -4,6 +4,7 @@ extension DeliveryControllerReads on DeliveryController {
   Future<void> load() async {
     if (_disposed ||
         _loadInFlight ||
+        _deliveredBusy.isNotEmpty ||
         _failedAttemptBusy.isNotEmpty ||
         !canRetryRateLimit) {
       return;
@@ -127,7 +128,7 @@ extension DeliveryControllerReads on DeliveryController {
       return;
     }
     final current = taskById(taskId) ?? task;
-    if (current.status == PickupTaskStatus.outForDelivery ||
+    if (current.canSubmitDelivery ||
         current.status == PickupTaskStatus.delivered) {
       await loadCompletion(current);
     }

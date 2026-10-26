@@ -170,7 +170,7 @@ String _taskStatusLabel(String value) {
     'accepted' => 'Accepted — ready to verify',
     'picked_up_from_seller' => 'Picked up from Seller',
     'delivery_assigned' => 'Assigned — accept before hub pickup',
-    'delivery_accepted' => 'Accepted — ready to verify hub handoff',
+    'delivery_accepted' => 'Accepted — optional hub handoff',
     'picked_up_from_hub' => 'Picked up from hub',
     'in_transit' => 'In transit',
     'out_for_delivery' => 'Out for delivery',

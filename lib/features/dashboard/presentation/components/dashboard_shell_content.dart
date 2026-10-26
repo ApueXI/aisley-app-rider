@@ -54,6 +54,15 @@ extension _DashboardShellContent on _DashboardScreenState {
       onDeliveries: widget.deliveryController == null ? null : _openDeliveries,
       onBatches: widget.batchController == null ? null : _openBatches,
       onHistory: widget.historyController == null ? null : _openHistory,
+      onLinehaul: widget.linehaulController == null
+          ? null
+          : () => _pushPage(
+              LinehaulScreen(
+                controller: widget.linehaulController!,
+                authController: widget.authController,
+                policyController: widget.policyController,
+              ),
+            ),
     ),
     2 => PickupScreen(
       authController: widget.authController,

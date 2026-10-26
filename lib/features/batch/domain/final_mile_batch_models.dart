@@ -163,6 +163,17 @@ class FinalMileBatch {
 
   bool get canAccept => status == FinalMileBatchStatus.offered;
 
+  bool get hasAcceptedTasks =>
+      isAccepted ||
+      tasks.any(
+        (task) => const {
+          'delivery_accepted',
+          'picked_up_from_hub',
+          'in_transit',
+          'out_for_delivery',
+        }.contains(task.status),
+      );
+
   bool get isAccepted =>
       status == FinalMileBatchStatus.accepted ||
       status == FinalMileBatchStatus.inProgress;

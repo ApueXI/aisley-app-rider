@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aisley_app/core/networking/api_client.dart';
 import 'package:aisley_app/features/auth/data/auth_repository.dart';
@@ -39,6 +38,7 @@ AuthController deliveryAuthController() {
 }
 
 class WidgetDeliveryRepository implements DeliveryRepository {
+  String taskStatus = 'out_for_delivery';
   int deliveryReads = 0;
   String? completionEvidenceId;
   bool? codCollected;
@@ -76,7 +76,7 @@ class WidgetDeliveryRepository implements DeliveryRepository {
 
   @override
   Future<PickupTask> fetchFinalMileTask(String taskId) async {
-    return outForDeliveryTask;
+    return outForDeliveryTask.copyWith(rawStatus: taskStatus);
   }
 
   @override
@@ -109,11 +109,11 @@ class WidgetDeliveryRepository implements DeliveryRepository {
   }) async {
     if (proofError != null) throw proofError!;
     uploadedPhoto = photo;
-    return const ProofSubmission(
+    return ProofSubmission(
       taskId: 'delivery-task-1',
       proofId: 'proof-1',
       evidenceStatus: 'awaiting_validation',
-      custodyState: 'out_for_delivery',
+      custodyState: taskStatus,
       completionEligible: false,
     );
   }
@@ -124,7 +124,8 @@ class WidgetDeliveryRepository implements DeliveryRepository {
     return CompletionProjection(
       proofFailedAttemptCount: 0,
       taskId: 'delivery-task-1',
-      taskStatus: 'out_for_delivery',
+      taskStatus: taskStatus,
+      intentId: completionEvidenceId == null ? null : 'intent-1',
       completionStatus: completionEvidenceId == null
           ? null
           : 'awaiting_validation',
@@ -138,7 +139,7 @@ class WidgetDeliveryRepository implements DeliveryRepository {
   Future<DeliveryProofPhoto> fetchProofPhoto(String proofId) async {
     return DeliveryProofPhoto(
       bytes: base64Decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9AAAAAElFTkSuQmCC',
+        'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAEklEQVR4nGMQKl/wHx9mGBkKAM8iigGRRz6+AAAAAElFTkSuQmCC',
       ),
       contentType: 'image/png',
     );
@@ -154,11 +155,11 @@ class WidgetDeliveryRepository implements DeliveryRepository {
   }) async {
     completionEvidenceId = evidenceId;
     this.codCollected = codCollected;
-    return const CompletionProjection(
+    return CompletionProjection(
       proofFailedAttemptCount: 0,
       taskId: 'delivery-task-1',
       intentId: 'intent-1',
-      taskStatus: 'out_for_delivery',
+      taskStatus: taskStatus,
       completionStatus: 'awaiting_validation',
       evidenceStatus: 'awaiting_validation',
       evidenceId: 'proof-1',
