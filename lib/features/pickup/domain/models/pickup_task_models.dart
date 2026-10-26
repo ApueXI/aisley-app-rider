@@ -264,6 +264,9 @@ class PickupTask {
 
   bool get isFinalMile => leg == PickupTaskLeg.finalMile;
 
+  bool get canSubmitDelivery =>
+      isFinalMile && isDeliverySubmissionStatus(rawStatus);
+
   bool get isAccepted =>
       status == PickupTaskStatus.accepted ||
       status == PickupTaskStatus.deliveryAccepted;
@@ -382,3 +385,11 @@ class FirstMileTaskPage {
   bool get hasMore =>
       currentPage != null && lastPage != null && currentPage! < lastPage!;
 }
+
+/// Accepted final-mile states eligible for proof, intent and failed visits.
+bool isDeliverySubmissionStatus(String status) => const {
+  'delivery_accepted',
+  'picked_up_from_hub',
+  'in_transit',
+  'out_for_delivery',
+}.contains(status);

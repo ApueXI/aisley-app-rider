@@ -39,6 +39,9 @@ class PickupRouteManifest {
   factory PickupRouteManifest.fromResponse(Map<String, dynamic> json) {
     final data = _requiredMap(json['data'], 'pickup.manifest.data');
     final rawStops = data['stops'];
+    if (rawStops != null && rawStops is! List) {
+      throw const ApiContractException('pickup.manifest.stops');
+    }
     final stops = <PickupRouteStop>[];
     if (rawStops is List) {
       for (var index = 0; index < rawStops.length; index++) {

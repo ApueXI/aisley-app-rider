@@ -1,3 +1,6 @@
+import '../../linehaul/presentation/linehaul_controller.dart';
+import '../../linehaul/presentation/linehaul_screen.dart';
+
 import 'dart:async';
 
 import '../../../shared/presentation/destination_scope.dart';
@@ -50,6 +53,7 @@ class DashboardScreen extends StatefulWidget {
     required this.authController,
     this.accountController,
     this.batchController,
+    this.linehaulController,
     this.policyController,
     this.pickupController,
     this.deliveryController,
@@ -65,6 +69,7 @@ class DashboardScreen extends StatefulWidget {
   final AuthController authController;
   final AccountController? accountController;
   final FinalMileBatchController? batchController;
+  final LinehaulController? linehaulController;
   final PolicyController? policyController;
   final PickupController? pickupController;
   final DeliveryController? deliveryController;

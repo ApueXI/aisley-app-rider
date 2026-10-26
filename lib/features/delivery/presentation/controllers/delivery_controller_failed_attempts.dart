@@ -11,8 +11,8 @@ extension DeliveryControllerFailedAttempts on DeliveryController {
   bool canReportFailedAttempt(PickupTask task) =>
       !_disposed &&
       task.isFinalMile &&
-      task.status == PickupTaskStatus.outForDelivery &&
-      contexts[task.id]?.status == 'out_for_delivery' &&
+      task.canSubmitDelivery &&
+      isDeliverySubmissionStatus(contexts[task.id]?.status ?? '') &&
       contextStatuses[task.id] == DeliveryLoadStatus.loaded &&
       completionStatuses[task.id] == DeliveryLoadStatus.loaded &&
       !isCompletionPending(task) &&
@@ -82,8 +82,8 @@ extension DeliveryControllerFailedAttempts on DeliveryController {
       }
       contexts[task.id] = context;
       completions[task.id] = completion;
-      if (context.status != 'out_for_delivery' ||
-          completion.taskStatus != 'out_for_delivery' ||
+      if (!isDeliverySubmissionStatus(context.status) ||
+          !isDeliverySubmissionStatus(completion.taskStatus) ||
           context.revision == null ||
           context.revision! < 1 ||
           completion.revision != context.revision ||

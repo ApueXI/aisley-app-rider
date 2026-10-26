@@ -80,9 +80,11 @@ class _DeliveryTaskCard extends StatelessWidget {
         'To ${task.destinationArea?.areaSummary ?? 'Destination area unavailable'}',
     nextStep: switch (task.status) {
       PickupTaskStatus.deliveryAssigned => 'Review the final-mile batch',
-      PickupTaskStatus.deliveryAccepted => 'Complete hub handoff first',
-      PickupTaskStatus.pickedUpFromHub => 'Start transit',
-      PickupTaskStatus.inTransit => 'Continue to out for delivery',
+      PickupTaskStatus.deliveryAccepted =>
+        'Photo proof and delivery confirmation',
+      PickupTaskStatus.pickedUpFromHub =>
+        'Photo proof and delivery confirmation',
+      PickupTaskStatus.inTransit => 'Photo proof and delivery confirmation',
       PickupTaskStatus.outForDelivery => 'Photo proof and delivery intent',
       PickupTaskStatus.delivered => 'Delivery completed',
       _ => 'Open to review current work',

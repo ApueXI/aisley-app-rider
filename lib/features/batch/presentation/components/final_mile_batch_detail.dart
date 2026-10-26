@@ -63,100 +63,66 @@ class _FinalMileBatchDetailScreenState
           );
         }
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('Dispatch batch')),
-          body: RefreshIndicator(
-            onRefresh: () => controller.loadDetail(widget.scheduleId),
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              children: [
-                _BatchSummary(batch: batch),
-                if (batch.isAccepted && controller.routeController != null)
-                  TextButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => DeliveryRouteScreen(
-                          batch: batch,
-                          controller: controller.routeController!,
-                          onOpenPolicies: widget.policyController == null
-                              ? null
-                              : _openPolicies,
+        return PopScope(
+          canPop:
+              controller.decidingTask == null &&
+              !controller.hasUncertainDecision,
+          child: Scaffold(
+            appBar: AppBar(title: const Text('Dispatch batch')),
+            body: RefreshIndicator(
+              onRefresh: () => controller.loadDetail(widget.scheduleId),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                children: [
+                  _BatchSummary(batch: batch),
+                  if (batch.hasAcceptedTasks &&
+                      controller.routeController != null)
+                    TextButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => DeliveryRouteScreen(
+                            batch: batch,
+                            controller: controller.routeController!,
+                            onOpenPolicies: widget.policyController == null
+                                ? null
+                                : _openPolicies,
+                          ),
                         ),
                       ),
+                      icon: const Icon(Icons.map_outlined),
+                      label: const Text('View delivery route'),
                     ),
-                    icon: const Icon(Icons.map_outlined),
-                    label: const Text('View delivery route'),
-                  ),
-                if (_isBatchBlocking(detailStatus) &&
-                    controller.detailError(widget.scheduleId) != null) ...[
-                  const SizedBox(height: 12),
-                  _BatchInlineError(
-                    message: controller.detailError(widget.scheduleId)!,
-                    onRetry: () => controller.loadDetail(widget.scheduleId),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Text(
-                  'Parcels',
-                  style: Theme.of(context).textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 10),
-                for (var index = 0; index < batch.tasks.length; index++) ...[
-                  _BatchParcelCard(
-                    position: index + 1,
-                    task: batch.tasks[index],
+                  if (_isBatchBlocking(detailStatus) &&
+                      controller.detailError(widget.scheduleId) != null) ...[
+                    const SizedBox(height: 12),
+                    _BatchInlineError(
+                      message: controller.detailError(widget.scheduleId)!,
+                      onRetry: () => controller.loadDetail(widget.scheduleId),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Text(
+                    'Parcels',
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 10),
+                  for (var index = 0; index < batch.tasks.length; index++) ...[
+                    _ParcelDecisionCard(
+                      position: index + 1,
+                      task: batch.tasks[index],
+                      batch: batch,
+                      controller: controller,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                 ],
-                const SizedBox(height: 10),
-                _BatchAcceptanceCard(
-                  batch: batch,
-                  controller: controller,
-                  onAccept: () => _confirmAcceptance(batch),
-                  onRefresh: () => controller.loadDetail(widget.scheduleId),
-                  onOpenPolicies: _openPolicies,
-                  canOpenPolicies: widget.policyController != null,
-                ),
-              ],
+              ),
             ),
           ),
         );
       },
-    );
-  }
-
-  Future<void> _confirmAcceptance(FinalMileBatch batch) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        scrollable: true,
-        title: const Text('Accept this entire batch?'),
-        content: Text(
-          'You will accept responsibility for all ${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'} in ${batch.reference}. This does not record hub pickup.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Accept entire batch'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    final accepted = await widget.batchController.accept(batch.id);
-    if (!mounted || !accepted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Accepted all ${batch.parcelCount} parcels. Pickup and delivery work were refreshed.',
-        ),
-      ),
     );
   }
 

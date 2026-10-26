@@ -6,8 +6,9 @@ class _WorkDestinations extends StatelessWidget {
     this.onDeliveries,
     this.onBatches,
     this.onHistory,
+    this.onLinehaul,
   });
-  final VoidCallback? onPickups, onDeliveries, onBatches, onHistory;
+  final VoidCallback? onPickups, onDeliveries, onBatches, onHistory, onLinehaul;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -31,8 +32,14 @@ class _WorkDestinations extends StatelessWidget {
         _DestinationRow(
           icon: Icons.view_list_outlined,
           title: 'Final-mile batches',
-          subtitle: 'Review and accept dispatch batches',
+          subtitle: 'Review individual parcel decisions',
           onTap: onBatches,
+        ),
+        _DestinationRow(
+          icon: Icons.route_outlined,
+          title: 'Linehaul jobs',
+          subtitle: 'Assigned hub transfers and company-truck routes',
+          onTap: onLinehaul,
         ),
         _DestinationRow(
           icon: Icons.history_outlined,

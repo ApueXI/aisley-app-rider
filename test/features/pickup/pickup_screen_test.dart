@@ -210,7 +210,7 @@ void main() {
 
     expect(find.text('Dispatch batch offer'), findsOneWidget);
     expect(
-      find.textContaining('accepted as a whole dispatch batch'),
+      find.textContaining('accept or reject it individually'),
       findsOneWidget,
     );
     expect(find.text('Review dispatch batches'), findsOneWidget);

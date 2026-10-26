@@ -188,9 +188,26 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
       return _buildAcceptance(context, task);
     }
     if (task.isAccepted) {
-      return task.isFinalMile
-          ? _buildHubHandoff(context, task)
-          : _buildVerification(context, task);
+      if (task.isFinalMile) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'This parcel is accepted. Open Delivery work to submit photo proof and Delivered confirmation.',
+            ),
+            if (_onOpenDelivery != null)
+              FilledButton(
+                onPressed: _onOpenDelivery,
+                child: const Text('Open Delivery work'),
+              ),
+            const Text(
+              'Hub handoff below is optional; delivery submission does not require it.',
+            ),
+            _buildHubHandoff(context, task),
+          ],
+        );
+      }
+      return _buildVerification(context, task);
     }
     return Card(
       child: Padding(

@@ -7,11 +7,15 @@ import 'package:aisley_app/features/batch/presentation/final_mile_batch_screen.d
 import 'fixtures/final_mile_batch_screen_fixture.dart';
 
 void main() {
-  testWidgets('reviews parcel context and accepts the batch with one action', (
+  testWidgets('reviews parcel context and accepts only the chosen parcel', (
     tester,
   ) async {
     final repository = WidgetBatchRepository();
-    final controller = FinalMileBatchController(repository: repository);
+    final parcels = WidgetParcelRepository(repository);
+    final controller = FinalMileBatchController(
+      repository: repository,
+      parcelRepository: parcels,
+    );
     await controller.load();
     final auth = batchAuthController();
 
@@ -34,28 +38,35 @@ void main() {
     expect(find.text('Accept hub delivery'), findsNothing);
 
     await tester.scrollUntilVisible(
-      find.text('Accept entire batch'),
+      find.text('Accept parcel').first,
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.tap(find.text('Accept entire batch'));
+    await tester.tap(find.text('Accept parcel').first);
     await tester.pumpAndSettle();
-    expect(find.text('Accept this entire batch?'), findsOneWidget);
+    expect(find.text('Accept parcel?'), findsOneWidget);
     expect(
-      find.textContaining('accept responsibility for all 2 parcels'),
+      find.textContaining('Other parcels keep their current decisions'),
       findsOneWidget,
     );
 
     await tester.tap(
       find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.text('Accept entire batch'),
+        matching: find.text('Accept parcel'),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(repository.acceptCalls, 1);
-    expect(find.text('Entire batch accepted'), findsOneWidget);
-    expect(find.textContaining('does not record hub pickup'), findsOneWidget);
+    expect(repository.acceptCalls, 0);
+    expect(parcels.accepted, ['task-1']);
+    expect(
+      controller.batchById('schedule-1')!.tasks.first.status,
+      'delivery_accepted',
+    );
+    expect(
+      controller.batchById('schedule-1')!.tasks.last.status,
+      'delivery_assigned',
+    );
   });
 }

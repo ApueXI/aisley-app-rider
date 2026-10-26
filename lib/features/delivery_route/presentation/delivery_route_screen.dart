@@ -33,7 +33,7 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted &&
           widget.batch.id == id &&
-          widget.batch.isAccepted &&
+          widget.batch.hasAcceptedTasks &&
           widget.controller == controller) {
         controller.load(id, refresh: true);
       }
@@ -79,9 +79,9 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
                   widget.batch.reference,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                if (!widget.batch.isAccepted)
+                if (!widget.batch.hasAcceptedTasks)
                   const Text(
-                    'Accept the entire batch before viewing its delivery route.',
+                    'Accept a parcel before viewing the route for accepted parcels.',
                   )
                 else ...[
                   if (controller.status == DeliveryRouteLoadStatus.loading)
@@ -109,9 +109,7 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
                       ),
                     const SizedBox(height: 12),
                     if (controller.mapFailed)
-                      const Text(
-                        'Map could not be loaded. Route stops remain available below.',
-                      )
+                      const Text('Map could not be loaded.')
                     else if (points != null &&
                         points.positions.isNotEmpty &&
                         route.status != DeliveryRouteStatus.unknown)

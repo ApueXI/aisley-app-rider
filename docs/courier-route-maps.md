@@ -26,7 +26,8 @@ selectors, idempotency keys, pagination, or mutation retries are involved.
 | Path | Response and ownership |
 | --- | --- |
 | `/api/v1/courier/pickup-schedules/{schedule}/route-manifest` | `{data: manifest}`; assigned Courier schedule/organization/hub scope |
-| `/api/v1/courier/final-mile-batches/{schedule}/route` | `{data: route}`; every member belongs to this accepted final-mile dispatch |
+| `/api/v1/courier/final-mile-batches/{schedule}/route` | `{data: route}`; only accepted current parcel members are routed, including partially accepted dispatches |
+| `/api/v1/courier/linehaul-trips/{trip}/route` | Additive hub-to-hub advisory route v1 (2026-10-21); assigned driver only; Flutter adopts this route locally; see below |
 | `/api/v1/courier/map-style` | Raw version-8 raster style; no `data` envelope |
 | `/api/v1/courier/map-tiles/{z}/{x}/{y}.png` | Private PNG; bounded zoom and tile coordinates |
 
@@ -35,16 +36,16 @@ resources and final-mile routes. All route snapshots, image sources, marker
 images, and viewport sets are held only in memory and released on disposal.
 No offline region, local file cache, service-worker route snapshot, or GPS is
 added. Android retains existing camera/upload permissions and adds Internet.
+
+### Additive linehaul route contract — 2026-10-21
+
+This new Laravel endpoint does not change the imported pickup/final-mile map baseline or establish Flutter linehaul implementation. `GET /api/v1/courier/linehaul-trips/{trip}/route` returns `{data: {status, reason, hubs, summary, geometry}}`, under the same bearer/active-Courier/approved-affiliation/active-organization/policy-consent gates. Only the assigned driver can read a trip; foreign/unknown UUIDs return `404 LINEHAUL_TRIP_NOT_FOUND` before cache/provider access. No body, hub selectors, idempotency key or mutations. Rate limit is 30 reads/minute; responses are private/no-store. Normal 401/403 recovery and 429 Retry-After handling apply.
+
+`status` is `ready|unavailable`; `reason` is nullable. `hubs` always contains origin then destination, each `{kind: origin|destination, name: string, address: string, latitude: number|null, longitude: number|null}`. Addresses exclude contact/recipient details; missing/invalid coordinate pairs are both null. `summary` is null or `{distance_metres: number, duration_seconds: number}`. `geometry` is null or `{type: LineString, coordinates: [[longitude, latitude], ...]}`. Only validated Geoapify road geometry/metrics produce `ready`. Missing pins (`missing_hub_coordinates`), missing key (`provider_unconfigured`), credit guard (`quota_guard`), upstream 429 (`provider_quota`), invalid/unreachable route (`route_unavailable`) and connection errors (`provider_failure`) return unavailable data while preserving known hub details. Never fabricate metrics or a pin. A client may draw a clearly labelled straight-line fallback between two known hubs.
+
+The server sends two saved hub coordinates only to Geoapify Routing, shares daily waypoint-credit guards, and caches successful calculations for 24 hours and failed calculations for one minute by trip/ordered-pin fingerprint. Each read reauthorizes; changed pins invalidate the cached calculation. Return trips use their own reversed hub order. Reuse authenticated in-memory private tile transport; no provider key is supplied to clients. This route is advisory hub-to-hub geometry, not device GPS navigation or arrival evidence. Any explicit external navigation action must pass only destination coordinates and never auth headers/tokens. Logistics retains destination approval, source cargo release and parcel arrival/unloading confirmation. The additive [Courier operations v1](linehaul-trips.md) now permits assigned-driver departure after source release and a separate driver arrival report; the route read itself has no mutation side effects. The development React harness consumes this endpoint; Flutter implements linehaul routes and records local verification in [the platform sync record](references/platform-sync-2026-10-26.md); deployed/provider and installed-device acceptance remain open.
 Flutter web uses the plugin's existing automatic MapLibre JS/CSS loader; it
 needs WebGL2 and CDN access, and stays the same app on localhost port 8765.
-
-The Flutter `.env` setting `MAPS_ENABLED=false` disables map rendering and all
-style/tile requests locally. Ordered route reads, readable stops, and delivery
-actions remain available. Blank defaults to enabled for compatibility; enabling
-the client flag never overrides server authorization or map availability.
-Courier maps continue to use the authenticated API proxy, without sending the
-optional public `GEOAPIFY_API_KEY` to a provider. See
-[configuration](../README.md#clone-and-configure).
 
 `401` clears the existing session; `403` follows account/affiliation denial or
 policy consent handling. `404` is unavailable, `409` requires batch/schedule

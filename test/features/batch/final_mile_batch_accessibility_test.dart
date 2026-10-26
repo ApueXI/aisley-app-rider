@@ -17,7 +17,10 @@ void main() {
       tester,
     ) async {
       final repository = WidgetBatchRepository();
-      final controller = FinalMileBatchController(repository: repository);
+      final controller = FinalMileBatchController(
+        repository: repository,
+        parcelRepository: WidgetParcelRepository(repository),
+      );
       final auth = batchAuthController();
       await tester.pumpWidget(
         scenario.app(
@@ -33,25 +36,28 @@ void main() {
       await checkScrollableAccessibility(tester);
       await focusByKeyboard(
         tester,
-        find.widgetWithText(FilledButton, 'Accept entire batch'),
+        find.widgetWithText(FilledButton, 'Accept parcel').first,
       );
       expect(repository.acceptCalls, 0);
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
-      expect(find.text('Accept this entire batch?'), findsOneWidget);
+      expect(find.text('Accept parcel?'), findsOneWidget);
       await checkAccessibility(tester);
       await focusByKeyboard(tester, find.widgetWithText(TextButton, 'Cancel'));
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsNothing);
       expectKeyboardFocus(
-        find.widgetWithText(FilledButton, 'Accept entire batch'),
+        find.widgetWithText(FilledButton, 'Accept parcel').first,
       );
       expect(repository.acceptCalls, 0);
-      await controller.accept('schedule-1');
+      await controller.decideParcel('schedule-1', 'task-1');
       await tester.pumpAndSettle();
       await checkScrollableAccessibility(tester);
-      expect(find.text('Entire batch accepted'), findsOneWidget);
+      expect(
+        controller.batchById('schedule-1')!.tasks.first.status,
+        'delivery_accepted',
+      );
       await unmount(tester, [controller, auth]);
     });
   }
@@ -62,7 +68,10 @@ void main() {
       (tester) async {
         final pending = Completer<FinalMileBatch>();
         final repository = WidgetBatchRepository()..pendingRead = pending;
-        final controller = FinalMileBatchController(repository: repository);
+        final controller = FinalMileBatchController(
+          repository: repository,
+          parcelRepository: WidgetParcelRepository(repository),
+        );
         final auth = batchAuthController();
         await tester.pumpWidget(
           scenario.app(
@@ -80,7 +89,7 @@ void main() {
         repository.pendingRead = null;
         await tester.pumpAndSettle();
         await checkScrollableAccessibility(tester);
-        expect(find.text('Accept entire batch'), findsNothing);
+        expect(find.text('Accept parcel'), findsNothing);
         await reveal(tester, find.text('Retry'));
         await tester.tap(find.text('Retry'));
         await tester.pumpAndSettle();

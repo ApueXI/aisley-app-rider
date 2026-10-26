@@ -1,42 +1,5 @@
 part of '../delivery_screen.dart';
 
-class _BeforeHubPickupCard extends StatelessWidget {
-  const _BeforeHubPickupCard({required this.onOpenPickup});
-
-  final VoidCallback? onOpenPickup;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hub pickup is next',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Accept the final-mile offer and submit hub handoff evidence in Pickup orders before starting delivery.',
-            ),
-            if (onOpenPickup != null) ...[
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: onOpenPickup,
-                icon: const Icon(Icons.local_shipping_outlined),
-                label: const Text('Open pickup orders'),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _CompletedDeliveryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -280,7 +243,7 @@ bool _canRetry(DeliveryActionStatus status) {
 String _deliveryStatusLabel(String status) {
   return switch (status) {
     'delivery_assigned' => 'Assigned — accept before hub pickup',
-    'delivery_accepted' => 'Accepted — ready for hub pickup',
+    'delivery_accepted' => 'Accepted — ready for delivery',
     'picked_up_from_hub' => 'Picked up from hub',
     'in_transit' => 'In transit',
     'out_for_delivery' => 'Out for delivery',

@@ -85,12 +85,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(controller.mapFailed, true);
         expect(controller.route!.stops.length, 3);
-        expect(
-          find.text(
-            'Map could not be loaded. Route stops remain available below.',
-          ),
-          findsOneWidget,
-        );
+        expect(find.text('Map could not be loaded.'), findsOneWidget);
         await tester.scrollUntilVisible(find.text('Area two'), 200);
         expect(find.text('Area two'), findsOneWidget);
         expect(repository.calls, 2);

@@ -156,7 +156,7 @@ class _ProofAndCompletionCard extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onSubmitPhoto,
                 icon: const Icon(Icons.cloud_upload_outlined),
-                label: const Text('Submit photo proof'),
+                label: const Text('Delivered'),
               ),
             ],
             if (actionStatus == DeliveryActionStatus.proofSubmitting) ...[
@@ -192,23 +192,13 @@ class _ProofAndCompletionCard extends StatelessWidget {
                 ),
               if (_canRetry(actionStatus) &&
                   actionStatus != DeliveryActionStatus.conflict &&
-                  controller.hasPendingProof(task))
-                TextButton.icon(
+                  (controller.hasPendingProof(task) ||
+                      controller.hasPendingCompletion(task)))
+                TextButton(
                   onPressed: busy || !controller.canRetryRateLimit
                       ? null
-                      : () => controller.retryProof(task),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry same photo upload'),
-                ),
-              if (_canRetry(actionStatus) &&
-                  actionStatus != DeliveryActionStatus.conflict &&
-                  controller.hasPendingCompletion(task))
-                TextButton.icon(
-                  onPressed: busy || !controller.canRetryRateLimit
-                      ? null
-                      : () => controller.retryCompletion(task),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry same Delivered intent'),
+                      : onSubmitPhoto,
+                  child: const Text('Retry Delivered'),
                 ),
             ],
             if (evidenceId != null && !proofRejected) ...[
@@ -267,7 +257,7 @@ class _ProofAndCompletionCard extends StatelessWidget {
               )
             else ...[
               const Text(
-                'Send a separate Delivered intent for this photo. '
+                'Submit Delivered using the saved photo. '
                 'Logistics will decide when the delivery is complete.',
               ),
               const SizedBox(height: 12),
@@ -277,9 +267,9 @@ class _ProofAndCompletionCard extends StatelessWidget {
                         actionBlocked ||
                         controller.hasPendingCompletion(task)
                     ? null
-                    : () => _confirmCompletion(context, evidenceId),
+                    : onSubmitPhoto,
                 icon: const Icon(Icons.done_all),
-                label: const Text('Submit Delivered intent'),
+                label: const Text('Delivered'),
               ),
             ],
             const SizedBox(height: 8),
@@ -298,66 +288,5 @@ class _ProofAndCompletionCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _confirmCompletion(
-    BuildContext context,
-    String evidenceId,
-  ) async {
-    final collection = await controller.prepareCodCompletion(task);
-    if (!context.mounted || collection == null) return;
-    var cashConfirmed = false;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          scrollable: true,
-          title: const Text('Confirm COD collection'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Amount to collect: ${collection.displayAmount}'),
-                const SizedBox(height: 12),
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  value: cashConfirmed,
-                  onChanged: (value) =>
-                      setDialogState(() => cashConfirmed = value == true),
-                  title: Text(
-                    'I collected ${collection.displayAmount} in full.',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Submitting this photo-linked intent does not complete delivery. Logistics must validate the proof and collection.',
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: cashConfirmed
-                  ? () => Navigator.of(dialogContext).pop(true)
-                  : null,
-              child: const Text('Submit intent'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (confirmed == true && context.mounted) {
-      await controller.submitCompletion(
-        task,
-        evidenceId: evidenceId,
-        confirmedCollection: collection,
-      );
-    }
   }
 }

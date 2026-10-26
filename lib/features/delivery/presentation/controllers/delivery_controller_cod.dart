@@ -2,18 +2,17 @@ part of 'delivery_controller.dart';
 
 extension DeliveryControllerCod on DeliveryController {
   Future<DeliveryCodCollection?> prepareCodCompletion(PickupTask task) async {
-    final proofId =
-        proofs[task.id]?.proofId ?? completions[task.id]?.evidenceId;
-    if (!task.isFinalMile ||
-        task.status != PickupTaskStatus.outForDelivery ||
-        proofId == null ||
-        evidenceStatusFor(task) == 'rejected' ||
-        isCompletionPending(task) ||
-        !canStartAction(task)) {
+    final proof = proofs[task.id]?.proofId ?? completions[task.id]?.evidenceId;
+    if (proof == null || evidenceStatusFor(task) == 'rejected') return null;
+    final payment = await prepareDeliveryPayment(task);
+    if (payment == null) return null;
+    if (!payment.isCod) {
+      _setLocalValidationError(
+        task,
+        'Cash collection information is unavailable for this delivery.',
+      );
       return null;
     }
-    final collection = await _readCodCollection(task);
-    if (collection == null) return null;
     if (!hasFreshProof(task)) await loadCompletion(task);
     if (!hasFreshProof(task)) {
       _setLocalValidationError(
@@ -22,6 +21,26 @@ extension DeliveryControllerCod on DeliveryController {
       );
       return null;
     }
+    return payment;
+  }
+
+  Future<DeliveryCodCollection?> prepareDeliveryPayment(PickupTask task) async {
+    if (hasPendingCompletion(task)) {
+      await loadCompletion(task);
+      if (isCompletionPending(task) ||
+          completions[task.id]?.isDelivered == true) {
+        _pendingCompletions.remove(task.id);
+        return null;
+      }
+    }
+    if (!task.isFinalMile ||
+        !task.canSubmitDelivery ||
+        isCompletionPending(task) ||
+        !canStartAction(task)) {
+      return null;
+    }
+    final collection = await _readCodCollection(task);
+    if (collection == null) return null;
     return collection;
   }
 
@@ -38,7 +57,8 @@ extension DeliveryControllerCod on DeliveryController {
       if (context.taskId != task.id) {
         throw const ApiContractException('delivery.context.task_id');
       }
-      if (context.status != 'out_for_delivery' || context.revision == null) {
+      if (!isDeliverySubmissionStatus(context.status) ||
+          context.revision == null) {
         _actionStatuses[task.id] = DeliveryActionStatus.conflict;
         _actionErrors[task.id] = 'This delivery task changed. Refresh it before confirming cash collection.';
         _notifyDeliveryListeners();
@@ -52,14 +72,18 @@ extension DeliveryControllerCod on DeliveryController {
         (taskById(task.id) ?? task).copyWith(revision: context.revision),
       );
 
-      if (context.paymentMethod != 'cod') {
+      if (context.paymentMethod != 'cod' &&
+          !(context.paymentMethod == 'prepaid' &&
+              context.paymentStatus == 'paid')) {
         _setLocalValidationError(
           task,
           'Cash collection information is unavailable for this delivery. Refresh the task before continuing.',
         );
         return null;
       }
-      final collection = context.codCollection;
+      final collection = context.paymentMethod == 'prepaid'
+          ? const DeliveryCodCollection(amount: '', currency: '', isCod: false)
+          : context.codCollection;
       if (collection == null) {
         _setLocalValidationError(
           task,

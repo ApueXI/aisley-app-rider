@@ -1,3 +1,5 @@
+import '../features/linehaul/data/linehaul_repository.dart';
+import '../features/linehaul/presentation/linehaul_controller.dart';
 import '../core/chat_media/api_repository.dart';
 import '../core/chat_media/draft_controller.dart';
 
@@ -51,6 +53,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
   AuthController? _authController;
   AccountController? _accountController;
   FinalMileBatchController? _batchController;
+  LinehaulController? _linehaulController;
   PolicyController? _policyController;
   PickupController? _pickupController;
   DeliveryController? _deliveryController;
@@ -71,6 +74,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
 
   @override
   void dispose() {
+    _linehaulController?.dispose();
     _mapSecurity?.dispose();
     _batchController?.routeController?.dispose();
     super.dispose();
@@ -92,6 +96,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
       _mapSecurity = mapSecurity;
       late final AccountController accountController;
       late final FinalMileBatchController batchController;
+      late final LinehaulController linehaulController;
       late final PolicyController policyController;
       late final PickupController pickupController;
       late final DeliveryController deliveryController;
@@ -111,6 +116,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
           mapSecurity.invalidate();
           accountController.clear();
           batchController.clear();
+          linehaulController.clear();
           policyController.clear();
           pickupController.clear();
           deliveryController.clear();
@@ -121,6 +127,10 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
           dashboardPreviewController.clear();
           vehicleController.clear();
         },
+      );
+      linehaulController = LinehaulController(
+        ApiLinehaulRepository(apiClient),
+        onAuthFailure: authController.handleDeliveryAuthFailure,
       );
       accountController = AccountController(
         accountRepository: ApiAccountRepository(client: apiClient),
@@ -173,6 +183,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
         onAuthFailure: authController.handlePickupAuthFailure,
       );
       batchController = FinalMileBatchController(
+        parcelRepository: ApiPickupRepository(client: apiClient),
         routeController: DeliveryRouteController(
           repository: ApiDeliveryRouteRepository(client: apiClient),
           onAuthFailure: authController.handleDeliveryAuthFailure,
@@ -200,6 +211,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
         _authController = authController;
         _accountController = accountController;
         _batchController = batchController;
+        _linehaulController = linehaulController;
         _policyController = policyController;
         _pickupController = pickupController;
         _deliveryController = deliveryController;
@@ -236,6 +248,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
           authController: authController,
           accountController: _accountController,
           batchController: _batchController,
+          linehaulController: _linehaulController,
           policyController: _policyController,
           pickupController: _pickupController,
           deliveryController: _deliveryController,

@@ -24,7 +24,6 @@ part 'components/delivery_list.dart';
 part 'components/delivery_task.dart';
 part 'components/delivery_photo_selection.dart';
 part 'components/delivery_context.dart';
-part 'components/delivery_movement.dart';
 part 'components/delivery_proof_completion.dart';
 part 'components/delivery_status.dart';
 

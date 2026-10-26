@@ -125,13 +125,20 @@ void main() {
       expect(find.text('Replace from files'), findsOneWidget);
       expect(find.text('Remove photo'), findsOneWidget);
 
-      final submitPhoto = find.widgetWithText(
-        FilledButton,
-        'Submit photo proof',
-      );
+      final submitPhoto = find.widgetWithText(FilledButton, 'Delivered');
       await tester.drag(find.byType(ListView), const Offset(0, -300));
       await tester.pumpAndSettle();
       await tester.tap(submitPhoto);
+      await tester.pumpAndSettle();
+      expect(repository.uploadedPhoto, isNull);
+      await tester.tap(find.text('I collected PHP 115.00 in full.'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Delivered'),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(repository.uploadedPhoto?.fileName, 'captured.jpg');
@@ -233,7 +240,7 @@ void main() {
       expect(find.text('ORD-100'), findsOneWidget);
       expect(find.text('WB-100'), findsOneWidget);
       expect(find.textContaining('Photo proof received.'), findsOneWidget);
-      final submitIntent = find.text('Submit Delivered intent');
+      final submitIntent = find.text('Delivered');
       await tester.ensureVisible(submitIntent);
       await tester.pumpAndSettle();
       expect(submitIntent, findsOneWidget);
@@ -247,7 +254,10 @@ void main() {
       expect(
         tester
             .widget<FilledButton>(
-              find.widgetWithText(FilledButton, 'Submit intent'),
+              find.descendant(
+                of: find.byType(AlertDialog),
+                matching: find.widgetWithText(FilledButton, 'Delivered'),
+              ),
             )
             .onPressed,
         isNull,
@@ -256,7 +266,12 @@ void main() {
       await tester.tap(find.text('I collected PHP 115.00 in full.'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Submit intent'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Delivered'),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(repository.completionEvidenceId, 'proof-1');
@@ -308,7 +323,7 @@ void main() {
     expect(find.textContaining('Choose a JPEG, PNG or WebP'), findsOneWidget);
     expect(find.text('Refresh task'), findsOneWidget);
     expect(find.textContaining('Photo proof received.'), findsNothing);
-    expect(find.text('Submit Delivered intent'), findsNothing);
+    expect(find.text('Delivered'), findsNothing);
     await tester.ensureVisible(find.text('Refresh task'));
     await tester.pumpAndSettle();
     final readsBeforeRefresh = repository.deliveryReads;
@@ -353,7 +368,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final submitIntent = find.text('Submit Delivered intent');
+      final submitIntent = find.text('Delivered');
       await tester.ensureVisible(submitIntent);
       await tester.pumpAndSettle();
       await tester.tap(submitIntent);
