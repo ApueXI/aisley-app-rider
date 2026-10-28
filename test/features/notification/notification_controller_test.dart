@@ -103,6 +103,27 @@ void main() {
     expect(controller.listStatus, NotificationLoadStatus.unauthorized);
     expect(authError?.statusCode, 401);
   });
+
+  test(
+    'category changes preserve status and restart from the first page',
+    () async {
+      final repository = _FakeNotificationRepository();
+      final controller = NotificationController(
+        notificationRepository: repository,
+      );
+      await controller.setFilter(NotificationFilter.unread);
+      await controller.loadMore();
+      await controller.setCategory('support');
+
+      expect(controller.filter, NotificationFilter.unread);
+      expect(controller.category, 'support');
+      expect(repository.queries.last, (
+        NotificationFilter.unread,
+        'support',
+        null,
+      ));
+    },
+  );
 }
 
 class _FakeNotificationRepository implements NotificationRepository {
@@ -110,13 +131,16 @@ class _FakeNotificationRepository implements NotificationRepository {
   ApiException? detailError;
   int unreadCountCalls = 0;
   final List<String> markedIds = <String>[];
+  final queries = <(NotificationFilter, String, String?)>[];
 
   @override
   Future<CourierNotificationPage> fetchNotifications({
     NotificationFilter filter = NotificationFilter.all,
+    String category = 'all',
     int limit = 20,
     String? cursor,
   }) async {
+    queries.add((filter, category, cursor));
     final error = listError;
     if (error != null) {
       throw error;
@@ -159,4 +183,6 @@ final _notification = CourierNotification(
   resourceType: 'delivery_task',
   resourceId: 'task-1',
   destination: '/delivery-tasks/task-1',
+  category: 'deliveries',
+  categoryLabel: 'Deliveries',
 );

@@ -406,6 +406,7 @@ class _ScreenshotNotificationRepository implements NotificationRepository {
   @override
   Future<CourierNotificationPage> fetchNotifications({
     NotificationFilter filter = NotificationFilter.all,
+    String category = 'all',
     int limit = 20,
     String? cursor,
   }) async => CourierNotificationPage(

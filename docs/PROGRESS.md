@@ -102,3 +102,16 @@ Short, dated implementation log. Append entries; archive complete logs after 150
 - Enlarged the camera guide from 280×150 to a responsive square (min of 85% preview width and preview height minus 32px), retaining full-preview detection. Instructions scroll within 35% of available height so large text cannot consume the camera preview. Removed manual-entry fallback buttons/copy; camera errors explain recovery and Back.
 - Verification: Flutter analyzer and all 25 focused scanning/pickup-screen tests pass; scanner/candidate/pickup interaction coverage includes capture, cancellation, automatic types, mismatch/rescan, read-only review, no mutation before confirmation, camera failures, and 320×640/390×844/640×320 light/dark at 1×/2× text. Broad scanning/pickup run: 127 pass, one existing route cooldown test fails because it expects TextButton for the unchanged OutlinedButton refresh control; isolated reproduction confirms the same failure. No unrelated route changes were made.
 - Backend/API unchanged: pickup v1 tracking-ID at `d5c160d4a5a21272e487b6f46a82de35e81395cb`, platform adoption `1858785e`; local pickup spec v2.13 records the Flutter-only scan UI while retaining backend manual compatibility (230 lines). No dependencies, endpoint/DTO/permission changes or environment-file access. Reviewed familiar navigation, visible labels/results, action guards and text scaling against the design guide. Only Linux is connected; installed Android/browser camera, assistive technology and deployed API acceptance remain unverified. Branch: `feature/courier-scan-only-verification`.
+
+## 2026-10-29 — Support-ticket notifications and inbox categories
+
+- Synced the Courier support-ticket and notification contracts for safe in-app ticket alerts and role-specific category filtering. The Courier focused suite (90 tests) and `flutter analyze --no-pub` pass; no installed device, deployed API, or Flutter build acceptance is claimed.
+- Independent contract review found both Buyer and Courier parsers reject nullable redacted resource fields (TCK-NOTIF-001, P2); disposition is pending. API validation used isolated SQLite; PostgreSQL/live acceptance remains open.
+
+## 2026-10-29 — Nullable notification projections
+
+- Courier now handles nullable/redacted notification resource fields without treating a missing destination as navigable. The implementation suite (116 tests), analyzer, and diff checks pass per implementor; independent retesting is running. No installed-device, build, deployed API, or live acceptance is claimed.
+
+## 2026-10-29 — Independent nullable-notification retest
+
+- Independent tester confirms Courier accepts the saved nullable-resource reproduction with no new findings; 62 repository/target/navigation/screen checks pass. No app build, environment access, live API, or device acceptance occurred. Buyer retest also passed; see the main progress log for its separate result.

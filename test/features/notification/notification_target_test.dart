@@ -5,6 +5,7 @@ import 'package:aisley_app/core/networking/api_contract_exception.dart';
 import 'package:aisley_app/core/security/token_storage.dart';
 import 'package:aisley_app/features/delivery/presentation/controllers/delivery_controller.dart';
 import 'package:aisley_app/features/notification/domain/notification_target.dart';
+import 'package:aisley_app/features/notification/domain/notification_models.dart';
 import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
 import 'package:aisley_app/features/pickup/presentation/controllers/pickup_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,6 +72,78 @@ void main() {
       workNotification(resourceType: 'unknown'),
     ]) {
       expect(NotificationTarget.resolve(notification), isNull);
+    }
+  });
+
+  test('redacted ticket alert stays readable without a work target', () {
+    final notification = CourierNotification.fromJson({
+      'id': 'notification-redacted',
+      'type': 'support-ticket.admin-replied',
+      'title': 'Support reply received',
+      'summary': 'SUP-1234 has a new reply.',
+      'read_at': null,
+      'created_at': '2026-10-29T02:00:00Z',
+      'resource_type': null,
+      'resource_id': null,
+      'destination': null,
+    });
+
+    expect(notification.title, 'Support reply received');
+    expect(notification.summary, 'SUP-1234 has a new reply.');
+    expect(NotificationTarget.resolve(notification), isNull);
+  });
+
+  test('resolves safe support ticket notifications only', () {
+    const ticketId = '11111111-1111-4111-8111-111111111111';
+    final notification = CourierNotification(
+      id: 'alert-ticket',
+      type: 'support-ticket.admin-replied',
+      title: 'Admin replied to your support ticket',
+      summary: 'SUP-1001 has a new reply.',
+      resourceType: 'support_ticket',
+      resourceId: ticketId,
+      destination: '/support-tickets/$ticketId',
+      createdAt: DateTime.utc(2026, 10, 29),
+      category: 'support',
+      categoryLabel: 'Support',
+    );
+    final target = NotificationTarget.resolve(notification);
+    expect(target?.kind, NotificationTargetKind.supportTicket);
+    expect(target?.resourceId, ticketId);
+
+    for (final invalid in [
+      CourierNotification(
+        id: notification.id,
+        type: 'unknown',
+        title: notification.title,
+        summary: notification.summary,
+        resourceType: notification.resourceType,
+        resourceId: ticketId,
+        destination: '/support-tickets/$ticketId',
+        createdAt: notification.createdAt,
+      ),
+      CourierNotification(
+        id: notification.id,
+        type: notification.type,
+        title: notification.title,
+        summary: notification.summary,
+        resourceType: notification.resourceType,
+        resourceId: 'not-a-uuid',
+        destination: '/support-tickets/not-a-uuid',
+        createdAt: notification.createdAt,
+      ),
+      CourierNotification(
+        id: notification.id,
+        type: notification.type,
+        title: notification.title,
+        summary: notification.summary,
+        resourceType: notification.resourceType,
+        resourceId: ticketId,
+        destination: 'https://example.invalid/support-tickets/$ticketId',
+        createdAt: notification.createdAt,
+      ),
+    ]) {
+      expect(NotificationTarget.resolve(invalid), isNull);
     }
   });
 

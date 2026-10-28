@@ -7,6 +7,7 @@ import '../domain/notification_models.dart';
 abstract interface class NotificationRepository {
   Future<CourierNotificationPage> fetchNotifications({
     NotificationFilter filter = NotificationFilter.all,
+    String category = 'all',
     int limit = 20,
     String? cursor,
   });
@@ -26,6 +27,7 @@ class ApiNotificationRepository implements NotificationRepository {
   @override
   Future<CourierNotificationPage> fetchNotifications({
     NotificationFilter filter = NotificationFilter.all,
+    String category = 'all',
     int limit = 20,
     String? cursor,
   }) async {
@@ -39,6 +41,7 @@ class ApiNotificationRepository implements NotificationRepository {
       authenticated: true,
       queryParameters: <String, String>{
         'status': filter.apiValue,
+        if (category != 'all') 'category': category,
         'limit': '$limit',
         if (normalizedCursor != null && normalizedCursor.isNotEmpty)
           'cursor': normalizedCursor,
@@ -71,11 +74,13 @@ class ApiNotificationRepository implements NotificationRepository {
       meta['generated_at'],
       'notification.list.generated_at',
     );
+    final categories = courierNotificationCategoryCatalog(meta['categories']);
 
     return CourierNotificationPage(
       items: List<CourierNotification>.unmodifiable(items),
       nextCursor: nextCursor,
       generatedAt: generatedAt,
+      categories: categories,
     );
   }
 

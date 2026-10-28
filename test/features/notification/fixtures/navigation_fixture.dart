@@ -12,6 +12,7 @@ import 'package:aisley_app/features/notification/presentation/controllers/notifi
 import 'package:aisley_app/features/pickup/data/pickup_repository.dart';
 import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
 import 'package:aisley_app/features/pickup/presentation/controllers/pickup_controller.dart';
+import 'package:aisley_app/features/support/presentation/controllers/support_ticket_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -135,6 +136,7 @@ class NavigationNotificationRepository implements NotificationRepository {
   @override
   Future<CourierNotificationPage> fetchNotifications({
     NotificationFilter filter = NotificationFilter.all,
+    String category = 'all',
     int limit = 20,
     String? cursor,
   }) async => CourierNotificationPage(items: [notification]);
@@ -172,11 +174,13 @@ class NavigationFixture {
   late final notifications = NotificationController(
     notificationRepository: notificationRepository,
   );
+  SupportTicketController? supportTicketController;
 
   Future<void> openAlert(
     WidgetTester tester, {
     Brightness brightness = Brightness.light,
     double textScale = 1,
+    String notificationTitle = 'Work updated',
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -191,6 +195,7 @@ class NavigationFixture {
           pickupController: pickup,
           deliveryController: delivery,
           notificationController: notifications,
+          supportTicketController: supportTicketController,
         ),
       ),
     );
@@ -198,19 +203,20 @@ class NavigationFixture {
     await tester.tap(find.byTooltip('Notifications'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('Work updated'),
+      find.text(notificationTitle),
       150,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.ensureVisible(find.text('Work updated'));
+    await tester.ensureVisible(find.text(notificationTitle));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Work updated'));
+    await tester.tap(find.text(notificationTitle));
     await tester.pumpAndSettle();
   }
 
   Future<void> close(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox.shrink());
     notifications.dispose();
+    supportTicketController?.dispose();
     pickup.dispose();
     delivery.dispose();
     auth.dispose();

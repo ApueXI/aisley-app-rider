@@ -16,6 +16,64 @@ enum NotificationFilter {
   };
 }
 
+class NotificationCategory {
+  const NotificationCategory({required this.key, required this.label});
+
+  final String key;
+  final String label;
+
+  factory NotificationCategory.fromJson(Map<String, dynamic> json) {
+    return NotificationCategory(
+      key: _requiredString(json['key'], 'notification.category.key'),
+      label: _requiredString(json['label'], 'notification.category.label'),
+    );
+  }
+}
+
+const courierNotificationCategories = <NotificationCategory>[
+  NotificationCategory(key: 'pickups', label: 'Pickups'),
+  NotificationCategory(key: 'deliveries', label: 'Deliveries'),
+  NotificationCategory(key: 'linehaul', label: 'Linehaul'),
+  NotificationCategory(key: 'support', label: 'Support tickets'),
+  NotificationCategory(key: 'other', label: 'Other'),
+];
+
+List<NotificationCategory> courierNotificationCategoryCatalog(Object? raw) {
+  if (raw == null) {
+    return courierNotificationCategories;
+  }
+  if (raw is! List) {
+    throw const ApiContractException('notification.list.categories');
+  }
+
+  final knownKeys = courierNotificationCategories
+      .map((item) => item.key)
+      .toSet();
+  final labels = <String, String>{};
+  for (final value in raw) {
+    if (value is! Map) {
+      throw const ApiContractException('notification.list.category');
+    }
+    final category = NotificationCategory.fromJson(
+      Map<String, dynamic>.from(value),
+    );
+    if (knownKeys.contains(category.key) && category.key != 'other') {
+      labels[category.key] = category.label;
+    }
+  }
+
+  return List<NotificationCategory>.unmodifiable(
+    courierNotificationCategories.map(
+      (category) => category.key == 'other'
+          ? category
+          : NotificationCategory(
+              key: category.key,
+              label: labels[category.key] ?? category.label,
+            ),
+    ),
+  );
+}
+
 class CourierNotification {
   const CourierNotification({
     required this.id,
@@ -27,6 +85,8 @@ class CourierNotification {
     this.readAt,
     this.resourceId,
     this.destination,
+    this.category = 'other',
+    this.categoryLabel = 'Other',
   });
 
   final String id;
@@ -35,9 +95,11 @@ class CourierNotification {
   final String summary;
   final DateTime createdAt;
   final DateTime? readAt;
-  final String resourceType;
+  final String? resourceType;
   final String? resourceId;
   final String? destination;
+  final String category;
+  final String categoryLabel;
 
   bool get isRead => readAt != null;
 
@@ -49,6 +111,10 @@ class CourierNotification {
     'pickup-schedule.cancelled' => 'Pickup cancelled',
     'pickup-schedule.reminder' => 'Pickup reminder',
     'courier-task.final-mile-offered' => 'Delivery offered',
+    'support-ticket.created' => 'Support ticket received',
+    'support-ticket.requester-replied' => 'Support ticket reply',
+    'support-ticket.admin-replied' => 'Support reply received',
+    'support-ticket.status-changed' => 'Support ticket updated',
     _ => 'Courier update',
   };
 
@@ -63,10 +129,24 @@ class CourierNotification {
       resourceType: resourceType,
       resourceId: resourceId,
       destination: destination,
+      category: category,
+      categoryLabel: categoryLabel,
     );
   }
 
   factory CourierNotification.fromJson(Map<String, dynamic> json) {
+    final categoryValue = _nullableString(
+      json['category'],
+      'notification.category',
+    );
+    final category =
+        courierNotificationCategories.any((value) => value.key == categoryValue)
+        ? categoryValue!
+        : 'other';
+    final categoryLabelValue = _nullableString(
+      json['category_label'],
+      'notification.category_label',
+    );
     return CourierNotification(
       id: _requiredString(json['id'], 'notification.id'),
       type: _requiredString(json['type'], 'notification.type'),
@@ -77,7 +157,7 @@ class CourierNotification {
         json['created_at'],
         'notification.created_at',
       ),
-      resourceType: _requiredString(
+      resourceType: _nullableString(
         json['resource_type'],
         'notification.resource_type',
       ),
@@ -89,6 +169,13 @@ class CourierNotification {
         json['destination'],
         'notification.destination',
       ),
+      category: category,
+      categoryLabel: category == 'other'
+          ? 'Other'
+          : categoryLabelValue ??
+                courierNotificationCategories
+                    .firstWhere((value) => value.key == category)
+                    .label,
     );
   }
 }
@@ -98,11 +185,13 @@ class CourierNotificationPage {
     required this.items,
     this.nextCursor,
     this.generatedAt,
+    this.categories = courierNotificationCategories,
   });
 
   final List<CourierNotification> items;
   final String? nextCursor;
   final DateTime? generatedAt;
+  final List<NotificationCategory> categories;
 }
 
 String _requiredString(Object? value, String field) {

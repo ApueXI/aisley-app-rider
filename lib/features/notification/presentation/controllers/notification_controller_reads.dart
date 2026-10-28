@@ -48,6 +48,7 @@ extension NotificationControllerReads on NotificationController {
     try {
       final page = await notificationRepository.fetchNotifications(
         filter: filter,
+        category: category,
         limit: 20,
         cursor: cursor,
       );
@@ -59,6 +60,7 @@ extension NotificationControllerReads on NotificationController {
       items = _mergeItems(items, page.items);
       nextCursor = page.nextCursor;
       generatedAt = page.generatedAt ?? generatedAt;
+      categories = page.categories;
       listStatus = items.isEmpty
           ? NotificationLoadStatus.empty
           : NotificationLoadStatus.loaded;
@@ -119,6 +121,19 @@ extension NotificationControllerReads on NotificationController {
     await refresh();
   }
 
+  Future<void> setCategory(String value) async {
+    if ((value != 'all' &&
+            !categories.any((category) => category.key == value)) ||
+        category == value) {
+      return;
+    }
+    category = value;
+    nextCursor = null;
+    items = const <CourierNotification>[];
+    generatedAt = null;
+    await refresh();
+  }
+
   Future<void> _loadList({required int listEpoch, required bool silent}) async {
     if (!silent || items.isEmpty) {
       listStatus = NotificationLoadStatus.loading;
@@ -128,6 +143,7 @@ extension NotificationControllerReads on NotificationController {
     try {
       final page = await notificationRepository.fetchNotifications(
         filter: filter,
+        category: category,
         limit: 20,
       );
       if (listEpoch != _listEpoch) {
@@ -137,6 +153,7 @@ extension NotificationControllerReads on NotificationController {
       items = _mergeItems(const <CourierNotification>[], page.items);
       nextCursor = page.nextCursor;
       generatedAt = page.generatedAt;
+      categories = page.categories;
       listStatus = items.isEmpty
           ? NotificationLoadStatus.empty
           : NotificationLoadStatus.loaded;

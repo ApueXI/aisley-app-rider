@@ -1,6 +1,31 @@
 part of 'support_ticket_controller.dart';
 
 extension SupportTicketControllerReads on SupportTicketController {
+  Future<SupportTicketSummary?> openDetailById(String ticketId) async {
+    final id = ticketId.trim();
+    if (!RegExp(r'^[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$')
+        .hasMatch(id)) {
+      return null;
+    }
+
+    stopPolling();
+    _detailRequest++;
+    activeTicketId = id;
+    activeTicket = ticketById(id);
+    events = const <SupportTicketEvent>[];
+    nextEventCursor = null;
+    detailStatus = SupportTicketLoadStatus.loading;
+    detailError = null;
+    loadingMoreEvents = false;
+    _notify();
+    await refreshDetail();
+    if (activeTicketId != id ||
+        detailStatus != SupportTicketLoadStatus.loaded) {
+      return null;
+    }
+    return activeTicket;
+  }
+
   Future<void> refreshList({bool silent = false}) async {
     if (!canRetry) return;
     final scope = _scopeEpoch;

@@ -6,12 +6,56 @@ import 'package:aisley_app/features/delivery/domain/delivery_models.dart';
 import 'package:aisley_app/features/delivery/presentation/final_mile_task_entry_screen.dart';
 import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
 import 'package:aisley_app/features/pickup/presentation/pickup_screen.dart';
+import 'package:aisley_app/features/notification/domain/notification_models.dart';
+import 'package:aisley_app/features/support/data/support_ticket_repository.dart';
+import 'package:aisley_app/features/support/domain/support_ticket_models.dart';
+import 'package:aisley_app/features/support/presentation/controllers/support_ticket_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fixtures/navigation_fixture.dart';
 
 void main() {
+  testWidgets('support alert opens the validated local ticket detail', (
+    tester,
+  ) async {
+    const ticketId = '11111111-1111-4111-8111-111111111111';
+    final fixture = NavigationFixture();
+    final repository = _NotificationTargetSupportRepository();
+    fixture.supportTicketController = SupportTicketController(
+      repository: repository,
+    );
+    fixture.notificationRepository.notification = CourierNotification(
+      id: 'alert-support',
+      type: 'support-ticket.admin-replied',
+      title: 'Admin replied to your support ticket',
+      summary: 'SUP-4001 has a new reply.',
+      resourceType: 'support_ticket',
+      resourceId: ticketId,
+      destination: '/support-tickets/$ticketId',
+      createdAt: DateTime.utc(2026, 10, 29),
+      category: 'support',
+      categoryLabel: 'Support',
+    );
+
+    await fixture.openAlert(
+      tester,
+      notificationTitle: 'Admin replied to your support ticket',
+    );
+    await tester.tap(find.text('Open related work'));
+    await tester.pumpAndSettle();
+
+    expect(repository.detailReads, [ticketId]);
+    expect(find.text('SUP-4001'), findsOneWidget);
+    expect(find.text('Admin reply in the owning ticket.'), findsOneWidget);
+    expect(fixture.pickupRepository.listReads, 0);
+    expect(fixture.pickupRepository.scheduleQueries, isEmpty);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Notification details'), findsOneWidget);
+    await fixture.close(tester);
+  });
+
   testWidgets(
     'alert opens a specific current offer and Back preserves unread history',
     (tester) async {
@@ -277,4 +321,46 @@ void main() {
       await fixture.close(tester);
     });
   }
+}
+
+class _NotificationTargetSupportRepository implements SupportTicketRepository {
+  final detailReads = <String>[];
+
+  @override
+  Future<SupportTicketDetailPage> detail(
+    String ticketId, {
+    String? cursor,
+    int limit = 20,
+  }) async {
+    detailReads.add(ticketId);
+    return SupportTicketDetailPage(
+      ticket: const SupportTicketDetailRecord(
+        id: '11111111-1111-4111-8111-111111111111',
+        reference: 'SUP-4001',
+        subject: 'Need help with my account',
+        category: 'account',
+        status: 'open',
+        revision: 2,
+        requesterRole: 'courier',
+        unreadCount: 1,
+      ),
+      events: const [
+        SupportTicketEvent(
+          id: 'event-1',
+          sequence: 1,
+          type: 'reply',
+          actorRole: 'admin',
+          isMine: false,
+          assignmentChanged: false,
+          body: 'Admin reply in the owning ticket.',
+        ),
+      ],
+      nextCursor: null,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw StateError(
+    'Unexpected support operation: ${invocation.memberName}',
+  );
 }

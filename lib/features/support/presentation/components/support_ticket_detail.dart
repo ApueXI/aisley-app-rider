@@ -5,12 +5,14 @@ class SupportTicketDetailScreen extends StatefulWidget {
     required this.controller,
     required this.authController,
     required this.ticket,
+    this.initiallyLoaded = false,
     super.key,
   });
 
   final SupportTicketController controller;
   final AuthController authController;
   final SupportTicketSummary ticket;
+  final bool initiallyLoaded;
 
   @override
   State<SupportTicketDetailScreen> createState() =>
@@ -32,6 +34,12 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen>
     );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      if (widget.initiallyLoaded &&
+          widget.controller.activeTicketId == widget.ticket.id &&
+          widget.controller.detailStatus == SupportTicketLoadStatus.loaded) {
+        widget.controller.startDetailPolling(widget.ticket.id);
+        return;
+      }
       await widget.controller.openDetail(widget.ticket);
       if (mounted) widget.controller.startDetailPolling(widget.ticket.id);
     });

@@ -135,6 +135,11 @@ class _NotificationDetailCard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              const SizedBox(height: 4),
+              CourierStatusBadge(
+                label: notification.categoryLabel,
+                tone: CourierStatusTone.neutral,
+              ),
               const SizedBox(height: 8),
               Text(
                 notification.title,
