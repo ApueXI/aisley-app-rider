@@ -7,39 +7,22 @@ class _TaskIdentity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      color: scheme.secondaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _taskLegLabel(task),
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: scheme.onSecondaryContainer,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              task.order?.displayReference ?? 'Order reference unavailable',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: scheme.onSecondaryContainer,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              task.waybill?.displayReference ?? 'Waybill reference unavailable',
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: scheme.onSecondaryContainer),
-            ),
-            const SizedBox(height: 12),
-            _PickupStatusLabel(status: task.rawStatus),
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CourierSectionHeader(
+            title: _taskLegLabel(task),
+            subtitle:
+                task.order?.displayReference ?? 'Order reference unavailable',
+          ),
+          if (task.waybill?.displayReference case final reference?) ...[
+            const SizedBox(height: 8),
+            Text('Waybill $reference'),
           ],
-        ),
+          const SizedBox(height: 12),
+          _PickupStatusLabel(status: task.rawStatus),
+        ],
       ),
     );
   }
@@ -90,21 +73,14 @@ class _TaskDetails extends StatelessWidget {
         ),
     ];
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Pickup details',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 8),
-            ...rows,
-          ],
-        ),
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CourierSectionHeader(title: 'Pickup details'),
+          const SizedBox(height: 8),
+          ...rows,
+        ],
       ),
     );
   }

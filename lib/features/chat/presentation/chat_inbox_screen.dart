@@ -4,6 +4,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../shared/presentation/courier_status_badge.dart';
+import '../../../shared/presentation/courier_surface_card.dart';
 import '../../auth/presentation/controllers/auth_controller.dart';
 import '../domain/chat_models.dart';
 import 'controllers/chat_controller.dart';
@@ -139,25 +141,59 @@ class _ChatInboxScreenState extends State<ChatInboxScreen>
                   const _ChatInboxNotice(
                     message: 'No task conversations yet. Open an eligible task to message Logistics.',
                   ),
-                for (final thread in controller.threads)
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                    title: Text(
-                      '${thread.counterpartyLabel ?? _label(thread.counterpartyRole)} · ${thread.taskReference ?? thread.orderReference ?? 'Task'}',
-                    ),
-                    subtitle: Text(
-                      '${thread.leg == 'first_mile' ? 'First mile' : 'Final mile'} · ${thread.lastMessagePreview ?? 'Open conversation'}${thread.sendAllowed == false ? ' · Read-only' : ''}',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: thread.unreadCount > 0
-                        ? Text(
-                            '${thread.unreadCount} unread',
-                            style: Theme.of(context).textTheme.labelMedium,
-                          )
-                        : const Icon(Icons.chevron_right),
+                for (final thread in controller.threads) ...[
+                  CourierSurfaceCard(
                     onTap: () => _open(thread),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          thread.counterpartyLabel ??
+                              _label(thread.counterpartyRole),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          thread.taskReference ??
+                              thread.orderReference ??
+                              'Task reference unavailable',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            CourierStatusBadge(
+                              label: thread.leg == 'first_mile'
+                                  ? 'First mile'
+                                  : 'Final mile',
+                              tone: CourierStatusTone.info,
+                            ),
+                            if (thread.unreadCount > 0)
+                              CourierStatusBadge(
+                                label: '${thread.unreadCount} unread',
+                                tone: CourierStatusTone.warning,
+                              )
+                            else
+                              const CourierStatusBadge(label: 'Read'),
+                            if (thread.sendAllowed == false)
+                              const CourierStatusBadge(label: 'Read-only'),
+                          ],
+                        ),
+                        if (thread.lastMessagePreview case final preview?) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            preview,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 10),
+                ],
                 if (controller.canLoadMoreInbox)
                   OutlinedButton(
                     onPressed: controller.loadingMoreInbox

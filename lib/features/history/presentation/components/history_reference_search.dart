@@ -54,41 +54,63 @@ class _HistoryReferenceSearchState extends State<_HistoryReferenceSearch> {
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _reference,
-          focusNode: _focus,
-          decoration: const InputDecoration(labelText: 'Order reference'),
-          textInputAction: TextInputAction.search,
-          autocorrect: false,
-          enableSuggestions: false,
-          onSubmitted: (_) => _search(),
-        ),
-        const SizedBox(height: 8),
-        const Text('Enter the full order reference. It must match exactly.'),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          children: [
-            FilledButton(
-              onPressed: controller.canSearch ? _search : null,
-              child: const Text('Search'),
-            ),
-            TextButton(onPressed: _clear, child: const Text('Clear')),
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _reference,
+            focusNode: _focus,
+            decoration: const InputDecoration(labelText: 'Order reference'),
+            textInputAction: TextInputAction.search,
+            autocorrect: false,
+            enableSuggestions: false,
+            onSubmitted: (_) => _search(),
+          ),
+          const SizedBox(height: 8),
+          const Text('Enter the full order reference. It must match exactly.'),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: controller.canSearch ? _search : null,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                    ),
+                    child: const Text('Search'),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: _clear,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                    ),
+                    child: const Text('Clear'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (!controller.canRetryRateLimit) ...[
+            const SizedBox(height: 8),
+            const Text('Wait before searching or refreshing again.'),
           ],
-        ),
-        if (!controller.canRetryRateLimit) ...[
-          const SizedBox(height: 8),
-          const Text('Wait before searching or refreshing again.'),
+          if (controller.activeReference != null) ...[
+            const SizedBox(height: 8),
+            Text('Results for order reference: ${controller.activeReference}'),
+          ],
         ],
-        if (controller.activeReference != null) ...[
-          const SizedBox(height: 8),
-          Text('Results for order reference: ${controller.activeReference}'),
-        ],
-      ],
+      ),
     );
   }
 }

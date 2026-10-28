@@ -7,20 +7,16 @@ class _PickupStatusLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: scheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        _taskStatusLabel(status),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: scheme.onSecondaryContainer,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+    return CourierStatusBadge(
+      label: _taskStatusLabel(status),
+      tone: switch (status) {
+        'delivered' ||
+        'picked_up_from_seller' ||
+        'picked_up_from_hub' => CourierStatusTone.success,
+        'rejected' || 'cancelled' => CourierStatusTone.critical,
+        'in_transit' || 'out_for_delivery' => CourierStatusTone.info,
+        _ => CourierStatusTone.neutral,
+      },
     );
   }
 }

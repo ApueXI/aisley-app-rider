@@ -90,20 +90,14 @@ class _DeliveryStatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: scheme.onSurfaceVariant,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+    return CourierStatusBadge(
+      label: label,
+      tone: switch (label) {
+        'Delivered' => CourierStatusTone.success,
+        'Rejected' || 'Cancelled' => CourierStatusTone.critical,
+        'In transit' || 'Out for delivery' => CourierStatusTone.info,
+        _ => CourierStatusTone.neutral,
+      },
     );
   }
 }

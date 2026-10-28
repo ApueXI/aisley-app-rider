@@ -72,12 +72,14 @@ class _RegistrationEmailFieldsState extends State<RegistrationEmailFields> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              c.verified ? 'Your email is verified' : 'Verify your email',
+              c.verified ? 'Email access verified' : 'Email verification',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              c.verified ? c.verifiedEmail : 'Confirm your email with a six-digit code before completing registration. Your application will still need approval.',
+              c.verified
+                  ? 'Inbox access verified for ${c.verifiedEmail}. This does not determine Courier eligibility or activate your account.'
+                  : 'Enter your email to receive a six-digit code. Verifying it confirms inbox access only; it does not determine Courier eligibility or activate your account. Logistics reviews your application after registration.',
             ),
             if (c.message != null) ...[
               const SizedBox(height: 12),

@@ -54,9 +54,19 @@ void main() {
           tester.view.viewInsets = const FakeViewPadding(bottom: 280);
           await tester.pump();
           expect(tester.takeException(), isNull);
-          await tester.ensureVisible(find.byTooltip('Retry same message'));
+          expect(find.text('Message not confirmed'), findsOneWidget);
+          expect(find.byTooltip('Send message'), findsNothing);
           expect(
-            tester.getRect(find.byTooltip('Retry same message')).bottom,
+            find.byWidgetPredicate(
+              (widget) =>
+                  widget is TextField &&
+                  widget.decoration?.labelText == 'Message',
+            ),
+            findsNothing,
+          );
+          await tester.ensureVisible(find.text('Retry same message'));
+          expect(
+            tester.getRect(find.text('Retry same message')).bottom,
             lessThanOrEqualTo(tester.view.physicalSize.height - 280),
           );
           expect(find.byTooltip('Back'), findsOneWidget);
@@ -152,6 +162,7 @@ class _LayoutController extends ChatController {
         'This message could not be confirmed. Check the conversation before retrying. '
         'Your previous text and selected images will be used for the same message.';
     sendStatus = ChatSendStatus.uncertain;
+    unresolvedSend = true;
     pendingAttempt = const ChatSendAttempt(
       body: 'First line\nSecond line\nThird line\nFourth line',
       key: '11111111-1111-4111-8111-111111111111',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/presentation/courier_surface_card.dart';
 import 'controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 440),
                   child: AutofillGroup(
@@ -74,15 +75,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const _BrandMark(),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
                           Text(
-                            'Courier sign in',
+                            'Sign in',
                             style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Sign in to view your pickups and deliveries.',
+                            'Sign in to your Courier account',
                             style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(
                                   color: Theme.of(context)
@@ -95,95 +96,122 @@ class _LoginScreenState extends State<LoginScreen> {
                             _ErrorBanner(message: errorMessage),
                             const SizedBox(height: 16),
                           ],
-                          TextFormField(
-                            controller: _emailController,
-                            enabled: !isSubmitting,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                            autofillHints: const <String>[
-                              AutofillHints.username,
-                            ],
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              hintText: 'you@example.com',
-                              prefixIcon: Icon(Icons.mail_outline),
-                            ),
-                            validator: _validateEmail,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _passwordController,
-                            enabled: !isSubmitting,
-                            obscureText: _obscurePassword,
-                            textInputAction: TextInputAction.done,
-                            autofillHints: const <String>[
-                              AutofillHints.password,
-                            ],
-                            onFieldSubmitted: (_) => _submit(),
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                tooltip: _obscurePassword
-                                    ? 'Show password'
-                                    : 'Hide password',
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
+                          CourierSurfaceCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                TextFormField(
+                                  controller: _emailController,
+                                  enabled: !isSubmitting,
+                                  keyboardType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.next,
+                                  autofillHints: const <String>[
+                                    AutofillHints.username,
+                                  ],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Email',
+                                    hintText: 'courier@example.com',
+                                    prefixIcon: Icon(Icons.mail_outline),
+                                  ),
+                                  validator: _validateEmail,
                                 ),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Enter your password.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 22),
-                          if (!widget.authController.canSignIn) ...[
-                            Semantics(
-                              liveRegion: true,
-                              child: const Text(
-                                'Please wait before trying to sign in again.',
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                          Semantics(
-                            button: true,
-                            enabled:
-                                !isSubmitting &&
-                                widget.authController.canSignIn,
-                            label: isSubmitting ? 'Signing in' : 'Sign in',
-                            child: FilledButton(
-                              onPressed:
-                                  isSubmitting ||
-                                      !widget.authController.canSignIn
-                                  ? null
-                                  : _submit,
-                              child: isSubmitting
-                                  ? const SizedBox(
-                                      height: 22,
-                                      width: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: Colors.white,
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _passwordController,
+                                  enabled: !isSubmitting,
+                                  obscureText: _obscurePassword,
+                                  textInputAction: TextInputAction.done,
+                                  autofillHints: const <String>[
+                                    AutofillHints.password,
+                                  ],
+                                  onFieldSubmitted: (_) => _submit(),
+                                  decoration: InputDecoration(
+                                    labelText: 'Password',
+                                    prefixIcon: const Icon(Icons.lock_outline),
+                                    suffixIcon: IconButton(
+                                      tooltip: _obscurePassword
+                                          ? 'Show password'
+                                          : 'Hide password',
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscurePassword = !_obscurePassword;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_outlined
+                                            : Icons.visibility_off_outlined,
                                       ),
-                                    )
-                                  : const Text('Sign in'),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Enter your password.';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Enter your Courier account password',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                                const SizedBox(height: 20),
+                                if (!widget.authController.canSignIn) ...[
+                                  Semantics(
+                                    liveRegion: true,
+                                    child: const Text(
+                                      'Please wait before trying to sign in again.',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                Semantics(
+                                  button: true,
+                                  enabled:
+                                      !isSubmitting &&
+                                      widget.authController.canSignIn,
+                                  label: isSubmitting
+                                      ? 'Signing in'
+                                      : 'Sign in',
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: FilledButton(
+                                      onPressed:
+                                          isSubmitting ||
+                                              !widget.authController.canSignIn
+                                          ? null
+                                          : _submit,
+                                      child: isSubmitting
+                                          ? const SizedBox(
+                                              height: 22,
+                                              width: 22,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Text('Sign in'),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton(
+                                    onPressed: isSubmitting
+                                        ? null
+                                        : widget.onRegister,
+                                    child: const Text('Create account'),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: isSubmitting ? null : widget.onRegister,
-                            child: const Text('New Courier? Register here'),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -224,15 +252,24 @@ String? _validateEmail(String? value) {
 class _BrandMark extends StatelessWidget {
   const _BrandMark();
   @override
-  Widget build(BuildContext context) => Align(
-    alignment: Alignment.centerLeft,
-    child: Text(
-      'AISLEY',
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(
+        Icons.local_shipping_outlined,
+        size: 28,
         color: Theme.of(context).colorScheme.primary,
-        fontWeight: FontWeight.w700,
       ),
-    ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Text(
+          'AISLEY Rider',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    ],
   );
 }
 

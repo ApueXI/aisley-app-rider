@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/chat_media/image_widgets.dart';
+import '../../../shared/presentation/courier_status_badge.dart';
+import '../../../shared/presentation/courier_surface_card.dart';
 import 'chat_message_row.dart';
 import 'controllers/chat_controller.dart';
 
@@ -35,19 +37,51 @@ class ChatThreadBody extends StatelessWidget {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Text(
-                      thread?.counterpartyLabel ?? title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      '${task?.leg == 'first_mile' ? 'First mile' : 'Final mile'} · ${thread?.taskReference ?? task?.reference ?? thread?.orderReference ?? 'Task'}',
+                    CourierSurfaceCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            thread?.counterpartyLabel ?? title,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            thread?.taskReference ??
+                                task?.reference ??
+                                thread?.orderReference ??
+                                'Task reference unavailable',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              CourierStatusBadge(
+                                label: task?.leg == 'first_mile'
+                                    ? 'First mile'
+                                    : 'Final mile',
+                                tone: CourierStatusTone.info,
+                              ),
+                              if ((thread != null &&
+                                      thread.sendAllowed != true) ||
+                                  task?.canCompose == false)
+                                const CourierStatusBadge(label: 'Read-only'),
+                            ],
+                          ),
+                          if ((thread != null && thread.sendAllowed != true) ||
+                              task?.canCompose == false) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Replies are unavailable in this conversation.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    if ((thread != null && thread.sendAllowed != true) ||
-                        task?.canCompose == false)
-                      const Text(
-                        'Read-only conversation. Replies are unavailable here.',
-                      ),
                     if (controller.threadError case final error?) ...[
                       Text(error),
                       if (controller.canRetry)
@@ -101,7 +135,29 @@ class ChatThreadBody extends StatelessWidget {
                           liveRegion: true,
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 12),
-                            child: Text(error),
+                            child: controller.pendingAttempt == null
+                                ? Text(error)
+                                : CourierSurfaceCard(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (controller.unresolvedSend) ...[
+                                          const CourierStatusBadge(
+                                            label: 'Message not confirmed',
+                                            tone: CourierStatusTone.warning,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          const Text(
+                                            'Check the conversation and retry the same message. Do not send different text while its status is unresolved.',
+                                          ),
+                                          const SizedBox(height: 8),
+                                        ],
+                                        Text(error),
+                                      ],
+                                    ),
+                                  ),
                           ),
                         ),
                       if (controller.pendingAttempt != null &&
@@ -111,7 +167,55 @@ class ChatThreadBody extends StatelessWidget {
                           onPressed: onDiscardPending,
                           child: const Text('Discard pending retry'),
                         ),
-                      if (sendable)
+                      if (controller.pendingAttempt != null &&
+                          controller.sendStatus != ChatSendStatus.conflict)
+                        CourierSurfaceCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (controller.sendStatus ==
+                                  ChatSendStatus.sending) ...[
+                                const Text('Sending message…'),
+                                const SizedBox(height: 8),
+                              ],
+                              Text(
+                                'Message to retry',
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(controller.pendingAttempt!.body),
+                              const SizedBox(height: 12),
+                              FilledButton.icon(
+                                onPressed:
+                                    controller.sendStatus ==
+                                            ChatSendStatus.sending ||
+                                        !controller.canRetry ||
+                                        (controller.media != null &&
+                                            !controller.media!.ready)
+                                    ? null
+                                    : onSend,
+                                icon:
+                                    controller.sendStatus ==
+                                        ChatSendStatus.sending
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.refresh),
+                                label: Text(
+                                  controller.sendStatus ==
+                                          ChatSendStatus.sending
+                                      ? 'Sending…'
+                                      : 'Retry same message',
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else if (sendable)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -138,9 +242,7 @@ class ChatThreadBody extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             IconButton.filled(
-                              tooltip: controller.pendingAttempt == null
-                                  ? 'Send message'
-                                  : 'Retry same message',
+                              tooltip: 'Send message',
                               onPressed:
                                   controller.sendStatus ==
                                           ChatSendStatus.sending ||

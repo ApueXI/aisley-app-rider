@@ -5,6 +5,94 @@ mixin _DeliveryPhotoSelection on State<DeliveryTaskScreen> {
   String? _photoSelectionError;
   bool _isPickingPhoto = false;
   void Function()? _cancelPhotoUpload;
+  DeliveryCodCollection? _acknowledgedCollection;
+  String? _acknowledgedTaskId;
+  (String, String?, String?, String?, String?, String?, int?)?
+  _paymentProjectionSignature;
+
+  void initializeCashAcknowledgment() {
+    widget.deliveryController.addListener(_handlePaymentProjectionChange);
+  }
+
+  void disposeCashAcknowledgment() {
+    widget.deliveryController.removeListener(_handlePaymentProjectionChange);
+  }
+
+  void replaceCashAcknowledgmentController(
+    DeliveryController previousController,
+  ) {
+    previousController.removeListener(_handlePaymentProjectionChange);
+    widget.deliveryController.addListener(_handlePaymentProjectionChange);
+    _paymentProjectionSignature = null;
+    _clearCashAcknowledgment();
+  }
+
+  void updateCashAcknowledgmentTask(String previousId, String currentId) {
+    if (previousId == currentId) return;
+    _paymentProjectionSignature = null;
+    _clearCashAcknowledgment();
+  }
+
+  void clearCashAcknowledgment() => _clearCashAcknowledgment();
+
+  void _handlePaymentProjectionChange() {
+    final contextData = widget.deliveryController.contexts[widget.task.id];
+    final next = (
+      widget.task.id,
+      contextData?.paymentMethod,
+      contextData?.paymentStatus,
+      contextData?.payableTotal,
+      contextData?.currency,
+      contextData?.status,
+      contextData?.revision,
+    );
+    final previous = _paymentProjectionSignature;
+    _paymentProjectionSignature = next;
+    if (previous != null &&
+        previous != next &&
+        _acknowledgedCollection != null) {
+      setState(_clearCashAcknowledgment);
+    }
+  }
+
+  void _clearCashAcknowledgment() {
+    _acknowledgedCollection = null;
+    _acknowledgedTaskId = null;
+  }
+
+  bool cashAcknowledgmentMatches(
+    PickupTask task,
+    DeliveryContext? contextData,
+  ) {
+    final current = contextData?.codCollection;
+    return current != null &&
+        _acknowledgedTaskId == task.id &&
+        _acknowledgedCollection?.matches(current) == true;
+  }
+
+  bool paymentIsKnown(DeliveryContext? contextData) {
+    if (contextData == null) return false;
+    if (contextData.paymentMethod == 'cod') {
+      return contextData.codCollection != null;
+    }
+    return contextData.paymentMethod == 'prepaid' &&
+        contextData.paymentStatus == 'paid';
+  }
+
+  void setCashAcknowledgement(
+    PickupTask task,
+    DeliveryCodCollection collection,
+    bool acknowledged,
+  ) {
+    setState(() {
+      if (acknowledged) {
+        _acknowledgedTaskId = task.id;
+        _acknowledgedCollection = collection;
+      } else {
+        _clearCashAcknowledgment();
+      }
+    });
+  }
 
   Future<void> _capturePhoto() async {
     if (_isPickingPhoto) return;
@@ -82,48 +170,46 @@ mixin _DeliveryPhotoSelection on State<DeliveryTaskScreen> {
     final controller = widget.deliveryController;
     final payment = await controller.prepareDeliveryPayment(task);
     if (!mounted || payment == null) return;
-    var cashConfirmed = !payment.isCod;
+
+    if (payment.isCod &&
+        !cashAcknowledgmentMatches(task, controller.contexts[task.id])) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Cash due changed. Review the current amount and confirm collection again.',
+          ),
+        ),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, update) => AlertDialog(
-          scrollable: true,
-          title: Text(
-            payment.isCod ? 'Confirm COD collection' : 'Confirm delivery',
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (payment.isCod)
-                Text('Amount to collect: ${payment.displayAmount}'),
-              if (payment.isCod)
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: cashConfirmed,
-                  onChanged: (value) =>
-                      update(() => cashConfirmed = value == true),
-                  title: Text('I collected ${payment.displayAmount} in full.'),
-                )
-              else
-                const Text('This Order is prepaid and paid.'),
-              const Text(
-                'Submit the photo and Delivered request for Logistics confirmation.',
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: cashConfirmed
-                  ? () => Navigator.pop(dialogContext, true)
-                  : null,
-              child: const Text('Delivered'),
+      builder: (dialogContext) => AlertDialog(
+        scrollable: true,
+        title: const Text('Confirm delivery'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (payment.isCod)
+              Text('Cash collection acknowledged: ${payment.displayAmount}.')
+            else
+              const Text('This Order is prepaid and paid.'),
+            const Text(
+              'Submit the photo and Delivered request for Logistics validation.',
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delivered'),
+          ),
+        ],
       ),
     );
     if (!mounted || confirmed != true) return;
@@ -141,6 +227,10 @@ mixin _DeliveryPhotoSelection on State<DeliveryTaskScreen> {
       if (!controller.hasPendingProof(task) &&
           controller.proofs[task.id] != null) {
         _selectedPhoto = null;
+      }
+      if (controller.isCompletionPending(task) ||
+          controller.completions[task.id]?.isDelivered == true) {
+        _clearCashAcknowledgment();
       }
     });
   }

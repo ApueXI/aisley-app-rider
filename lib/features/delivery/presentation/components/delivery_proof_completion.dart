@@ -8,6 +8,7 @@ class _ProofAndCompletionCard extends StatelessWidget {
     required this.selectionError,
     required this.isPicking,
     required this.canCancelUpload,
+    required this.paymentReady,
     required this.onChoosePhoto,
     required this.cameraSupported,
     required this.onCapturePhoto,
@@ -24,6 +25,7 @@ class _ProofAndCompletionCard extends StatelessWidget {
   final String? selectionError;
   final bool isPicking;
   final bool canCancelUpload;
+  final bool paymentReady;
   final VoidCallback onChoosePhoto;
   final bool cameraSupported;
   final VoidCallback onCapturePhoto;
@@ -58,234 +60,229 @@ class _ProofAndCompletionCard extends StatelessWidget {
         !completionPending &&
         (evidenceId == null || proofRejected || proofStale);
 
-    return Card(
+    return CourierSurfaceCard(
       // Keep each paragraph and action independently readable when scrolled.
-      semanticContainer: false,
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CourierSectionHeader(title: 'Photo proof of delivery'),
+          const SizedBox(height: 8),
+          const Text(
+            'Choose a JPEG, PNG, or WebP photo under 10 MiB. '
+            'The server checks this photo for the current delivery task.',
+          ),
+          if (proofRejected) ...[
+            const SizedBox(height: 12),
             Text(
-              'Photo proof of delivery',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Choose a JPEG, PNG, or WebP photo under 10 MiB. '
-              'The server checks this photo for the current delivery task.',
-            ),
-            if (proofRejected) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Logistics rejected the previous photo. Choose a new photo and submit a new proof.',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
-            if (proofStale && !completionPending) ...[
-              const SizedBox(height: 12),
-              const Text(
-                'A fresh photo is required after a failed visit. Refresh to confirm photo freshness or submit a new photo.',
-              ),
-            ],
-            if (canChoosePhoto && selectedPhoto == null) ...[
-              const SizedBox(height: 12),
-              if (cameraSupported)
-                FilledButton.icon(
-                  onPressed: onCapturePhoto,
-                  icon: const Icon(Icons.camera_alt_outlined),
-                  label: const Text('Open camera for POD'),
-                ),
-              if (cameraSupported) const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: onChoosePhoto,
-                icon: const Icon(Icons.photo_library_outlined),
-                label: Text(
-                  cameraSupported ? 'Choose photo file' : 'Choose photo',
-                ),
-              ),
-            ],
-            if (isPicking)
-              const Padding(
-                padding: EdgeInsets.only(top: 12),
-                child: LinearProgressIndicator(),
-              ),
-            if (selectionError != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                selectionError!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
-            if (selectedPhoto != null && canChoosePhoto) ...[
-              const SizedBox(height: 12),
-              Semantics(
-                label: 'Selected proof photo preview',
-                child: Image.memory(
-                  selectedPhoto!.bytes,
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) =>
-                      const Text('Photo preview unavailable.'),
-                ),
-              ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  if (cameraSupported)
-                    OutlinedButton.icon(
-                      onPressed: onCapturePhoto,
-                      icon: const Icon(Icons.cameraswitch_outlined),
-                      label: const Text('Retake photo'),
-                    ),
-                  OutlinedButton.icon(
-                    onPressed: onChoosePhoto,
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('Replace from files'),
-                  ),
-                  TextButton.icon(
-                    onPressed: onDiscardPhoto,
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Remove photo'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              FilledButton.icon(
-                onPressed: onSubmitPhoto,
-                icon: const Icon(Icons.cloud_upload_outlined),
-                label: const Text('Delivered'),
-              ),
-            ],
-            if (actionStatus == DeliveryActionStatus.proofSubmitting) ...[
-              const SizedBox(height: 12),
-              const LinearProgressIndicator(),
-              if (canCancelUpload)
-                TextButton(
-                  onPressed: onCancelUpload,
-                  child: const Text('Cancel upload'),
-                ),
-            ],
-            if (actionError != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                actionError,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-              if (actionStatus == DeliveryActionStatus.consentRequired &&
-                  showPolicyAction)
-                TextButton.icon(
-                  onPressed: onOpenPolicies,
-                  icon: const Icon(Icons.policy_outlined),
-                  label: const Text('Review policies'),
-                ),
-              if (_canRetry(actionStatus) ||
-                  actionStatus == DeliveryActionStatus.validationError)
-                TextButton.icon(
-                  onPressed: busy || !controller.canRetryRateLimit
-                      ? null
-                      : () => controller.loadDetails(task),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh task'),
-                ),
-              if (_canRetry(actionStatus) &&
-                  actionStatus != DeliveryActionStatus.conflict &&
-                  (controller.hasPendingProof(task) ||
-                      controller.hasPendingCompletion(task)))
-                TextButton(
-                  onPressed: busy || !controller.canRetryRateLimit
-                      ? null
-                      : onSubmitPhoto,
-                  child: const Text('Retry Delivered'),
-                ),
-            ],
-            if (evidenceId != null && !proofRejected) ...[
-              const SizedBox(height: 12),
-              Semantics(
-                liveRegion: true,
-                child: Text(
-                  evidenceStatus == 'validated'
-                      ? 'Photo proof validated by Logistics. Delivery is not complete until Logistics validates the completion intent.'
-                      : 'Photo proof received. Awaiting Logistics validation; this does not mark the Order delivered.',
-                ),
-              ),
-            ],
-            if (evidenceId != null) ...[
-              const SizedBox(height: 16),
-              DeliveryProofPhotoPreview(
-                title: proofRejected
-                    ? 'Rejected submitted photo'
-                    : 'Submitted photo',
-                status:
-                    controller.proofPhotoStatuses[evidenceId] ??
-                    ProofPhotoLoadStatus.idle,
-                photo: controller.proofPhotos[evidenceId],
-                errorMessage: controller.proofPhotoErrors[evidenceId],
-                onRetry: () =>
-                    controller.loadProofPhoto(evidenceId, force: true),
-                semanticLabel: proofRejected
-                    ? 'Rejected proof of delivery photo'
-                    : 'Submitted proof of delivery photo',
-              ),
-            ],
-            const Divider(height: 32),
-            Text(
-              'Delivered intent',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            if (controller.completionErrors[task.id] != null) ...[
-              Text(
-                controller.completionErrors[task.id]!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (completion?.isDelivered == true)
-              const _DeliveredStatusText()
-            else if (completionPending)
-              const _AwaitingCompletionText()
-            else if (evidenceId == null)
-              const Text('Submit photo proof before sending Delivered intent.')
-            else if (proofRejected)
-              const Text('Submit a new photo proof after Logistics rejection.')
-            else if (proofStale)
-              const Text(
-                'Refresh or submit a fresh photo before Delivered intent.',
-              )
-            else ...[
-              const Text(
-                'Submit Delivered using the saved photo. '
-                'Logistics will decide when the delivery is complete.',
-              ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed:
-                    busy ||
-                        actionBlocked ||
-                        controller.hasPendingCompletion(task)
-                    ? null
-                    : onSubmitPhoto,
-                icon: const Icon(Icons.done_all),
-                label: const Text('Delivered'),
-              ),
-            ],
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed:
-                  busy ||
-                      !controller.canRetryRateLimit ||
-                      controller.completionStatuses[task.id] ==
-                          DeliveryLoadStatus.loading
-                  ? null
-                  : () => controller.loadCompletion(task),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh completion status'),
+              'Logistics rejected the previous photo. Choose a new photo and submit a new proof.',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
-        ),
+          if (proofStale && !completionPending) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'A fresh photo is required after a failed visit. Refresh to confirm photo freshness or submit a new photo.',
+            ),
+          ],
+          if (canChoosePhoto && selectedPhoto == null) ...[
+            const SizedBox(height: 12),
+            if (cameraSupported)
+              FilledButton.icon(
+                onPressed: onCapturePhoto,
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: const Text('Open camera for POD'),
+              ),
+            if (cameraSupported) const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: onChoosePhoto,
+              icon: const Icon(Icons.photo_library_outlined),
+              label: Text(
+                cameraSupported ? 'Choose photo file' : 'Choose photo',
+              ),
+            ),
+          ],
+          if (isPicking)
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: LinearProgressIndicator(),
+            ),
+          if (selectionError != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              selectionError!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+          if (selectedPhoto != null && canChoosePhoto) ...[
+            const SizedBox(height: 12),
+            Semantics(
+              label: 'Selected proof photo preview',
+              child: Image.memory(
+                selectedPhoto!.bytes,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) =>
+                    const Text('Photo preview unavailable.'),
+              ),
+            ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                if (cameraSupported)
+                  OutlinedButton.icon(
+                    onPressed: onCapturePhoto,
+                    icon: const Icon(Icons.cameraswitch_outlined),
+                    label: const Text('Retake photo'),
+                  ),
+                OutlinedButton.icon(
+                  onPressed: onChoosePhoto,
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text('Replace from files'),
+                ),
+                TextButton.icon(
+                  onPressed: onDiscardPhoto,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Remove photo'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: paymentReady ? onSubmitPhoto : null,
+              icon: const Icon(Icons.cloud_upload_outlined),
+              label: const Text('Delivered'),
+            ),
+          ],
+          if (actionStatus == DeliveryActionStatus.proofSubmitting) ...[
+            const SizedBox(height: 12),
+            const LinearProgressIndicator(),
+            if (canCancelUpload)
+              TextButton(
+                onPressed: onCancelUpload,
+                child: const Text('Cancel upload'),
+              ),
+          ],
+          if (actionError != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              actionError,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            if (actionStatus == DeliveryActionStatus.consentRequired &&
+                showPolicyAction)
+              TextButton.icon(
+                onPressed: onOpenPolicies,
+                icon: const Icon(Icons.policy_outlined),
+                label: const Text('Review policies'),
+              ),
+            if (_canRetry(actionStatus) ||
+                actionStatus == DeliveryActionStatus.validationError)
+              TextButton.icon(
+                onPressed: busy || !controller.canRetryRateLimit
+                    ? null
+                    : () => controller.loadDetails(task),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh task'),
+              ),
+            if (_canRetry(actionStatus) &&
+                actionStatus != DeliveryActionStatus.conflict &&
+                (controller.hasPendingProof(task) ||
+                    controller.hasPendingCompletion(task)))
+              TextButton(
+                onPressed:
+                    !paymentReady || busy || !controller.canRetryRateLimit
+                    ? null
+                    : onSubmitPhoto,
+                child: const Text('Retry Delivered'),
+              ),
+          ],
+          if (evidenceId != null && !proofRejected) ...[
+            const SizedBox(height: 12),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                evidenceStatus == 'validated'
+                    ? 'Photo proof validated by Logistics. Delivery is not complete until Logistics validates the completion intent.'
+                    : 'Photo proof received. Awaiting Logistics validation; this does not mark the Order delivered.',
+              ),
+            ),
+          ],
+          if (evidenceId != null) ...[
+            const SizedBox(height: 16),
+            DeliveryProofPhotoPreview(
+              title: proofRejected
+                  ? 'Rejected submitted photo'
+                  : 'Submitted photo',
+              status:
+                  controller.proofPhotoStatuses[evidenceId] ??
+                  ProofPhotoLoadStatus.idle,
+              photo: controller.proofPhotos[evidenceId],
+              errorMessage: controller.proofPhotoErrors[evidenceId],
+              onRetry: () => controller.loadProofPhoto(evidenceId, force: true),
+              semanticLabel: proofRejected
+                  ? 'Rejected proof of delivery photo'
+                  : 'Submitted proof of delivery photo',
+            ),
+          ],
+          const Divider(height: 32),
+          Text(
+            'Delivered intent',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          if (controller.completionErrors[task.id] != null) ...[
+            Text(
+              controller.completionErrors[task.id]!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (completion?.isDelivered == true)
+            const _DeliveredStatusText()
+          else if (completionPending)
+            const _AwaitingCompletionText()
+          else if (evidenceId == null)
+            const Text('Submit photo proof before sending Delivered intent.')
+          else if (proofRejected)
+            const Text('Submit a new photo proof after Logistics rejection.')
+          else if (proofStale)
+            const Text(
+              'Refresh or submit a fresh photo before Delivered intent.',
+            )
+          else ...[
+            const Text(
+              'Submit Delivered using the saved photo. '
+              'Logistics will decide when the delivery is complete.',
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed:
+                  !paymentReady ||
+                      busy ||
+                      actionBlocked ||
+                      controller.hasPendingCompletion(task)
+                  ? null
+                  : onSubmitPhoto,
+              icon: const Icon(Icons.done_all),
+              label: const Text('Delivered'),
+            ),
+          ],
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed:
+                busy ||
+                    !controller.canRetryRateLimit ||
+                    controller.completionStatuses[task.id] ==
+                        DeliveryLoadStatus.loading
+                ? null
+                : () => controller.loadCompletion(task),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Refresh completion status'),
+          ),
+        ],
       ),
     );
   }

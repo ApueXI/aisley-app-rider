@@ -150,28 +150,24 @@ class _BatchSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              batch.reference,
-              style: Theme.of(context).textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 8),
-            _BatchStatusChip(status: batch.status),
-            const SizedBox(height: 12),
-            Text(
-              '${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            Text('Scheduled ${_formatBatchSchedule(batch.scheduledFor)}'),
-          ],
-        ),
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CourierSectionHeader(
+            title: batch.reference,
+            subtitle: 'Final-mile batch',
+          ),
+          const SizedBox(height: 8),
+          _BatchStatusChip(status: batch.status),
+          const SizedBox(height: 12),
+          Text(
+            '${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'}',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          Text('Scheduled ${_formatBatchSchedule(batch.scheduledFor)}'),
+        ],
       ),
     );
   }
@@ -185,58 +181,79 @@ class _BatchParcelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final reference =
         task.orderReference ?? task.parcel.reference ?? 'Reference unavailable';
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(radius: 18, child: Text('$position')),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    reference,
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w800),
+    return CourierSurfaceCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(radius: 18, child: Text('$position')),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  reference,
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 6),
+                CourierStatusBadge(
+                  label: _parcelStatusLabel(task.status),
+                  tone: _parcelStatusTone(task.status),
+                ),
+                const SizedBox(height: 5),
+                Text(task.destination.summary),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    _BatchParcelFact(
+                      icon: Icons.shopping_bag_outlined,
+                      label: task.parcel.itemSummary,
+                    ),
+                    _BatchParcelFact(
+                      icon: Icons.sell_outlined,
+                      label: 'Parcel price: ${task.parcel.priceSummary}',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Parcel price is the merchandise subtotal, not cash due on delivery.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(height: 5),
-                  Text(task.destination.summary),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _BatchParcelFact(
-                        icon: Icons.shopping_bag_outlined,
-                        label: task.parcel.itemSummary,
-                      ),
-                      _BatchParcelFact(
-                        icon: Icons.sell_outlined,
-                        label: 'Parcel price: ${task.parcel.priceSummary}',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Parcel price is the merchandise subtotal, not cash due on delivery.',
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: scheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
+
+String _parcelStatusLabel(String status) => switch (status) {
+  'delivery_assigned' => 'Offered',
+  'delivery_accepted' => 'Accepted',
+  'picked_up_from_hub' => 'Picked up from hub',
+  'in_transit' => 'In transit',
+  'out_for_delivery' => 'Out for delivery',
+  'delivered' => 'Delivered',
+  'rejected' => 'Rejected',
+  'cancelled' => 'Cancelled',
+  _ => 'Status unavailable',
+};
+
+CourierStatusTone _parcelStatusTone(String status) => switch (status) {
+  'delivered' || 'picked_up_from_hub' => CourierStatusTone.success,
+  'rejected' || 'cancelled' => CourierStatusTone.critical,
+  'in_transit' || 'out_for_delivery' => CourierStatusTone.info,
+  _ => CourierStatusTone.neutral,
+};
 
 class _BatchParcelFact extends StatelessWidget {
   const _BatchParcelFact({required this.icon, required this.label});

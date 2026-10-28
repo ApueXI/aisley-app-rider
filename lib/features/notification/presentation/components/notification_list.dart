@@ -23,16 +23,9 @@ class _NotificationListBody extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
-        Text(
-          'Courier inbox',
-          style: Theme.of(context).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Updates about your scheduled and offered work.',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        const CourierSectionHeader(
+          title: 'Courier inbox',
+          subtitle: 'Updates about your scheduled and offered work.',
         ),
         const SizedBox(height: 16),
         _NotificationFilterBar(controller: controller),
@@ -108,20 +101,17 @@ class _NotificationFilterBar extends StatelessWidget {
     return Semantics(
       container: true,
       label: 'Notification filter',
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (final filter in NotificationFilter.values) ...[
-              FilterChip(
-                label: Text(filter.label),
-                selected: controller.filter == filter,
-                onSelected: (_) => controller.setFilter(filter),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ],
-        ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final filter in NotificationFilter.values)
+            ChoiceChip(
+              label: Text(filter.label),
+              selected: controller.filter == filter,
+              onSelected: (_) => controller.setFilter(filter),
+            ),
+        ],
       ),
     );
   }
@@ -134,14 +124,29 @@ class _UnreadCountSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final label = '$count unread notification${count == 1 ? '' : 's'}';
     return Semantics(
       liveRegion: true,
-      label: '$count unread notification${count == 1 ? '' : 's'}',
-      child: Text(
-        '$count unread notification${count == 1 ? '' : 's'}',
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w700,
+      label: label,
+      child: CourierSurfaceCard(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            Icon(
+              Icons.mark_email_unread_outlined,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -154,31 +159,54 @@ class _NotificationCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      ListTile(
-        contentPadding: const EdgeInsets.symmetric(vertical: 8),
-        title: Text(
-          notification.title,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        subtitle: Column(
+  Widget build(BuildContext context) => CourierSurfaceCard(
+    onTap: onTap,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            Text(notification.summary),
-            const SizedBox(height: 8),
-            Text(
-              '${notification.isRead ? 'Read' : 'Unread'} · ${_formatNotificationDate(context, notification.createdAt)}',
-              style: Theme.of(context).textTheme.bodySmall,
+            Icon(
+              notification.isRead
+                  ? Icons.notifications_none_outlined
+                  : Icons.notifications_active_outlined,
+              color: Theme.of(context).colorScheme.primary,
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                notification.title,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(notification.summary),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            CourierStatusBadge(
+              label: notification.isRead ? 'Read' : 'Unread',
+              tone: notification.isRead
+                  ? CourierStatusTone.neutral
+                  : CourierStatusTone.warning,
             ),
           ],
         ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
-      const Divider(height: 1),
-    ],
+        const SizedBox(height: 8),
+        Text(
+          _formatNotificationDate(context, notification.createdAt),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    ),
   );
 }
 

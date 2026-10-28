@@ -9,10 +9,15 @@ import 'package:aisley_app/features/delivery/presentation/controllers/delivery_c
 import 'fixtures/delivery_screen_fixture.dart';
 
 class DirectRepository extends WidgetDeliveryRepository {
-  final proofKeys = <String>[], completionKeys = <String>[];
+  final proofKeys = <String>[];
+  final _completionKeys = <String>[];
   Object? intentError;
   Completer<DeliveryContext>? pendingPayment;
   int movementWrites = 0;
+
+  @override
+  List<String> get completionKeys => _completionKeys;
+
   @override
   Future<DeliveryContext> fetchDeliveryContext(String id) =>
       pendingPayment?.future ?? super.fetchDeliveryContext(id);
@@ -58,7 +63,7 @@ class DirectRepository extends WidgetDeliveryRepository {
     required String idempotencyKey,
     required bool codCollected,
   }) {
-    completionKeys.add(idempotencyKey);
+    _completionKeys.add(idempotencyKey);
     if (intentError != null) return Future.error(intentError!);
     return super.submitCompletion(
       taskId: taskId,

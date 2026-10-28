@@ -306,7 +306,7 @@ void main() {
       expect(chat.messages, isEmpty);
       expect(find.textContaining('may not have been saved'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Retry same message'));
+      await tester.tap(find.text('Retry same message'));
       await tester.pump();
       expect(chat.messages.single.id, 'message-1');
       expect(chat.pendingAttempt, isNull);

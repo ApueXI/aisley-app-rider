@@ -36,7 +36,8 @@ void main() {
       expect(find.text('Courier dashboard'), findsNothing);
       await tester.tap(find.text('Return to sign in'));
       await tester.pumpAndSettle();
-      expect(find.text('Courier sign in'), findsOneWidget);
+      expect(find.text('AISLEY Rider'), findsOneWidget);
+      expect(find.text('Sign in'), findsNWidgets(2));
     });
   }
 
@@ -48,7 +49,8 @@ void main() {
     await auth.initialize();
     await tester.pumpWidget(CourierApp(authController: auth));
     await tester.pumpAndSettle();
-    expect(find.text('Courier sign in'), findsOneWidget);
+    expect(find.text('AISLEY Rider'), findsOneWidget);
+    expect(find.text('Sign in'), findsNWidgets(2));
     expect(api.storage.token, isNull);
   });
 
@@ -74,8 +76,10 @@ void main() {
         await tester.enterText(field('Email'), 'courier@example.test');
         await reveal(tester, field('Password'));
         await tester.enterText(field('Password'), 'Synthetic123');
-        await reveal(tester, find.text('Sign in'));
-        await tester.tap(find.text('Sign in'));
+        final signInButton = find.widgetWithText(FilledButton, 'Sign in');
+        FocusManager.instance.primaryFocus?.unfocus();
+        await revealLoginControl(tester, signInButton);
+        await tester.tap(signInButton);
         await tester.pumpAndSettle();
         expect(api.requests.length, 1);
         expect(
@@ -107,8 +111,9 @@ void main() {
         );
         expect(api.requests.length, 1);
         api.respond = (_) async => loginResponse();
-        await reveal(tester, find.text('Sign in'));
-        await tester.tap(find.text('Sign in'));
+        final retrySignInButton = find.widgetWithText(FilledButton, 'Sign in');
+        await revealLoginControl(tester, retrySignInButton);
+        await tester.tap(retrySignInButton);
         await tester.pumpAndSettle();
         expect(auth.status, AuthStatus.authenticated);
         expect(api.requests.length, 2);
@@ -151,4 +156,19 @@ void main() {
       expect(auth.status, AuthStatus.authenticated);
     },
   );
+}
+
+Future<void> revealLoginControl(WidgetTester tester, Finder control) async {
+  final scrollable = find
+      .byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      )
+      .first;
+  final position = tester.state<ScrollableState>(scrollable).position;
+  position.jumpTo(position.maxScrollExtent);
+  await tester.pumpAndSettle();
+  await tester.ensureVisible(control);
+  await tester.pumpAndSettle();
+  expect(control.hitTestable(), findsOneWidget);
 }

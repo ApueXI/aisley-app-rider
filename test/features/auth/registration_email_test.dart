@@ -206,7 +206,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(verified, true);
         expect(repo.code, '012345');
-        expect(find.text('Your email is verified'), findsOneWidget);
+        expect(find.text('Email access verified'), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
         c.dispose();

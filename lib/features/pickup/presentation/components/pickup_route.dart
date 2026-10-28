@@ -121,8 +121,9 @@ class _PickupRouteScreenState extends State<PickupRouteScreen> {
                     _RouteStatusBanner(manifest: manifest),
                     if (_mapFailed)
                       const Text('Map could not be loaded.')
-                    else if (manifest.status == RouteManifestStatus.ready ||
-                        manifest.status == RouteManifestStatus.unavailable)
+                    else if (manifest.stops.isNotEmpty &&
+                        (manifest.status == RouteManifestStatus.ready ||
+                            manifest.status == RouteManifestStatus.unavailable))
                       RouteMapView(
                         key: ValueKey(_mapVersion),
                         data: _pickupMapData(manifest),
@@ -135,14 +136,17 @@ class _PickupRouteScreenState extends State<PickupRouteScreen> {
                         icon: const Icon(Icons.arrow_back),
                         label: const Text('Back to pickup tasks'),
                       )
-                    else
+                    else ...[
+                      const CourierSectionHeader(title: 'Ordered stops'),
+                      const SizedBox(height: 8),
                       ..._routeStopWidgets(context, manifest.stops),
+                    ],
                     if (error != null) ...[
                       const SizedBox(height: 8),
                       Text(error),
                     ],
                   ],
-                  TextButton.icon(
+                  OutlinedButton.icon(
                     onPressed:
                         status == PickupSectionStatus.loading ||
                             !controller.canRetryRateLimit
@@ -171,34 +175,27 @@ class _RouteSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          manifest?.stops.isNotEmpty == true
-              ? 'Authorized stop order'
-              : 'Pickup route',
-          style: Theme.of(context).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Pickup stops for this schedule.',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
-        if (_formatWindow(schedule) != null) ...[
-          const SizedBox(height: 8),
-          Text(_formatWindow(schedule)!),
-        ],
-        if (manifest?.calculatedAt != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            'Calculated ${_formatManilaTimestamp(manifest!.calculatedAt!)}',
-            style: Theme.of(context).textTheme.bodySmall,
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CourierSectionHeader(
+            title: schedule?.displayId ?? 'Pickup route',
+            subtitle: 'Pickup stops for this schedule.',
           ),
+          if (_formatWindow(schedule) != null) ...[
+            const SizedBox(height: 8),
+            Text(_formatWindow(schedule)!),
+          ],
+          if (manifest?.calculatedAt != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Calculated ${_formatManilaTimestamp(manifest!.calculatedAt!)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -240,26 +237,23 @@ class _RouteStatusBanner extends StatelessWidget {
         Icons.info_outline,
       ),
     };
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: scheme.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Semantics(
-                liveRegion: true,
-                child: Text(
-                  hasStops
-                      ? message
-                      : '$message Return to pickup tasks for pickup addresses.',
-                ),
+    return CourierSurfaceCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: scheme.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Semantics(
+              liveRegion: true,
+              child: Text(
+                hasStops
+                    ? message
+                    : '$message Return to pickup tasks for pickup addresses.',
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -299,50 +293,47 @@ List<Widget> _routeStopWidgets(
       Semantics(
         container: true,
         label: _routeStopSemantics(stop),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  child: Text(stop.isHub ? 'H' : '${stop.sequence}'),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        stop.isHub
-                            ? 'Logistics hub (${stop.sequence == 0 ? 'start' : 'return'})'
-                            : 'Pickup stop ${stop.sequence}',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      if (stop.addressSummary != null) ...[
-                        const SizedBox(height: 4),
-                        Text(stop.addressSummary!),
-                      ],
-                      if (stop.orderReferences.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text('Orders: ${stop.orderReferences.join(', ')}'),
-                      ],
-                      if (stop.reachable == false) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          'This stop is unreachable in the current manifest.',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                      ],
+        child: CourierSurfaceCard(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 18,
+                child: Text(stop.isHub ? 'H' : '${stop.sequence}'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      stop.isHub
+                          ? 'Logistics hub (${stop.sequence == 0 ? 'start' : 'return'})'
+                          : 'Pickup stop ${stop.sequence}',
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    if (stop.addressSummary != null) ...[
+                      const SizedBox(height: 4),
+                      Text(stop.addressSummary!),
                     ],
-                  ),
+                    if (stop.orderReferences.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text('Orders: ${stop.orderReferences.join(', ')}'),
+                    ],
+                    if (stop.reachable == false) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'This stop is unreachable in the current manifest.',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

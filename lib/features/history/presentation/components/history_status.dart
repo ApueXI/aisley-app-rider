@@ -7,20 +7,11 @@ class _HistoryStatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: scheme.onSurfaceVariant,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+    return CourierStatusBadge(
+      label: label,
+      tone: label == 'Delivered'
+          ? CourierStatusTone.success
+          : CourierStatusTone.neutral,
     );
   }
 }
@@ -33,9 +24,9 @@ class _HistoryLoadingCard extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       label: 'Loading delivery history',
-      child: const Card(
+      child: const CourierSurfaceCard(
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(8),
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
@@ -52,9 +43,9 @@ class _HistoryEmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       liveRegion: true,
-      child: Card(
+      child: CourierSurfaceCard(
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(2),
           child: Text(
             filtered
                 ? 'No completed deliveries match this order reference.'
@@ -85,35 +76,32 @@ class _HistoryErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(message),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 8,
-              children: [
-                if (_historyCanRetry(status))
-                  OutlinedButton.icon(
-                    onPressed: canRetry ? onRetry : null,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                if (status == HistoryLoadStatus.consentRequired &&
-                    showPolicyAction)
-                  FilledButton.icon(
-                    onPressed: onOpenPolicies,
-                    icon: const Icon(Icons.policy_outlined),
-                    label: const Text('Review policies'),
-                  ),
-              ],
-            ),
-          ],
-        ),
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              if (_historyCanRetry(status))
+                OutlinedButton.icon(
+                  onPressed: canRetry ? onRetry : null,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              if (status == HistoryLoadStatus.consentRequired &&
+                  showPolicyAction)
+                FilledButton.icon(
+                  onPressed: onOpenPolicies,
+                  icon: const Icon(Icons.policy_outlined),
+                  label: const Text('Review policies'),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -170,7 +158,7 @@ String _areaRouteLabel(DeliveryHistoryItem item) {
   if (destination == null || destination == 'Location unavailable') {
     return 'From $pickup';
   }
-  return '$pickup → $destination';
+  return 'From $pickup · To $destination';
 }
 
 String _formatHistoryTimestamp(DateTime timestamp) {
