@@ -3,7 +3,23 @@ part of '../dashboard_screen.dart';
 extension _DashboardShellContent on _DashboardScreenState {
   Widget _home() => Scaffold(
     appBar: AppBar(
-      title: const Text('AISLEY'),
+      title: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Icon(
+            Icons.local_shipping_outlined,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          const Flexible(
+            child: Text(
+              'AISLEY Rider',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
       actions: [
         if (widget.notificationController case final notifications?)
           AnimatedBuilder(
@@ -29,7 +45,6 @@ extension _DashboardShellContent on _DashboardScreenState {
         ]),
         builder: (context, _) => _DashboardBody(
           authController: widget.authController,
-          onSignOut: _confirmSignOut,
           pickupController: widget.pickupController,
           onOpenPickups: _openPickups,
           deliveryController: widget.deliveryController,
@@ -100,7 +115,7 @@ extension _DashboardShellContent on _DashboardScreenState {
               authController: widget.authController,
             ),
     _ => _AccountDestinations(
-      name: widget.authController.courier?.displayName ?? 'Courier',
+      courier: widget.authController.courier!,
       onProfile: widget.accountController == null ? null : _openAccount,
       onSecurity: widget.accountController == null
           ? null

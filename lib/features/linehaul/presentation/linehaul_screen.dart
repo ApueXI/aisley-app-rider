@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/presentation/courier_section_header.dart';
+import '../../../shared/presentation/courier_surface_card.dart';
 import '../../auth/presentation/controllers/auth_controller.dart';
 import '../../policy/presentation/controllers/policy_controller.dart';
 import '../../policy/presentation/policy_screen.dart';
@@ -59,16 +61,9 @@ class _LinehaulScreenState extends State<LinehaulScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),
                   children: [
-                    const Text(
-                      'Assigned hub transfers',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Confirm physical departure and arrival. Logistics handles cargo receiving and unloading.',
+                    const CourierSectionHeader(
+                      title: 'Assigned hub transfers',
+                      subtitle: 'Report physical departure and arrival. Logistics confirms cargo receipt and unloading.',
                     ),
                     if (c.loading || c.saving)
                       const Padding(
@@ -120,21 +115,24 @@ class _LinehaulScreenState extends State<LinehaulScreen> {
                         ),
                       ),
                     for (final item in c.trips)
-                      Card(
+                      CourierSurfaceCard(
+                        padding: EdgeInsets.zero,
+                        onTap: c.locked || c.loading
+                            ? null
+                            : () => c.select(item.id),
                         child: ListTile(
                           selected: item.id == c.selectedId,
                           title: Text(
-                            '${item.direction == 'return' ? 'Return' : 'Outbound'} · ${item.fromHub} → ${item.toHub}',
+                            item.direction == 'return'
+                                ? 'Return transfer'
+                                : 'Outbound transfer',
                           ),
                           subtitle: Text(
-                            '${item.statusLabel} · ${item.parcelCount} parcels',
+                            '${item.fromHub} → ${item.toHub}\n${item.statusLabel} · ${item.parcelCount} ${item.parcelCount == 1 ? 'parcel' : 'parcels'}',
                           ),
                           trailing: item.id == c.selectedId
                               ? const Icon(Icons.expand_more)
                               : const Icon(Icons.chevron_right),
-                          onTap: c.locked || c.loading
-                              ? null
-                              : () => c.select(item.id),
                         ),
                       ),
                     if (trip != null)

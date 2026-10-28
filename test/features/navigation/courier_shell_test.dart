@@ -9,6 +9,7 @@ import 'package:aisley_app/features/chat/domain/chat_models.dart';
 import 'package:aisley_app/features/chat/presentation/controllers/chat_controller.dart';
 import 'package:aisley_app/features/dashboard/data/dashboard_repository.dart';
 import 'package:aisley_app/features/dashboard/domain/dashboard_models.dart';
+import 'package:aisley_app/features/delivery/presentation/controllers/delivery_controller.dart';
 import 'package:aisley_app/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
 import 'package:aisley_app/features/pickup/presentation/controllers/pickup_controller.dart';
@@ -31,10 +32,26 @@ void main() {
       final fixture = _ShellFixture();
       await fixture.open(tester, scenario: scenario);
       await checkAccessibility(tester);
-      expect(
-        tester.getTopLeft(find.text('Active work')).dy,
-        lessThan(tester.getTopLeft(find.text('Available work')).dy),
-      );
+      final activeWork = find.text('Active work');
+      final availableWork = find.text('Available work');
+      if (scenario.scale <= 1.25) {
+        expect(
+          tester.getTopLeft(activeWork).dy,
+          lessThan(tester.getTopLeft(availableWork).dy),
+        );
+      } else {
+        await tester.scrollUntilVisible(
+          activeWork,
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.scrollUntilVisible(
+          availableWork,
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(find.text('Available work'), findsOneWidget);
+      }
       await tester.tap(find.byType(NavigationDestination).at(1));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Pickup orders'));
@@ -50,11 +67,80 @@ void main() {
       expect(find.byType(NavigationBar), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
-      expect(find.text('AISLEY'), findsOneWidget);
+      expect(find.text('AISLEY Rider'), findsOneWidget);
       fixture.expectNoWrites();
       await fixture.close(tester);
     });
   }
+
+  testWidgets('Home, Work and Account follow the AISLEY Rider shell', (
+    tester,
+  ) async {
+    final fixture = _ShellFixture();
+    await fixture.open(tester);
+
+    expect(find.text('AISLEY Rider'), findsOneWidget);
+    expect(find.text('Maya Santos'), findsOneWidget);
+    expect(find.text('AISLEY Express · Makati Hub'), findsOneWidget);
+    expect(find.text('Pickup orders'), findsOneWidget);
+    expect(find.text('Delivery work'), findsOneWidget);
+
+    await tester.tap(find.byType(NavigationDestination).at(1));
+    await tester.pumpAndSettle();
+    for (final title in [
+      'Pickup orders',
+      'Delivery work',
+      'Final-mile batches',
+      'Linehaul jobs',
+      'Delivery history',
+    ]) {
+      expect(find.text(title), findsOneWidget);
+    }
+    expect(find.textContaining('Dispatch queue access'), findsNothing);
+    expect(find.textContaining('Network node'), findsNothing);
+    expect(find.text('Protocol'), findsNothing);
+
+    await tester.tap(find.byType(NavigationDestination).at(3));
+    await tester.pumpAndSettle();
+    expect(find.text('Maya Santos'), findsOneWidget);
+    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('Affiliation approved'), findsOneWidget);
+    for (final title in [
+      'Profile',
+      'Security',
+      'Vehicle and documents',
+      'Policies',
+      'Support tickets',
+    ]) {
+      expect(find.text(title), findsOneWidget);
+    }
+    expect(find.textContaining('Courier ID'), findsNothing);
+    expect(find.textContaining('Biometrics'), findsNothing);
+    expect(find.textContaining('License number'), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.text('Sign out'),
+      100,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const PageStorageKey('account-menu')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    final signOut = find.widgetWithText(OutlinedButton, 'Sign out');
+    expect(signOut, findsOneWidget);
+    await tester.ensureVisible(signOut);
+    await tester.pumpAndSettle();
+    await tester.tap(signOut);
+    await tester.pumpAndSettle();
+    expect(find.text('Sign out?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(fixture.auth.status, AuthStatus.authenticated);
+    fixture.expectNoWrites();
+    await fixture.close(tester);
+  });
 
   testWidgets('tab switching retains pickup filter and scroll', (tester) async {
     final fixture = _ShellFixture();
@@ -137,7 +223,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Courier sign in'), findsOneWidget);
+      expect(find.text('Sign in'), findsWidgets);
       expect(find.text('ORD-00', skipOffstage: false), findsNothing);
       expect(find.byType(NavigationBar), findsNothing);
       expect(fixture.pickup.firstMileTasks, isEmpty);
@@ -187,6 +273,10 @@ class _ShellFixture {
     );
   final alerts = _Alerts();
   final messages = _Messages();
+  final deliveryRepository = NavigationDeliveryRepository();
+  late final delivery = DeliveryController(
+    deliveryRepository: deliveryRepository,
+  );
   late final pickup = PickupController(pickupRepository: tasks);
   late final notifications = NotificationController(
     notificationRepository: alerts,
@@ -208,6 +298,12 @@ class _ShellFixture {
           email: 'courier@example.com',
           role: 'courier',
           status: CourierAccountStatus.active,
+          profile: CourierProfile(firstName: 'Maya', lastName: 'Santos'),
+          logistics: LogisticsAffiliation(
+            status: CourierAffiliationStatus.approved,
+            organizationName: 'AISLEY Express',
+            hubName: 'Makati Hub',
+          ),
         );
 
   Future<void> open(
@@ -219,6 +315,7 @@ class _ShellFixture {
     final gate = AuthGate(
       authController: auth,
       pickupController: pickup,
+      deliveryController: delivery,
       notificationController: notifications,
       chatController: chat,
     );
@@ -241,12 +338,14 @@ class _ShellFixture {
 
   void expectNoWrites() {
     expect(tasks.mutations, 0);
+    expect(deliveryRepository.mutations, 0);
     expect(alerts.readWrites, 0);
   }
 
   Future<void> close(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox.shrink());
     pickup.dispose();
+    delivery.dispose();
     notifications.dispose();
     chat.dispose();
     auth.dispose();

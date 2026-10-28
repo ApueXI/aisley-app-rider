@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Compact presentation shared by task lists; callers own eligibility.
+import 'courier_status_badge.dart';
+import 'courier_surface_card.dart';
+
+/// Compact task context shared by task, batch, and history lists.
 class TaskRow extends StatelessWidget {
   const TaskRow({
     required this.reference,
@@ -16,28 +19,53 @@ class TaskRow extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      ListTile(
-        contentPadding: const EdgeInsets.symmetric(vertical: 8),
-        title: Text(reference, style: Theme.of(context).textTheme.titleMedium),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('$leg · $status'),
-              const SizedBox(height: 4),
-              Text(location),
-              const SizedBox(height: 4),
-              Text(nextStep, style: Theme.of(context).textTheme.bodySmall),
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+
+    return CourierSurfaceCard(
+      padding: EdgeInsets.zero,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(reference, style: textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                CourierStatusBadge(label: leg, tone: CourierStatusTone.info),
+                CourierStatusBadge(label: status),
+              ],
+            ),
+            if (location.trim().isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(location, style: textTheme.bodyMedium),
             ],
-          ),
+            const SizedBox(height: 12),
+            Divider(height: 1, color: scheme.outlineVariant),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    nextStep,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+              ],
+            ),
+          ],
         ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
       ),
-      const Divider(height: 1),
-    ],
-  );
+    );
+  }
 }

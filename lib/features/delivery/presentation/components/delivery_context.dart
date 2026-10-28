@@ -7,38 +7,21 @@ class _DeliveryIdentity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Final-mile delivery',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              task.order?.reference ?? 'Order reference unavailable',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              task.waybill?.reference ?? 'Waybill reference unavailable',
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: scheme.onSurface),
-            ),
-            const SizedBox(height: 12),
-            _DeliveryStatusPill(label: _deliveryStatusLabel(task.rawStatus)),
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CourierSectionHeader(
+            title: 'Final-mile delivery',
+            subtitle: task.order?.reference ?? 'Order reference unavailable',
+          ),
+          if (task.waybill?.reference case final reference?) ...[
+            const SizedBox(height: 8),
+            Text('Waybill $reference'),
           ],
-        ),
+          const SizedBox(height: 12),
+          _DeliveryStatusPill(label: _deliveryStatusLabel(task.rawStatus)),
+        ],
       ),
     );
   }
@@ -50,15 +33,26 @@ class _DeliveryContextCard extends StatelessWidget {
     required this.status,
     required this.error,
     required this.onRetry,
+    required this.codCollection,
+    required this.cashAcknowledged,
+    required this.canAcknowledgeCash,
+    required this.onCashAcknowledged,
+    required this.isReviewPending,
   });
 
   final DeliveryContext? contextData;
   final DeliveryLoadStatus status;
   final String? error;
   final VoidCallback onRetry;
+  final DeliveryCodCollection? codCollection;
+  final bool cashAcknowledged;
+  final bool canAcknowledgeCash;
+  final ValueChanged<bool> onCashAcknowledged;
+  final bool isReviewPending;
 
   @override
   Widget build(BuildContext context) {
+    final collection = codCollection;
     if ((status == DeliveryLoadStatus.idle ||
             status == DeliveryLoadStatus.loading) &&
         contextData == null) {
@@ -76,55 +70,80 @@ class _DeliveryContextCard extends StatelessWidget {
     final data = contextData!;
     final destination = data.destination;
     final hub = data.hub;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Delivery details',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 8),
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CourierSectionHeader(title: 'Delivery details'),
+          const SizedBox(height: 8),
+          _DeliveryDetailRow(
+            label: 'Pickup hub',
+            value: hub?.fullAddress ?? hub?.areaSummary ?? 'Hub unavailable',
+          ),
+          _DeliveryDetailRow(
+            label: 'Destination',
+            value:
+                destination?.fullAddress ??
+                destination?.areaSummary ??
+                'Destination unavailable',
+          ),
+          if (data.recipientName != null)
+            _DeliveryDetailRow(label: 'Recipient', value: data.recipientName!),
+          if (data.recipientPhone != null)
             _DeliveryDetailRow(
-              label: 'Pickup hub',
-              value: hub?.fullAddress ?? hub?.areaSummary ?? 'Hub unavailable',
+              label: 'Contact number',
+              value: data.recipientPhone!,
             ),
+          if (data.deliveryInstructions != null)
             _DeliveryDetailRow(
-              label: 'Destination',
-              value:
-                  destination?.fullAddress ??
-                  destination?.areaSummary ??
-                  'Destination unavailable',
+              label: 'Delivery instructions',
+              value: data.deliveryInstructions!,
             ),
-            if (data.recipientName != null)
-              _DeliveryDetailRow(
-                label: 'Recipient',
-                value: data.recipientName!,
+          const SizedBox(height: 6),
+          _RouteMetrics(contextData: data),
+          if (data.paymentMethod == 'cod') ...[
+            const Divider(height: 28),
+            const CourierSectionHeader(title: 'Cash due'),
+            if (collection == null) ...[
+              const SizedBox(height: 6),
+              const Text(
+                'The cash amount cannot be confirmed. Refresh delivery details before submitting Delivered.',
               ),
-            if (data.recipientPhone != null)
-              _DeliveryDetailRow(
-                label: 'Contact number',
-                value: data.recipientPhone!,
-              ),
-            if (data.deliveryInstructions != null)
-              _DeliveryDetailRow(
-                label: 'Delivery instructions',
-                value: data.deliveryInstructions!,
-              ),
-            const SizedBox(height: 6),
-            _RouteMetrics(contextData: data),
-            if (error != null) ...[
-              const SizedBox(height: 10),
+            ] else ...[
+              const SizedBox(height: 4),
               Text(
-                error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                collection.displayAmount,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
+              if (isReviewPending) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'The cash collection declaration was included with the submitted Delivered intent. Logistics validation is pending.',
+                ),
+              ] else ...[
+                const SizedBox(height: 4),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: cashAcknowledged,
+                  onChanged: canAcknowledgeCash
+                      ? (value) => onCashAcknowledged(value == true)
+                      : null,
+                  title: Text(
+                    'I collected ${collection.displayAmount} in full.',
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ],
             ],
           ],
-        ),
+          if (error != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              error!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+        ],
       ),
     );
   }

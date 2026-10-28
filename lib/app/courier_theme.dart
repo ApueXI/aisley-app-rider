@@ -10,6 +10,15 @@ ThemeData buildCourierTheme(Brightness brightness) {
       ? const Color(0xFFB3261E)
       : const Color(0xFFFFB4AB);
   const warning = Color(0xFFFF8800);
+  final successBackground = brightness == Brightness.light
+      ? const Color(0xFFE8F5E9)
+      : const Color(0xFF173624);
+  final onSuccessBackground = brightness == Brightness.light
+      ? const Color(0xFF1B5E20)
+      : const Color(0xFFC8E6C9);
+  final successBorder = brightness == Brightness.light
+      ? const Color(0xFF2E7D32)
+      : const Color(0xFF81C784);
   final scheme =
       ColorScheme.fromSeed(
         seedColor: brandPrimary,
@@ -25,6 +34,12 @@ ThemeData buildCourierTheme(Brightness brightness) {
             : Colors.black,
         error: error,
         onError: brightness == Brightness.light ? Colors.white : Colors.black,
+        outline: brightness == Brightness.light
+            ? const Color(0xFF76767E)
+            : const Color(0xFF77777F),
+        outlineVariant: brightness == Brightness.light
+            ? const Color(0xFFE2E2E6)
+            : const Color(0xFF44444A),
         surface: brightness == Brightness.light
             ? const Color(0xFFFFFFFF)
             : const Color(0xFF1C1C1E),
@@ -136,28 +151,57 @@ ThemeData buildCourierTheme(Brightness brightness) {
       contentTextStyle: const TextStyle(color: Colors.white),
     ),
     extensions: <ThemeExtension<dynamic>>[
-      const _CourierTheme(warning: warning),
+      CourierThemeTokens(
+        warning: warning,
+        successBackground: successBackground,
+        onSuccessBackground: onSuccessBackground,
+        successBorder: successBorder,
+      ),
     ],
   );
 }
 
-class _CourierTheme extends ThemeExtension<_CourierTheme> {
-  const _CourierTheme({required this.warning});
+class CourierThemeTokens extends ThemeExtension<CourierThemeTokens> {
+  const CourierThemeTokens({
+    required this.warning,
+    required this.successBackground,
+    required this.onSuccessBackground,
+    required this.successBorder,
+  });
 
   final Color warning;
+  final Color successBackground;
+  final Color onSuccessBackground;
+  final Color successBorder;
 
   @override
-  _CourierTheme copyWith({Color? warning}) {
-    return _CourierTheme(warning: warning ?? this.warning);
-  }
+  CourierThemeTokens copyWith({
+    Color? warning,
+    Color? successBackground,
+    Color? onSuccessBackground,
+    Color? successBorder,
+  }) => CourierThemeTokens(
+    warning: warning ?? this.warning,
+    successBackground: successBackground ?? this.successBackground,
+    onSuccessBackground: onSuccessBackground ?? this.onSuccessBackground,
+    successBorder: successBorder ?? this.successBorder,
+  );
 
   @override
-  _CourierTheme lerp(ThemeExtension<_CourierTheme>? other, double t) {
-    if (other is! _CourierTheme) {
+  CourierThemeTokens lerp(ThemeExtension<CourierThemeTokens>? other, double t) {
+    if (other is! CourierThemeTokens) {
       return this;
     }
-    return _CourierTheme(
+    return CourierThemeTokens(
       warning: Color.lerp(warning, other.warning, t) ?? warning,
+      successBackground:
+          Color.lerp(successBackground, other.successBackground, t) ??
+          successBackground,
+      onSuccessBackground:
+          Color.lerp(onSuccessBackground, other.onSuccessBackground, t) ??
+          onSuccessBackground,
+      successBorder:
+          Color.lerp(successBorder, other.successBorder, t) ?? successBorder,
     );
   }
 }

@@ -177,6 +177,48 @@ void main() {
     expect(find.textContaining('Work summaries are unavailable'), findsNothing);
   });
 
+  testWidgets('stale work is labeled and recoverable by its own section', (
+    tester,
+  ) async {
+    final repository = _SummaryRepository()
+      ..snapshot = const DashboardSnapshot(
+        sections: {
+          'active_tasks': DashboardSection(
+            state: DashboardSectionState.stale,
+            generatedAt: '2026-10-28T01:45:00Z',
+            items: [
+              {
+                'id': 'synthetic-task',
+                'leg': 'first_mile',
+                'status': 'accepted',
+                'order_reference': 'ORD-SYNTHETIC',
+              },
+            ],
+          ),
+          'available_tasks': DashboardSection(
+            state: DashboardSectionState.empty,
+          ),
+          'notifications': DashboardSection(state: DashboardSectionState.empty),
+        },
+        freshness: DashboardFreshness(state: DashboardFreshnessState.partial),
+      );
+    final auth = _auth(repository);
+    addTearDown(auth.dispose);
+    await _show(tester, auth);
+
+    expect(find.text('Needs refresh'), findsOneWidget);
+    expect(
+      find.text(
+        'Showing earlier data for this section. Refresh before acting.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('ORD-SYNTHETIC'), findsOneWidget);
+    expect(find.text('No available work.'), findsOneWidget);
+    expect(find.text('No recent notifications.'), findsOneWidget);
+    expect(find.text('Task ID'), findsNothing);
+  });
+
   testWidgets('notice and retry remain accessible at large text sizes', (
     tester,
   ) async {

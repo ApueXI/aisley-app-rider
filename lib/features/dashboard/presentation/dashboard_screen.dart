@@ -4,6 +4,9 @@ import '../../linehaul/presentation/linehaul_screen.dart';
 import 'dart:async';
 
 import '../../../shared/presentation/destination_scope.dart';
+import '../../../shared/presentation/courier_section_header.dart';
+import '../../../shared/presentation/courier_status_badge.dart';
+import '../../../shared/presentation/courier_surface_card.dart';
 import '../../../shared/presentation/sign_out_confirmation.dart';
 import '../../vehicle/presentation/vehicle_screen.dart';
 import '../../policy/presentation/policy_screen.dart';

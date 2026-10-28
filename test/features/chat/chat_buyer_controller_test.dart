@@ -196,7 +196,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('Read-only conversation'), findsOneWidget);
+      expect(
+        find.text('Replies are unavailable in this conversation.'),
+        findsOneWidget,
+      );
       expect(find.byType(TextField), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       controller.dispose();
@@ -227,7 +230,7 @@ void main() {
       await tester.tap(find.byTooltip('Send message'));
       await tester.pumpAndSettle();
       expect(find.text('Private draft'), findsOneWidget);
-      expect(find.byTooltip('Retry same message'), findsOneWidget);
+      expect(find.text('Retry same message'), findsOneWidget);
       controller.clear();
       await controller.openTask(_task);
       await tester.pumpAndSettle();

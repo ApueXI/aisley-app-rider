@@ -28,7 +28,6 @@ class _ParcelDecisionCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(task.status.replaceAll('_', ' ')),
               if (controller.parcelErrors[task.id] case final error?)
                 Text(
                   error,

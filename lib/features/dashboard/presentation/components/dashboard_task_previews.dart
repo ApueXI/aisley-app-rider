@@ -230,8 +230,9 @@ class _TaskPreviewRow extends StatelessWidget {
         : 'Task reference unavailable';
     final origin = task.originName;
     final destination = task.destinationArea;
-    final detail = [
-      '${classification.label} · ${dashboardTaskStatusLabel(task)}',
+    final workState =
+        '${classification.label} · ${dashboardTaskStatusLabel(task)}';
+    final contextLines = [
       if (origin != null) 'From $origin',
       if (destination != null) 'To $destination',
       if (task.distanceKm case final km? when km >= 0)
@@ -240,17 +241,80 @@ class _TaskPreviewRow extends StatelessWidget {
         '$minutes min estimate',
     ].join(' · ');
     final canNavigate = classification != DashboardTaskClass.unclassified;
+    final nextStep = switch (expectedLeg) {
+      PickupTaskLeg.firstMile => 'Open pickup orders',
+      PickupTaskLeg.finalMile => 'Open delivery work',
+      PickupTaskLeg.unknown => 'Open work lists',
+    };
+    final scheme = Theme.of(context).colorScheme;
 
-    return Semantics(
-      button: canNavigate,
-      label:
-          '${expectedLeg == PickupTaskLeg.firstMile ? 'First-mile' : 'Final-mile'} task. $label. $detail${canNavigate ? '. Open work list' : '. Status requires review in work list'}',
-      child: ListTile(
-        title: Text(label),
-        subtitle: Text(detail),
-        trailing: canNavigate ? const Icon(Icons.chevron_right) : null,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: CourierSurfaceCard(
+        padding: const EdgeInsets.all(12),
         onTap: canNavigate ? onOpen : null,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(label, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                CourierStatusBadge(
+                  label: expectedLeg == PickupTaskLeg.firstMile
+                      ? 'First mile'
+                      : 'Final mile',
+                  tone: CourierStatusTone.info,
+                ),
+                CourierStatusBadge(label: workState, tone: _previewTone(task)),
+              ],
+            ),
+            if (contextLines.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                contextLines,
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Divider(height: 1, color: scheme.outlineVariant),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    canNavigate ? nextStep : 'Review status in the work list',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: canNavigate
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                if (canNavigate)
+                  Icon(Icons.arrow_forward, color: scheme.primary),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+CourierStatusTone _previewTone(DashboardTaskPreview task) =>
+    switch (task.status) {
+      PickupTaskStatus.assigned ||
+      PickupTaskStatus.deliveryAssigned => CourierStatusTone.info,
+      PickupTaskStatus.accepted ||
+      PickupTaskStatus.deliveryAccepted ||
+      PickupTaskStatus.pickedUpFromSeller ||
+      PickupTaskStatus.pickedUpFromHub ||
+      PickupTaskStatus.inTransit ||
+      PickupTaskStatus.outForDelivery => CourierStatusTone.success,
+      PickupTaskStatus.rejected => CourierStatusTone.critical,
+      _ => CourierStatusTone.neutral,
+    };

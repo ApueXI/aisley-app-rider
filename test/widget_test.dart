@@ -62,7 +62,7 @@ void main() {
     await controller.initialize();
 
     await tester.pumpWidget(CourierApp(authController: controller));
-    await tester.tap(find.text('New Courier? Register here'));
+    await tester.tap(find.text('Create account'));
     await _verifyRegistrationEmail(tester);
     await _pumpUntilFound(tester, find.text('Personal details'));
 
@@ -82,7 +82,7 @@ void main() {
     await controller.initialize();
 
     await tester.pumpWidget(CourierApp(authController: controller));
-    await tester.tap(find.text('New Courier? Register here'));
+    await tester.tap(find.text('Create account'));
     await _verifyRegistrationEmail(tester);
     await _pumpUntilFound(tester, find.text('Personal details'));
     await tester.ensureVisible(find.text('Continue'));
@@ -106,17 +106,18 @@ void main() {
     await controller.initialize();
 
     await tester.pumpWidget(CourierApp(authController: controller));
-    expect(find.text('Courier sign in'), findsOneWidget);
+    expect(find.text('AISLEY Rider'), findsOneWidget);
+    expect(find.text('Sign in'), findsNWidgets(2));
 
     await tester.enterText(
       find.bySemanticsLabel('Email'),
       'courier@example.com',
     );
     await tester.enterText(find.bySemanticsLabel('Password'), 'password123');
-    await tester.tap(find.text('Sign in'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.pumpAndSettle();
 
-    expect(find.text('AISLEY'), findsOneWidget);
+    expect(find.text('AISLEY Rider'), findsOneWidget);
     expect(find.text('Available work'), findsNothing);
     expect(find.text('Summary unavailable'), findsNothing);
     expect(

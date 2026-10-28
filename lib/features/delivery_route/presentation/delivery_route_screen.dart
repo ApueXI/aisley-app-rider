@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/presentation/courier_section_header.dart';
+import '../../../shared/presentation/courier_surface_card.dart';
 import '../../../shared/route_map/route_map_view.dart';
 import '../../../shared/route_map/route_session_boundary.dart';
 import '../../batch/domain/final_mile_batch_models.dart';
@@ -75,9 +77,11 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
-                Text(
-                  widget.batch.reference,
-                  style: Theme.of(context).textTheme.titleLarge,
+                CourierSurfaceCard(
+                  child: CourierSectionHeader(
+                    title: widget.batch.reference,
+                    subtitle: 'Accepted final-mile parcels',
+                  ),
                 ),
                 if (!widget.batch.hasAcceptedTasks)
                   const Text(
@@ -99,13 +103,18 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
                       liveRegion: true,
                       child: Text(_routeStatus(route)),
                     ),
-                    if (controller.lastRefreshed != null)
-                      Text(
-                        'Last refreshed ${_time(controller.lastRefreshed!)}',
-                      ),
                     if (summary != null)
-                      Text(
-                        '${summary.stopCount} delivery stops • ${summary.distanceMetres == null ? 'Distance unavailable' : '${(summary.distanceMetres! / 1000).toStringAsFixed(1)} km'} • ${summary.durationSeconds == null ? 'Travel time unavailable' : '${(summary.durationSeconds! / 60).ceil()} min (advisory)'}',
+                      CourierSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const CourierSectionHeader(title: 'Route summary'),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${summary.stopCount} delivery stops · ${summary.distanceMetres == null ? 'Distance unavailable' : '${(summary.distanceMetres! / 1000).toStringAsFixed(1)} km'} · ${summary.durationSeconds == null ? 'Travel time unavailable' : '${(summary.durationSeconds! / 60).ceil()} min advisory'}',
+                            ),
+                          ],
+                        ),
                       ),
                     const SizedBox(height: 12),
                     if (controller.mapFailed)
@@ -122,20 +131,23 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
                         ),
                       ),
                     const SizedBox(height: 16),
-                    Text(
-                      'Delivery stops',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
+                    const CourierSectionHeader(title: 'Delivery stops'),
                     for (final stop in route.stops)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          stop.isHub
-                              ? 'Logistics hub (start)'
-                              : 'Stop ${stop.sequence}',
-                        ),
-                        subtitle: Text(
-                          '${stop.label}${stop.position == null ? '\nCoordinates unavailable' : ''}',
+                      CourierSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              stop.isHub
+                                  ? 'Logistics hub (start)'
+                                  : 'Stop ${stop.sequence}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${stop.label}${stop.position == null ? '\nCoordinates unavailable' : ''}',
+                            ),
+                          ],
                         ),
                       ),
                     if (route.stops.isEmpty)
@@ -144,12 +156,17 @@ class _DeliveryRouteScreenState extends State<DeliveryRouteScreen> {
                       (task) =>
                           !route.stops.any((stop) => stop.taskId == task.id),
                     ))
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text(
-                          'Delivery location — route order unavailable',
+                      CourierSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Delivery location · route order unavailable',
+                            ),
+                            const SizedBox(height: 4),
+                            Text(task.destination.summary),
+                          ],
                         ),
-                        subtitle: Text(task.destination.summary),
                       ),
                   ],
                   const SizedBox(height: 12),
@@ -193,7 +210,3 @@ String _routeStatus(DeliveryRoute route) => switch (route.status) {
   DeliveryRouteStatus.ready =>
     'Server-provided delivery order. Travel estimates are advisory.',
 };
-String _time(DateTime timestamp) {
-  final local = timestamp.toUtc().add(const Duration(hours: 8));
-  return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')} (Asia/Manila)';
-}

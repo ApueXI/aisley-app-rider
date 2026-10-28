@@ -11,6 +11,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'fixtures/registration_screen_fixture.dart';
 
 void main() {
+  testWidgets('initial step explains inbox verification and six steps', (
+    tester,
+  ) async {
+    final fixture = RegistrationScreenFixture();
+    addTearDown(fixture.auth.dispose);
+    await fixture.open(tester, verifyEmail: false);
+
+    expect(find.text('AISLEY Rider'), findsOneWidget);
+    expect(find.text('Create your account'), findsOneWidget);
+    expect(find.text('Step 1 of 6 · Email verification'), findsOneWidget);
+    expect(find.textContaining('confirms inbox access only'), findsOneWidget);
+    expect(
+      find.textContaining('does not determine Courier eligibility'),
+      findsOneWidget,
+    );
+    expect(find.text('Personal details'), findsNothing);
+    expect(find.text('012345'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   setUp(() {
     final original = FileSelectorPlatform.instance;
     FileSelectorPlatform.instance = TestImagePicker();

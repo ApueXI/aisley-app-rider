@@ -46,8 +46,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Courier inbox'), findsOneWidget);
+    expect(find.byType(ChoiceChip), findsNWidgets(3));
     expect(find.text('Delivery offered'), findsOneWidget);
     expect(find.text('1 unread notification'), findsOneWidget);
+    expect(find.text('Mark all as read'), findsNothing);
 
     await tester.tap(find.text('Delivery offered'));
     await tester.pumpAndSettle();

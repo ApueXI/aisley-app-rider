@@ -58,6 +58,41 @@ extension _RegistrationForm on _RegistrationScreenState {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (step == 0) ...[
+                Row(
+                  children: [
+                    Icon(
+                      Icons.local_shipping_outlined,
+                      size: 28,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'AISLEY Rider',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Create your account',
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Verify access to your email before continuing. Logistics reviews your application after registration.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
               Text(
                 'Step ${step + 1} of 6 · ${_registrationSteps[step]}',
                 style: Theme.of(context).textTheme.titleMedium,
@@ -68,26 +103,33 @@ extension _RegistrationForm on _RegistrationScreenState {
                 semanticsLabel: 'Registration step ${step + 1} of 6',
               ),
               const SizedBox(height: 24),
-              if (_submissionError case final error?) ...[
-                _RegistrationErrorBanner(message: error),
-                const SizedBox(height: 16),
-              ],
-              if (_fieldErrors.isNotEmpty) ...[
-                _RegistrationFieldErrorSummary(errors: _fieldErrors),
-                const SizedBox(height: 16),
-              ],
-              switch (step) {
-                0 => RegistrationEmailFields(
-                  controller: _verification,
-                  disabled: busy,
-                  emailFocusNode: _emailVerificationFocus,
+              CourierSurfaceCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_submissionError case final error?) ...[
+                      _RegistrationErrorBanner(message: error),
+                      const SizedBox(height: 16),
+                    ],
+                    if (_fieldErrors.isNotEmpty) ...[
+                      _RegistrationFieldErrorSummary(errors: _fieldErrors),
+                      const SizedBox(height: 16),
+                    ],
+                    switch (step) {
+                      0 => RegistrationEmailFields(
+                        controller: _verification,
+                        disabled: busy,
+                        emailFocusNode: _emailVerificationFocus,
+                      ),
+                      1 => _buildPersonalStep(context),
+                      2 => _buildAddressStep(context),
+                      3 => _buildLogisticsStep(context),
+                      4 => _buildEvidenceStep(context),
+                      _ => _buildReviewStep(context),
+                    },
+                  ],
                 ),
-                1 => _buildPersonalStep(context),
-                2 => _buildAddressStep(context),
-                3 => _buildLogisticsStep(context),
-                4 => _buildEvidenceStep(context),
-                _ => _buildReviewStep(context),
-              },
+              ),
               const SizedBox(height: 16),
               if (_isSubmitting) ...[
                 const LinearProgressIndicator(

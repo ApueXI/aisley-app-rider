@@ -1,5 +1,7 @@
-import '../../../shared/presentation/task_row.dart';
 import '../../../shared/presentation/destination_scope.dart';
+import '../../../shared/presentation/courier_section_header.dart';
+import '../../../shared/presentation/courier_status_badge.dart';
+import '../../../shared/presentation/courier_surface_card.dart';
 
 import 'package:flutter/material.dart';
 

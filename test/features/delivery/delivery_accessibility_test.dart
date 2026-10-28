@@ -53,43 +53,54 @@ void main() {
           find.bySemanticsLabel(RegExp('Selected proof photo preview')),
           findsOneWidget,
         );
-        await checkScrollableAccessibility(tester);
-        await reveal(tester, find.text('Delivered'));
-        await tester.tap(find.text('Delivered'));
-        await tester.pumpAndSettle();
+        await reveal(tester, find.text('Retake photo'));
+        await checkAccessibility(tester);
+        final delivered = find.widgetWithText(FilledButton, 'Delivered');
+        await reveal(tester, delivered);
+        expect(tester.widget<FilledButton>(delivered).onPressed, isNull);
         expect(repository.uploadedPhoto, isNull);
-        expect(find.text('Amount to collect: PHP 115.00'), findsOneWidget);
+        await reveal(tester, find.text('Cash due'));
+        expect(find.text('Cash due'), findsOneWidget);
+        expect(find.text('PHP 115.00'), findsOneWidget);
         expect(
           tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
           isFalse,
         );
         await checkAccessibility(tester);
+        await tester.ensureVisible(find.byType(CheckboxListTile));
+        await focusByKeyboard(tester, find.byType(CheckboxListTile));
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+          isTrue,
+        );
+        await checkAccessibility(tester);
+        await reveal(tester, delivered);
+        expect(tester.widget<FilledButton>(delivered).onPressed, isNotNull);
+        await tester.tap(delivered);
+        await tester.pumpAndSettle();
+        expect(find.text('Confirm delivery'), findsOneWidget);
+        expect(repository.completionEvidenceId, isNull);
         await focusByKeyboard(
           tester,
           find.widgetWithText(TextButton, 'Cancel'),
         );
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
         await tester.pumpAndSettle();
-        expect(repository.completionEvidenceId, isNull);
-        await tester.tap(find.text('Delivered'));
-        await tester.pumpAndSettle();
-        await tester.ensureVisible(find.byType(CheckboxListTile));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byType(CheckboxListTile));
-        await tester.pumpAndSettle();
-        await tester.tap(
-          find.descendant(
-            of: find.byType(AlertDialog),
-            matching: find.text('Delivered'),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await checkScrollableAccessibility(tester);
-        expect(find.text('Delivered'), findsNothing);
+        await reveal(tester, find.text('Delivered'));
+        await checkAccessibility(tester);
+        expect(find.text('Delivered'), findsOneWidget);
         expect(
-          controller.completions[outForDeliveryTask.id]!.isDelivered,
-          isFalse,
+          controller.completions[outForDeliveryTask.id]?.isDelivered,
+          isNot(true),
         );
+        /*
+         * Acknowledging cash enables the confirmation step only. The server
+         * mutation still waits for the separate Delivered confirmation.
+         */
+        expect(repository.completionEvidenceId, isNull);
+        expect(find.byType(AlertDialog), findsNothing);
         await unmount(tester, [controller, auth]);
       },
     );

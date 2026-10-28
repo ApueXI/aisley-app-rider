@@ -53,16 +53,38 @@ void main() {
         tester.widget<TextField>(find.byType(TextField)).controller!.text,
         'KNOWN-ORDER',
       );
-      expect(
-        find.descendant(
-          of: find.byType(ListTile),
-          matching: find.text('KNOWN-ORDER'),
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('KNOWN-ORDER'), findsNWidgets(2));
       await unmount(tester, [controller, auth]);
     },
   );
+
+  testWidgets('tapping a completed result opens its read-only record', (
+    tester,
+  ) async {
+    final repository = HistorySearchRepository()
+      ..page = historyPage('KNOWN-ORDER');
+    final controller = HistoryController(historyRepository: repository);
+    final auth = historyAuth();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HistoryScreen(
+          authController: auth,
+          historyController: controller,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final resultCard = find.ancestor(
+      of: find.text('KNOWN-ORDER'),
+      matching: find.byType(InkWell),
+    );
+    expect(resultCard, findsOneWidget);
+    await tester.tap(resultCard);
+    await tester.pumpAndSettle();
+    expect(find.text('Delivery record'), findsOneWidget);
+    expect(find.text('KNOWN-ORDER'), findsOneWidget);
+    await unmount(tester, [controller, auth]);
+  });
 
   testWidgets(
     'account cleanup hides the record snapshot in an open detail screen',

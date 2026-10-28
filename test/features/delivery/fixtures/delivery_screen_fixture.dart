@@ -44,6 +44,8 @@ class WidgetDeliveryRepository implements DeliveryRepository {
   bool? codCollected;
   DeliveryPhotoSelection? uploadedPhoto;
   ApiException? proofError;
+  ApiException? completionError;
+  final completionKeys = <String>[];
   DeliveryContext deliveryContext = const DeliveryContext(
     failedAttemptCount: 0,
     taskId: 'delivery-task-1',
@@ -153,6 +155,8 @@ class WidgetDeliveryRepository implements DeliveryRepository {
     required String idempotencyKey,
     required bool codCollected,
   }) async {
+    completionKeys.add(idempotencyKey);
+    if (completionError case final error?) throw error;
     completionEvidenceId = evidenceId;
     this.codCollected = codCollected;
     return CompletionProjection(

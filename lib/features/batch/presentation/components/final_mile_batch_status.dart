@@ -7,20 +7,13 @@ class _BatchStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: scheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        _batchStatusLabel(status),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: scheme.onSecondaryContainer,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+    return CourierStatusBadge(
+      label: _batchStatusLabel(status),
+      tone: switch (status) {
+        FinalMileBatchStatus.accepted => CourierStatusTone.success,
+        FinalMileBatchStatus.inProgress => CourierStatusTone.info,
+        FinalMileBatchStatus.offered => CourierStatusTone.neutral,
+      },
     );
   }
 }

@@ -52,3 +52,4 @@ app.*.map.json
 
 # cabigan stuff
 cabigan/*
+/.orchestrator/tmp/

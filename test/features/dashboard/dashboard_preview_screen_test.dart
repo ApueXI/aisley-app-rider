@@ -11,6 +11,7 @@ import 'package:aisley_app/features/dashboard/presentation/dashboard_screen.dart
 import 'package:aisley_app/features/pickup/data/pickup_repository.dart';
 import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
 import 'package:aisley_app/features/pickup/presentation/controllers/pickup_controller.dart';
+import 'package:aisley_app/shared/presentation/courier_surface_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -91,6 +92,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
+    await tester.ensureVisible(find.text('Order ORD-first-1'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Order ORD-first-1'));
     await tester.pumpAndSettle();
 
@@ -130,13 +133,13 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.text('Order ORD-unknown'), findsOneWidget);
-    final tile = tester.widget<ListTile>(
+    final card = tester.widget<CourierSurfaceCard>(
       find.ancestor(
         of: find.text('Order ORD-unknown'),
-        matching: find.byType(ListTile),
+        matching: find.byType(CourierSurfaceCard),
       ),
     );
-    expect(tile.onTap, isNull);
+    expect(card.onTap, isNull);
     expect(find.textContaining('Status unavailable'), findsWidgets);
 
     await tester.pumpWidget(const SizedBox.shrink());

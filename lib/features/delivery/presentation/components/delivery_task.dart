@@ -29,10 +29,12 @@ class DeliveryTaskScreen extends StatefulWidget {
 class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
     with _DeliveryPhotoSelection {
   final _leaveGuard = GlobalKey<UnsavedChangesGuardState>();
+
   @override
   void initState() {
     super.initState();
     widget.authController.addListener(_handleAuthState);
+    initializeCashAcknowledgment();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         widget.deliveryController.loadDetails(widget.task);
@@ -43,6 +45,7 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
   @override
   void dispose() {
     widget.authController.removeListener(_handleAuthState);
+    disposeCashAcknowledgment();
     widget.deliveryController.clearProofPhotosForTask(
       widget.task.id,
       notify: false,
@@ -51,12 +54,22 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(DeliveryTaskScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.deliveryController != widget.deliveryController) {
+      replaceCashAcknowledgmentController(oldWidget.deliveryController);
+    }
+    updateCashAcknowledgmentTask(oldWidget.task.id, widget.task.id);
+  }
+
   void _handleAuthState() {
     if (widget.authController.status == AuthStatus.authenticated) return;
     if (widget.onRefresh != null &&
         widget.authController.status == AuthStatus.policyConsentRequired) {
       return;
     }
+    clearCashAcknowledgment();
     _selectedPhoto = null;
     _photoSelectionError = null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -72,6 +85,15 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
         final controller = widget.deliveryController;
         final task = controller.taskById(widget.task.id) ?? widget.task;
         final deliveryContext = controller.contexts[task.id];
+        final reviewPending = controller.isCompletionPending(task);
+        final codCollection = deliveryContext?.codCollection;
+        final isCod = deliveryContext?.paymentMethod == 'cod';
+        final cashAcknowledged = cashAcknowledgmentMatches(
+          task,
+          deliveryContext,
+        );
+        final paymentReady =
+            paymentIsKnown(deliveryContext) && (!isCod || cashAcknowledged);
         return UnsavedChangesGuard(
           key: _leaveGuard,
           hasUnsavedChanges: _selectedPhoto != null,
@@ -83,7 +105,7 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => _leaveGuard.currentState?.requestLeave(),
               ),
-              title: const Text('Deliver order'),
+              title: Text(reviewPending ? 'Delivery review' : 'Deliver order'),
             ),
             body: RefreshIndicator(
               onRefresh: () async {
@@ -105,9 +127,26 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                     error: controller.contextErrors[task.id],
                     onRetry:
                         widget.onRefresh ?? () => controller.loadDetails(task),
+                    codCollection: codCollection,
+                    cashAcknowledged: cashAcknowledged,
+                    canAcknowledgeCash:
+                        !reviewPending && !controller.isActionBusy(task),
+                    onCashAcknowledged: (value) {
+                      if (codCollection != null) {
+                        setCashAcknowledgement(task, codCollection, value);
+                      }
+                    },
+                    isReviewPending: reviewPending,
                   ),
                   const SizedBox(height: 16),
-                  _buildAction(context, task, deliveryContext),
+                  _buildAction(
+                    context,
+                    task,
+                    deliveryContext,
+                    paymentReady: paymentReady,
+                    onBackToWork: () =>
+                        _leaveGuard.currentState?.requestLeave(),
+                  ),
                   if (widget.chatController != null &&
                       task.isFinalMile &&
                       (task.status == PickupTaskStatus.deliveryAssigned ||
@@ -127,7 +166,9 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                       icon: const Icon(Icons.person_outline),
                       label: const Text('Message Buyer'),
                     ),
-                  if (task.isFinalMile && task.canSubmitDelivery) ...[
+                  if (task.isFinalMile &&
+                      task.canSubmitDelivery &&
+                      !reviewPending) ...[
                     const SizedBox(height: 16),
                     FailedDeliveryAttemptCard(
                       task: task,
@@ -166,15 +207,31 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
   Widget _buildAction(
     BuildContext context,
     PickupTask task,
-    DeliveryContext? deliveryContext,
-  ) {
+    DeliveryContext? deliveryContext, {
+    required bool paymentReady,
+    required VoidCallback onBackToWork,
+  }) {
+    if (task.status == PickupTaskStatus.delivered) {
+      return _CompletedDeliveryCard();
+    }
+    if (widget.deliveryController.isCompletionPending(task)) {
+      return _DeliveryPendingReviewCard(
+        task: task,
+        controller: widget.deliveryController,
+        contextData: deliveryContext,
+        canRefresh:
+            !widget.deliveryController.isActionBusy(task) &&
+            widget.deliveryController.canRetryRateLimit &&
+            widget.deliveryController.completionStatuses[task.id] !=
+                DeliveryLoadStatus.loading,
+        onRefresh: () => widget.deliveryController.loadCompletion(task),
+        onBackToWork: onBackToWork,
+      );
+    }
     if (widget.onRefresh != null &&
         widget.deliveryController.contextStatuses[task.id] !=
             DeliveryLoadStatus.loaded) {
       return const Text('Refresh delivery details before continuing.');
-    }
-    if (task.status == PickupTaskStatus.delivered) {
-      return _CompletedDeliveryCard();
     }
     if (task.status == PickupTaskStatus.deliveryAssigned) {
       return const Text(
@@ -189,6 +246,7 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
         selectionError: _photoSelectionError,
         isPicking: _isPickingPhoto,
         canCancelUpload: _cancelPhotoUpload != null,
+        paymentReady: paymentReady,
         onChoosePhoto: _pickPhoto,
         cameraSupported: widget.photoCaptureLauncher.isSupported,
         onCapturePhoto: _capturePhoto,

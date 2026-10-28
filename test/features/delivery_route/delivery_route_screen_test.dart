@@ -69,7 +69,11 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.textContaining('Last refreshed'), findsOneWidget);
+        expect(
+          find.textContaining('Server-provided delivery order'),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Last refreshed'), findsNothing);
         expect(find.textContaining('Calculated'), findsNothing);
         await tester.scrollUntilVisible(find.text('Area two'), 200);
         expect(find.text('Area two'), findsOneWidget);
