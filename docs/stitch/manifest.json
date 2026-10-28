@@ -1,0 +1,447 @@
+{
+  "project": {
+    "id": "13625567050207019759",
+    "name": "AISLEY Rider",
+    "resource": "projects/13625567050207019759",
+    "url": "https://stitch.withgoogle.com/projects/13625567050207019759",
+    "visibility": "PRIVATE"
+  },
+  "createdOn": "2026-10-28",
+  "flutterCommit": "a4f17bab5dd337c4a34f0a2d7f374cf12a91d003",
+  "adoptedPlatform": "1858785e",
+  "status": "design-exploration-only",
+  "screens": [
+    {
+      "slug": "01-home",
+      "id": "415b5cc6007b40d0b555cb52ebbe61c2",
+      "name": "projects/13625567050207019759/screens/415b5cc6007b40d0b555cb52ebbe61c2",
+      "title": "AISLEY Rider - Home",
+      "width": "780",
+      "height": "1904",
+      "deviceType": "MOBILE",
+      "sessionId": "8051624402720478710",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/63afa37035ea488489669c0c79186b39:download",
+        "name": "projects/13625567050207019759/files/63afa37035ea488489669c0c79186b39"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/136111ec5c6f4fc083b579800dc711d0:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/136111ec5c6f4fc083b579800dc711d0"
+      },
+      "localScreenshot": "screenshots/01-home.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live. Create the Home screen. AISLEY Rider wordmark at top; synthetic Courier \"Mika Santos\", read-only affiliation \"Demo Logistics · Main hub\" in compact header. Work-first layout, no hero greeting. Active work first: one final-mile row \"ORD-DEMO-1042\", \"Delivery accepted\", \"Pasig City\", text action View task; Available work next: one first-mile row \"ORD-DEMO-1043\", \"Seller pickup offer\", \"Marikina City\", Review task. These are bounded previews, label View all instead of complete totals. Compact Pickup orders and Delivery work shortcuts. Notifications accessible bell action. Each section own freshness \"Last refreshed 09:41\"; available section shows recoverable refresh warning with retained row labelled Stale and Retry. Selected bottom tab Home. Read-only dashboard; no accept or mutation buttons.",
+      "export": {
+        "width": 780,
+        "height": 1904,
+        "bytes": 166865,
+        "sha256": "90c5a099bc290e1af5a4d6a5db0796d61415d68e93637d605eadcda3175ae729"
+      }
+    },
+    {
+      "slug": "02-work",
+      "id": "bda0d9bd5cce49f2b5218844f9a8e4e9",
+      "name": "projects/13625567050207019759/screens/bda0d9bd5cce49f2b5218844f9a8e4e9",
+      "title": "AISLEY Rider - Work",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "sessionId": "4469315678809801856",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/ebf1c9cf4dbf4f6a9d433fb506288d14:download",
+        "name": "projects/13625567050207019759/files/ebf1c9cf4dbf4f6a9d433fb506288d14"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/2081f75bd68948628a7bec02bf8b2a08:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/2081f75bd68948628a7bec02bf8b2a08"
+      },
+      "localScreenshot": "screenshots/02-work.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live. Work destination root, selected Work bottom tab. Five familiar Material ListTile rows with a plain leading outline icon, title, short subtitle and chevron: Pickup orders (Seller pickups and hub handoff), Delivery work (Photo proof and delivery review), Final-mile batches (Review individual parcel decisions), Linehaul jobs (Assigned hub transfers), Delivery history (Completed deliveries). No stats, fabricated work counts, prominent mutation button or card grid. Title Work; calm compact hierarchy.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 123404,
+        "sha256": "11cfa02e359e67a306ab49e7c53aa73ef931417795c2f5e23d5c83d379e4f032"
+      }
+    },
+    {
+      "slug": "03-task-details",
+      "id": "6bcefbe389b442d9a9fdeea159977b06",
+      "name": "projects/13625567050207019759/screens/6bcefbe389b442d9a9fdeea159977b06",
+      "title": "AISLEY Rider - Task Details (ORD-DEMO-1042)",
+      "width": "780",
+      "height": "2026",
+      "deviceType": "MOBILE",
+      "sessionId": "516050889527666482",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/4631915b75584266975d122c1c74d639:download",
+        "name": "projects/13625567050207019759/files/4631915b75584266975d122c1c74d639"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/2f449c6131784074b99db1a6a143941a:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/2f449c6131784074b99db1a6a143941a"
+      },
+      "localScreenshot": "screenshots/03-task-details.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live. Pushed Task details screen for a FINAL-MILE OFFER before acceptance, ORD-DEMO-1042. Safe leg Final mile, status Delivery offered, origin Demo Logistics Main hub, destination area Pasig City, package summary 1 parcel. Exact address and recipient contact hidden until authorized acceptance. Explicit primary Accept delivery with confirmation explanation, secondary Reject opens reason form, secondary Message Logistics; do NOT offer Message Buyer yet. No batch-wide accept. One task decision affects this parcel only; small neutral note. No map/ETA or merchandise-price cash claim.",
+      "export": {
+        "width": 780,
+        "height": 2026,
+        "bytes": 188334,
+        "sha256": "fd08eaf639b8c20b9988a79839a5d5890ec5daef358d6b4a174e17a66395408e"
+      }
+    },
+    {
+      "slug": "04-pickup",
+      "id": "7e55ace5e3634cd0b9c375694d2e18bb",
+      "name": "projects/13625567050207019759/screens/7e55ace5e3634cd0b9c375694d2e18bb",
+      "title": "AISLEY Rider - Pickup Fulfillment (ORD-DEMO-1043)",
+      "width": "780",
+      "height": "2342",
+      "deviceType": "MOBILE",
+      "sessionId": "7767201132286112001",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/de24d467f8db456c8746127f9bd25d78:download",
+        "name": "projects/13625567050207019759/files/de24d467f8db456c8746127f9bd25d78"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/f0c1c7e54247418e93f01d30e260610e:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/f0c1c7e54247418e93f01d30e260610e"
+      },
+      "localScreenshot": "screenshots/04-pickup.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live. Pushed first-mile accepted pickup detail, ORD-DEMO-1043, status Accepted, Seller pickup, safe synthetic pickup context Demo shop · Marikina City. Current next action Scan (primary) opens QR/Code128 camera; secondary labelled manual tracking ID or Order reference input and Verify. Explain scan only finds a candidate, then explicit Confirm pickup after a server match. Render matched candidate panel and Confirm pickup primary instead of Scan if showing matched state; choose MATCHED state, with success-text 'Parcel matches this task' and explicit confirmation. Secondary Scan again, Enter identifier, Message Seller, Message Logistics. No first-mile Reject. Never claim scan itself completed pickup. No real scannable barcode or secret payload.",
+      "export": {
+        "width": 780,
+        "height": 2342,
+        "bytes": 227023,
+        "sha256": "500b8a54c55db43327aa3666e22c8a947ca0bcd91f4199b051c1c3cdadc554b9"
+      }
+    },
+    {
+      "slug": "05-delivery",
+      "id": "4b1433fa32bb4742bd561241fead4f07",
+      "name": "projects/13625567050207019759/screens/4b1433fa32bb4742bd561241fead4f07",
+      "title": "AISLEY Rider - Delivery Fulfillment (ORD-DEMO-1042)",
+      "width": "780",
+      "height": "2512",
+      "deviceType": "MOBILE",
+      "sessionId": "1373074336280009361",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/c083565d75ed40d4bc33f1b14d5d95e6:download",
+        "name": "projects/13625567050207019759/files/c083565d75ed40d4bc33f1b14d5d95e6"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/61936bc577ef4c72b236b36c6dd59990:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/61936bc577ef4c72b236b36c6dd59990"
+      },
+      "localScreenshot": "screenshots/05-delivery.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live. Pushed accepted final-mile delivery screen ORD-DEMO-1042. Show status Delivery accepted (no required transit checklist), area Pasig City, authorized destination context represented by safe text 'Demo delivery address' and no phone. Photo section simple schematic parcel preview clearly labelled Illustrative selected photo, replace/remove secondary controls. COD cash due PHP 115.00, distinguish from merchandise price (omit price), unchecked checkbox 'I collected PHP 115.00 in cash'. Primary Delivered disabled until required cash confirmation; explain 'Sends photo proof and delivery intent to Logistics for review. Delivery is confirmed only after Logistics validation.' Photo and linked intent are submitted in sequence by existing app. Secondary Message Buyer, Message Logistics, Report unsuccessful attempt. Do not precheck cash. No signature/OTP or proof approval controls.",
+      "export": {
+        "width": 780,
+        "height": 2512,
+        "bytes": 217211,
+        "sha256": "d6d78cc6eeb7928956e65f1e2fc188b9b28a89616146c9a453ae290091c4e844"
+      }
+    },
+    {
+      "slug": "06-messages",
+      "id": "bf6b863f21de461989f1e1f181e5cebb",
+      "name": "projects/13625567050207019759/screens/bf6b863f21de461989f1e1f181e5cebb",
+      "title": "AISLEY Rider - Task Messages",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "sessionId": "7728914297137321992",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/8acf5bc7314e46cfb31cd4e5227e729c:download",
+        "name": "projects/13625567050207019759/files/8acf5bc7314e46cfb31cd4e5227e729c"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/124c6eef99f240bb966ac9ec52041fba:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/124c6eef99f240bb966ac9ec52041fba"
+      },
+      "localScreenshot": "screenshots/06-messages.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Task messages destination root selected in bottom nav. Two compact list rows: Logistics · ORD-DEMO-1042, Final mile, safe preview 'Please refresh the task before proceeding', '1 unread'; Seller · ORD-DEMO-1043, First mile, 'Pickup is ready', Read-only. No arbitrary new chat, recipient search, calls, typing/presence, unread aggregates or task mutations. Refresh icon labelled. Neutral list, no repeated boxed icon tiles.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 119599,
+        "sha256": "f9fad3d5fa3dafa4c5886200ec16c15442d1986a07e092cb62d1cd727a7a0104"
+      }
+    },
+    {
+      "slug": "07-thread",
+      "id": "079a5a406bc8433a89af64c60861639f",
+      "name": "projects/13625567050207019759/screens/079a5a406bc8433a89af64c60861639f",
+      "title": "AISLEY Rider - Message Logistics (ORD-DEMO-1042)",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "sessionId": "10593973344395951975",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/aced14dae6684f7f8b6e67f958e679c2:download",
+        "name": "projects/13625567050207019759/files/aced14dae6684f7f8b6e67f958e679c2"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/c3adeab7e9084efbb23279136ba8dcbb:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/c3adeab7e9084efbb23279136ba8dcbb"
+      },
+      "localScreenshot": "screenshots/07-thread.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Pushed task conversation with Back, title Message Logistics; visible ORD-DEMO-1042 · Final mile · Demo Logistics. Two plain text messages with sender/time. Bottom composer above keyboard-safe area, labelled Message, image attachment only and Send. No voice/call/live location or video/document upload. Show uncertain send state 'Message not confirmed. Check connection and retry.' on outgoing text, explicit Retry and preserve draft; never show a successful tick for uncertain send. One action Send or Retry prominent, no action to accept/complete a task. Visible Back with discard protection documented, not extra UI.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 165799,
+        "sha256": "25a9eb63cfab1c49f14add5c028a5cfc21fe0d8dcda3ee1cb1d4a9e9b9576f23"
+      }
+    },
+    {
+      "slug": "08-account",
+      "id": "99f55660e4004e42adf366ef568496b5",
+      "name": "projects/13625567050207019759/screens/99f55660e4004e42adf366ef568496b5",
+      "title": "AISLEY Rider - Account",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "sessionId": "13681436790393582781",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/0e4584a027804063a7d19152cd0bf466:download",
+        "name": "projects/13625567050207019759/files/0e4584a027804063a7d19152cd0bf466"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/bb51a9f9443a4fda895002a0247a413f:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/bb51a9f9443a4fda895002a0247a413f"
+      },
+      "localScreenshot": "screenshots/08-account.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Account destination root selected bottom bar. Compact Mika Santos profile initials with read-only Approved · Demo Logistics · Main hub. Grouped familiar rows Profile, Security, Vehicle and documents, Policies, Support tickets and secondary Sign out with confirmation. No hub selector, role edit, availability toggle, earnings, payout or new settings. No giant profile hero. Profile fields not editable at root.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 158165,
+        "sha256": "5b84f9404870d66ab7af1daf5bc5397834023d5dc2100ec9a2bb037b1b968e13"
+      }
+    },
+    {
+      "slug": "09-sign-in",
+      "id": "03a43be4cbf64194991a9ccb17e54db6",
+      "name": "projects/13625567050207019759/screens/03a43be4cbf64194991a9ccb17e54db6",
+      "title": "AISLEY Rider - Sign in",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "sessionId": "5920835880751585362",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/e824e389526442caafaf99ceaba1c463:download",
+        "name": "projects/13625567050207019759/files/e824e389526442caafaf99ceaba1c463"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/d1dfcdcde5994c94afc17853d904f301:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/d1dfcdcde5994c94afc17853d904f301"
+      },
+      "localScreenshot": "screenshots/09-sign-in.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Signed-out Sign in screen with AISLEY Rider wordmark, short instruction 'Sign in to your Courier account'. Labelled Email and Password fields, password visibility icon, Sign in primary and Create account secondary. No remembered/password filled values, social login, Forgot password/reset flow, biometric control or role selector. Clear recoverable offline notice Retry; preserve email but do not display password data.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 107066,
+        "sha256": "c2d48735b7bef1784718047d9c6b2cd5bd5e5367d85a93a586d48b393a4cd265"
+      }
+    },
+    {
+      "slug": "10-registration",
+      "id": "ded822dfed954d67adf7a98f0755ec34",
+      "name": "projects/13625567050207019759/screens/ded822dfed954d67adf7a98f0755ec34",
+      "title": "AISLEY Rider - Email verification (Step 1 of 6)",
+      "width": "780",
+      "height": "1860",
+      "deviceType": "MOBILE",
+      "sessionId": "9902454249042187044",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/7d81de7c57294a96ad0c60fc49120e24:download",
+        "name": "projects/13625567050207019759/files/7d81de7c57294a96ad0c60fc49120e24"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/466ff2b43c194c04ba2bd9577a9ef2dd:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/466ff2b43c194c04ba2bd9577a9ef2dd"
+      },
+      "localScreenshot": "screenshots/10-registration.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. First of existing six guided registration steps: Email verification, then Personal details, Address, Logistics and vehicle, Evidence, Review and password. Render only current Email verification step, progress '1 of 6' and compact progress bar. Labelled Email example rider@example.invalid, six-digit Verification code empty field, primary Verify email, secondary Resend code disabled 'Resend in 45 seconds', Back/Sign in secondary. Expiry/error text adjacent. No map, credentials/proof tokens or real evidence. Simple scrollable Material form, no bottom tab bar. Show remaining steps as short collapsed progress description rather than competing forms.",
+      "export": {
+        "width": 780,
+        "height": 1860,
+        "bytes": 164745,
+        "sha256": "c5772002030c007ad7c426dd2b50c847e06bcf62af597c1c1dbaf24f75377ed8"
+      }
+    },
+    {
+      "slug": "11-batches",
+      "id": "9f19cfc71ec44fb88a2539d38b0a7a94",
+      "name": "projects/13625567050207019759/screens/9f19cfc71ec44fb88a2539d38b0a7a94",
+      "title": "AISLEY Rider - Final-mile batches (DSP-DEMO-24)",
+      "width": "780",
+      "height": "1918",
+      "deviceType": "MOBILE",
+      "sessionId": "5918258235536817884",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/1ed08e40c2f14563b31099e2700d82ad:download",
+        "name": "projects/13625567050207019759/files/1ed08e40c2f14563b31099e2700d82ad"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/ece59fc19410452ea844e981b3f4a32a:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/ece59fc19410452ea844e981b3f4a32a"
+      },
+      "localScreenshot": "screenshots/11-batches.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Work owning list root Final-mile batches with Back to Work and persistent bottom navigation Work selected. One synthetic schedule DSP-DEMO-24, two parcel rows: ORD-DEMO-1042 Delivery offered with Review action and ORD-DEMO-1044 Delivery accepted with View task. Explicit independent parcel decisions; NO accept all, bulk checkbox, assign Courier, or invented capacity. Secondary View delivery route covers accepted members only. One offered and one accepted, no contradictory full-batch Accepted label. State In progress or Offered according contract; use Offered while any current member unaccepted.",
+      "export": {
+        "width": 780,
+        "height": 1918,
+        "bytes": 166371,
+        "sha256": "485849922e677420b486b1a9efdd0aa31ac6436cf261832fddc7328281e805a2"
+      }
+    },
+    {
+      "slug": "12-history",
+      "id": "dd30b8490bae408ebd55d370ef1c55d7",
+      "name": "projects/13625567050207019759/screens/dd30b8490bae408ebd55d370ef1c55d7",
+      "title": "AISLEY Rider - Delivery history",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "sessionId": "14637531317898335286",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/e554fad1c73f41d1bfebe9a26cb526ff:download",
+        "name": "projects/13625567050207019759/files/e554fad1c73f41d1bfebe9a26cb526ff"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/811372ff7ffa402d9a522e01dd936bed:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/811372ff7ffa402d9a522e01dd936bed"
+      },
+      "localScreenshot": "screenshots/12-history.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Work root Delivery history, Back to Work plus bottom bar Work selected. Exact Order reference labelled input, primary Search, secondary Clear. One synthetic delivered read-only row ORD-DEMO-1040, 'Delivered · 28 Oct, 08:20', pickup area Marikina City, destination Pasig City, 1 item, photo proof validated. No full street/contact, date filters, approximate search, export, pagination unless server cursor supplied, earnings or action to redeliver.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 123829,
+        "sha256": "bd0381d72dc694954793f476d4069af280a2866206746d6e596d4e2246eb3ee2"
+      }
+    },
+    {
+      "slug": "13-notifications",
+      "id": "07e0411e74a64f159c8a18d13d7ae260",
+      "name": "projects/13625567050207019759/screens/07e0411e74a64f159c8a18d13d7ae260",
+      "title": "AISLEY Rider - Notifications",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "sessionId": "10130995587544934156",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/56bee25e0f084cf8a24becb98106f675:download",
+        "name": "projects/13625567050207019759/files/56bee25e0f084cf8a24becb98106f675"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/038bb07122a049c4b83441282c808893:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/038bb07122a049c4b83441282c808893"
+      },
+      "localScreenshot": "screenshots/13-notifications.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Pushed Notifications screen Back. Two safe rows: 'Pickup schedule available' SCH-DEMO-12, 'Final-mile parcel offered' ORD-DEMO-1042; explicit unread text and local display times. Read-only previews opening detail, explicit Mark as read in detail not automatic on open. No fake push permission or task acceptance controls. Small unavailable reload notice with Retry distinct from empty. No bottom tabs.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 153907,
+        "sha256": "e51e1a89aaf43f070b89f1ae6971f6b3f6337370586f8c25ac77a069bf555540"
+      }
+    },
+    {
+      "slug": "14-route-fallback",
+      "id": "348ac9d2e88e4e91806b7741e1676fa3",
+      "name": "projects/13625567050207019759/screens/348ac9d2e88e4e91806b7741e1676fa3",
+      "title": "AISLEY Rider - Pickup route (SCH-DEMO-12)",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "sessionId": "2455458299940198107",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/160e03caeaa94166ba8aceed6085ac7b:download",
+        "name": "projects/13625567050207019759/files/160e03caeaa94166ba8aceed6085ac7b"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/f28329f649b2472aa600a295273e27ea:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/f28329f649b2472aa600a295273e27ea"
+      },
+      "localScreenshot": "screenshots/14-route-fallback.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Pushed Pickup route empty fallback, Back, title Pickup route, schedule SCH-DEMO-12. Honest state 'Route stops are unavailable'; no fake map, guessed markers, distance/ETA or message promising an absent stop list. Helpful 'Return to Pickup orders to review your assigned work.' Primary Back to pickup tasks, secondary Refresh route, last refreshed time. Empty route never means no assigned tasks. Plain Material status with readable icon, no illustration.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 119935,
+        "sha256": "7eb2598b8d68c43f6231dbc8f4b0aa64972e865ec1d0ec7dfd0cf4156a24d066"
+      }
+    },
+    {
+      "slug": "15-linehaul",
+      "id": "15d7e65a7f9b4681b4f53e0b45f0167d",
+      "name": "projects/13625567050207019759/screens/15d7e65a7f9b4681b4f53e0b45f0167d",
+      "title": "AISLEY Rider - Linehaul jobs",
+      "width": "780",
+      "height": "2410",
+      "deviceType": "MOBILE",
+      "sessionId": "8622180152192926795",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/04d4123561c8457e8ecf539755cb50b4:download",
+        "name": "projects/13625567050207019759/files/04d4123561c8457e8ecf539755cb50b4"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/7ce90cbe194d44b0a6ef73cfaa59931f:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/7ce90cbe194d44b0a6ef73cfaa59931f"
+      },
+      "localScreenshot": "screenshots/15-linehaul.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Existing Linehaul jobs screen shows assigned hub transfers, selected trip detail inline below one assigned row. Work selected bottom nav. Synthetic outbound Demo Main hub → Demo Receiving hub, 2 parcels, server status Released (if unknown use 'Ready for departure' as display label). Read-only company-truck/load context not Courier vehicle selector. Primary Depart opens explicit Confirm departure?; arrival is subsequent state only. Explain Logistics receives cargo/unloads, departure doesn't deliver parcels. No invented route geometry/live telemetry/chat entitlement; no acceptance or assignment controls. Show planned schedule as plan not physical time.",
+      "export": {
+        "width": 780,
+        "height": 2410,
+        "bytes": 260341,
+        "sha256": "9f67d9e1909fdd8f6546eb07b5e256e51d79bacc76467cd5738aeeb57b3a4039"
+      }
+    },
+    {
+      "slug": "16-review",
+      "id": "153611a107894e468be9d4812c90d698",
+      "name": "projects/13625567050207019759/screens/153611a107894e468be9d4812c90d698",
+      "title": "AISLEY Rider - Delivery review (ORD-DEMO-1042)",
+      "width": "780",
+      "height": "1842",
+      "deviceType": "MOBILE",
+      "sessionId": "3624921604299627142",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/44e45a8ec9e94c84a02e2e06d6ddb08b:download",
+        "name": "projects/13625567050207019759/files/44e45a8ec9e94c84a02e2e06d6ddb08b"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/871b5993ed1d4900a5be4c9e6410bf2d:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/871b5993ed1d4900a5be4c9e6410bf2d"
+      },
+      "localScreenshot": "screenshots/16-review.png",
+      "prompt": "Design reference ONLY for the EXISTING AISLEY Rider Flutter Courier app. Native Android Material 3, 390x844 portrait. Match existing theme and familiar controls: canvas #F7F7F8, white #FFFFFF surfaces, ink #202024, secondary text #55555D, accessible primary #C00065 (brand #E6007A), restrained secondary #4C1268. One Roboto-family face matching Flutter platform defaults, 24px screen titles, readable 14-16px body, 4/8/12/16/24/32 spacing, 16px outer margins, cards radius 12px, buttons/fields radius 10px, 48px minimum targets. Flat neutral surfaces, no gradients/glass/ornamental graphics/earnings/online toggles. Bottom Material navigation ONLY on destination roots: Home, Work, Task messages, Account (all labels visible); pushed detail/form/map screens have Back and NO bottom bar. One prominent next action per active step; secondary text/outlined actions. Use synthetic demo references and area labels only, no actual people, evidence, phone numbers or exact addresses. Never imply automatic acceptance, pickup or delivery from opening a screen. Server controls authorization and status. No invented counts/ETA/distance, maps/live tracking, reset password workflow or offline submissions. Support clear status text with icons, not color alone. Essential context must wrap with 200% text; controls remain scrollable and respect SafeArea/keyboard. Any sample data is illustrative, not live.  Use ordinary tap buttons, never slide-to-complete. Keep developer terminology out of user-facing copy. Pushed delivery review state ORD-DEMO-1042 Final mile. Large readable status Awaiting Logistics validation; Photo proof received and Delivered intent submitted. Clear 'Submission does not mark this delivery complete. Logistics will review the photo and cash collection.' Current task status Delivery accepted remains separate from review status. Explicit Refresh completion status, secondary Back to delivery work; no duplicate Delivered, no confetti or success Delivered label, no reviewer controls. COD PHP 115.00 declared awaiting validation, not paid. Neutral clock icon.",
+      "export": {
+        "width": 780,
+        "height": 1842,
+        "bytes": 172109,
+        "sha256": "1c7811dcabbb5b58e89ea6b96a7ab9887c7c712f8c64ed648c9271c5967c34b0"
+      }
+    }
+  ]
+}

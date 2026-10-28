@@ -1,0 +1,151 @@
+{
+  "note": "Unadopted generated artifact; repository tokens/CONTEXT.md override conflicting suggestions.",
+  "designSystem": {
+    "displayName": "Courier Native Material",
+    "styleGuidelines": "## Brand & Style\n\nThis design system is engineered for the fast-paced, high-stress physical environments of couriers and riders using native Android devices. The operational ethos is utility-first, pragmatic, and glanceable under harsh outdoor lighting and while on the move.\n\n### Visual Style\n- **Pure Material 3 Utility:** Clean, flat, high-contrast surfaces without decorative ornamentation, gradients, or glassmorphic blur effects.\n- **Ergonomics & Legibility:** Work-first ergonomics prioritising 48dp minimum interactive touch boundaries, unambiguous affordances, and zero cognitive friction.\n- **Tone:** Authoritative, dependable, industrial, and purpose-built.\n\n## Layout & Spacing\n\nA strictly regimented 4dp base grid (4px, 8px, 12px, 16px, 24px, 32px) standardizes component metrics and gaps across all portrait Android viewports.\n\n- **Outer Margins:** Fixed at `1rem` (16px) on mobile viewports to preserve touch perimeter boundaries while maximizing vertical screen space.\n- **Column System:** Mobile portrait views use a 4-column fluid layout with `1rem` (16px) gutters. Larger foldable and tablet views expand to an 8-column layout.\n- **Touch Target Integrity:** Every interactive control—regardless of visual padding—must resolve to a minimum physical bounding box of `48px x 48px` (48dp).\n\n## Elevation & Depth\n\nTo avoid glare distortion and performance drops on diverse Android hardware, this design system avoids heavy shadows, blurred textures, and multi-tier lighting models.\n\n- **Flat Layering:** Surfaces (`#FFFFFF`) sit directly atop the `#F7F7F8` canvas separated by a crisp 1px border (`#E2E2E6`).\n- **Tonal Elevation:** Higher priority elements (such as bottom sheets and floating action targets) utilize flat surface contrast paired with an ambient 2dp drop shadow: `0px 1px 3px rgba(32, 32, 36, 0.08)`.\n- **Active State Highlights:** Focus and selection are communicated via 2px solid boundary rings in primary `#C00065` rather than raised elevation.\n\n## Components\n\n### Buttons\n- **Primary Action (Confirm / Accept):** Minimum height of 48px, 10px corner radius, background `#C00065`, label pure white (`#FFFFFF`) in `label-lg`.\n- **Secondary Action (Navigate / Support):** Outline variant with 1.5px border in `#4C1268`, label `#4C1268`, background `#FFFFFF`.\n- **Destructive / Reject:** Flat neutral border `#E2E2E6`, text color `#202024`.\n\n### Cards & Manifest Sheets\n- Background `#FFFFFF`, 12px corner radius, framed with a 1px solid `#E2E2E6` border.\n- Internal padding fixed at 16px (`space-lg`). Content groups separated by 8px or 12px vertical spacing.\n\n### Input Fields\n- Minimum height 48px with a 10px corner radius.\n- Resting border 1px solid `#E2E2E6`, background `#FFFFFF`.\n- Focused border 2px solid `#C00065`. Label in `body-md` using `#55555D`, typing text in `#202024`.\n\n### Chips & Filter Tags\n- Height 32px with full pill radius. \n- Inactive: `#FFFFFF` fill, 1px `#E2E2E6` border, `#55555D` label.\n- Active: `#4C1268` fill, no border, `#FFFFFF` label. Minimum 48px touch wrapper.\n\n### Checkboxes & Radios\n- Size 24px bounding box wrapped in a 48px invisible touch frame.\n- Unchecked: 2px solid `#55555D` border.\n- Checked: `#C00065` fill with a pure white glyph.\n\n### Operational Specialized Components\n- **Slide-to-Complete Banner:** Linear track pinned to the bottom of the screen with a 48px high thumb handle in `#C00065` to prevent accidental pocket activations.\n- **Route Stop Indicator:** Vertical timeline connector in `#E2E2E6` with completed nodes marked in `#4C1268` and active next-stops highlighted in `#C00065`.",
+    "theme": {
+      "bodyFont": "ROBOTO_FLEX",
+      "bodyFontFamily": "Roboto Flex",
+      "colorMode": "LIGHT",
+      "colorVariant": "FIDELITY",
+      "customColor": "#c00065",
+      "designMd": "---\nname: Courier Native Material\ncolors:\n  surface: '#fbf8fe'\n  surface-dim: '#dcd9de'\n  surface-bright: '#fbf8fe'\n  surface-container-lowest: '#ffffff'\n  surface-container-low: '#f5f2f8'\n  surface-container: '#f0edf2'\n  surface-container-high: '#eae7ec'\n  surface-container-highest: '#e4e1e7'\n  on-surface: '#1b1b1f'\n  on-surface-variant: '#594047'\n  inverse-surface: '#303034'\n  inverse-on-surface: '#f3f0f5'\n  outline: '#8d6f77'\n  outline-variant: '#e1bec6'\n  surface-tint: '#ba0061'\n  primary: '#94004d'\n  on-primary: '#ffffff'\n  primary-container: '#c00065'\n  on-primary-container: '#ffd3de'\n  inverse-primary: '#ffb1c7'\n  secondary: '#7f469b'\n  on-secondary: '#ffffff'\n  secondary-container: '#e3a3ff'\n  on-secondary-container: '#6a3285'\n  tertiary: '#005719'\n  on-tertiary: '#ffffff'\n  tertiary-container: '#007223'\n  on-tertiary-container: '#93f494'\n  error: '#ba1a1a'\n  on-error: '#ffffff'\n  error-container: '#ffdad6'\n  on-error-container: '#93000a'\n  primary-fixed: '#ffd9e2'\n  primary-fixed-dim: '#ffb1c7'\n  on-primary-fixed: '#3e001d'\n  on-primary-fixed-variant: '#8e0049'\n  secondary-fixed: '#f7d9ff'\n  secondary-fixed-dim: '#e9b3ff'\n  on-secondary-fixed: '#310048'\n  on-secondary-fixed-variant: '#652d81'\n  tertiary-fixed: '#97f998'\n  tertiary-fixed-dim: '#7bdc7e'\n  on-tertiary-fixed: '#002105'\n  on-tertiary-fixed-variant: '#005317'\n  background: '#fbf8fe'\n  on-background: '#1b1b1f'\n  surface-variant: '#e4e1e7'\ntypography:\n  headline-lg:\n    fontFamily: Roboto Flex\n    fontSize: 24px\n    fontWeight: '700'\n    lineHeight: 32px\n    letterSpacing: 0px\n  headline-md:\n    fontFamily: Roboto Flex\n    fontSize: 20px\n    fontWeight: '700'\n    lineHeight: 28px\n    letterSpacing: 0.15px\n  title-md:\n    fontFamily: Roboto Flex\n    fontSize: 16px\n    fontWeight: '600'\n    lineHeight: 24px\n    letterSpacing: 0.15px\n  body-lg:\n    fontFamily: Roboto Flex\n    fontSize: 16px\n    fontWeight: '400'\n    lineHeight: 24px\n    letterSpacing: 0.5px\n  body-md:\n    fontFamily: Roboto Flex\n    fontSize: 14px\n    fontWeight: '400'\n    lineHeight: 20px\n    letterSpacing: 0.25px\n  body-sm:\n    fontFamily: Roboto Flex\n    fontSize: 12px\n    fontWeight: '400'\n    lineHeight: 16px\n    letterSpacing: 0.4px\n  label-lg:\n    fontFamily: Roboto Flex\n    fontSize: 14px\n    fontWeight: '600'\n    lineHeight: 20px\n    letterSpacing: 0.1px\n  label-md:\n    fontFamily: Roboto Flex\n    fontSize: 12px\n    fontWeight: '600'\n    lineHeight: 16px\n    letterSpacing: 0.5px\n  label-sm:\n    fontFamily: Roboto Flex\n    fontSize: 11px\n    fontWeight: '500'\n    lineHeight: 16px\n    letterSpacing: 0.5px\nrounded:\n  sm: 0.25rem\n  DEFAULT: 0.5rem\n  md: 0.75rem\n  lg: 1rem\n  xl: 1.5rem\n  full: 9999px\nspacing:\n  gutter: 1rem\n  margin: 1rem\n  space-xs: 0.25rem\n  space-sm: 0.5rem\n  space-md: 0.75rem\n  space-lg: 1rem\n  space-xl: 1.5rem\n  space-2xl: 2rem\n---\n\n## Brand & Style\n\nThis design system is engineered for the fast-paced, high-stress physical environments of couriers and riders using native Android devices. The operational ethos is utility-first, pragmatic, and glanceable under harsh outdoor lighting and while on the move.\n\n### Visual Style\n- **Pure Material 3 Utility:** Clean, flat, high-contrast surfaces without decorative ornamentation, gradients, or glassmorphic blur effects.\n- **Ergonomics & Legibility:** Work-first ergonomics prioritising 48dp minimum interactive touch boundaries, unambiguous affordances, and zero cognitive friction.\n- **Tone:** Authoritative, dependable, industrial, and purpose-built.\n\n## Colors\n\nThe palette balances vivid operational highlights with extreme functional contrast to support WCAG AAA compliance across field-level lighting conditions.\n\n### Palette Architecture\n- **Primary (`#C00065`):** Deep accessible magenta, tuned specifically from the expressive brand tone (`#E6007A`) to exceed contrast requirements against white and light neutral backgrounds. Reserved for key confirmations, critical calls-to-action, and active delivery states.\n- **Secondary (`#4C1268`):** Restrained deep plum/indigo used for structural routing accents, contextual badges, transit statuses, and secondary navigation elements.\n- **Canvas Base (`#F7F7F8`):** Off-white background providing comfortable separation between full-canvas viewports and active content cards.\n- **Surface (`#FFFFFF`):** Pure white container base providing crisp separation and reliable touch affordance.\n- **Primary Ink (`#202024`):** High-contrast neutral text and critical vector iconography.\n- **Secondary Ink (`#55555D`):** Medium-contrast text for ancillary timestamps, delivery metadata, and sub-labels.\n- **Surface Outline (`#E2E2E6`):** Structural, low-contrast border separating white components from the off-white canvas.\n\n## Typography\n\nTypography relies entirely on the mechanical, systematic legibility of Roboto Flex. The scale is tuned for swift readability at arm's length or mounted on a bike/vehicle console.\n\n- **Screen Titles (`headline-lg`):** Strict 24px caps ensuring instant recognition of the current job state or route checkpoint.\n- **Body Systems (`body-lg`, `body-md`):** 14px to 16px body copy handles order line-items, delivery customer notes, and turn-by-turn road instructions without line crowding.\n- **Captions & Metadata (`body-sm`, `label-md`):** 12px for auxiliary package metrics, weight tags, and timestamps.\n\n## Layout & Spacing\n\nA strictly regimented 4dp base grid (4px, 8px, 12px, 16px, 24px, 32px) standardizes component metrics and gaps across all portrait Android viewports.\n\n- **Outer Margins:** Fixed at `1rem` (16px) on mobile viewports to preserve touch perimeter boundaries while maximizing vertical screen space.\n- **Column System:** Mobile portrait views use a 4-column fluid layout with `1rem` (16px) gutters. Larger foldable and tablet views expand to an 8-column layout.\n- **Touch Target Integrity:** Every interactive control—regardless of visual padding—must resolve to a minimum physical bounding box of `48px x 48px` (48dp).\n\n## Elevation & Depth\n\nTo avoid glare distortion and performance drops on diverse Android hardware, this design system avoids heavy shadows, blurred textures, and multi-tier lighting models.\n\n- **Flat Layering:** Surfaces (`#FFFFFF`) sit directly atop the `#F7F7F8` canvas separated by a crisp 1px border (`#E2E2E6`).\n- **Tonal Elevation:** Higher priority elements (such as bottom sheets and floating action targets) utilize flat surface contrast paired with an ambient 2dp drop shadow: `0px 1px 3px rgba(32, 32, 36, 0.08)`.\n- **Active State Highlights:** Focus and selection are communicated via 2px solid boundary rings in primary `#C00065` rather than raised elevation.\n\n## Shapes\n\nThe geometric framework balances structural compactness with accessible touch targets:\n- **Card Containers:** Standardized at `12px` border radius, creating clean units for delivery manifests and route stops.\n- **Action Controls & Fields:** Interactive controls—including action buttons, search inputs, and text fields—standardize at `10px` border radius.\n- **Pill Elements:** Status tags, chips, and vehicle indicators use fully rounded caps (`9999px`).\n\n## Components\n\n### Buttons\n- **Primary Action (Confirm / Accept):** Minimum height of 48px, 10px corner radius, background `#C00065`, label pure white (`#FFFFFF`) in `label-lg`.\n- **Secondary Action (Navigate / Support):** Outline variant with 1.5px border in `#4C1268`, label `#4C1268`, background `#FFFFFF`.\n- **Destructive / Reject:** Flat neutral border `#E2E2E6`, text color `#202024`.\n\n### Cards & Manifest Sheets\n- Background `#FFFFFF`, 12px corner radius, framed with a 1px solid `#E2E2E6` border.\n- Internal padding fixed at 16px (`space-lg`). Content groups separated by 8px or 12px vertical spacing.\n\n### Input Fields\n- Minimum height 48px with a 10px corner radius.\n- Resting border 1px solid `#E2E2E6`, background `#FFFFFF`.\n- Focused border 2px solid `#C00065`. Label in `body-md` using `#55555D`, typing text in `#202024`.\n\n### Chips & Filter Tags\n- Height 32px with full pill radius. \n- Inactive: `#FFFFFF` fill, 1px `#E2E2E6` border, `#55555D` label.\n- Active: `#4C1268` fill, no border, `#FFFFFF` label. Minimum 48px touch wrapper.\n\n### Checkboxes & Radios\n- Size 24px bounding box wrapped in a 48px invisible touch frame.\n- Unchecked: 2px solid `#55555D` border.\n- Checked: `#C00065` fill with a pure white glyph.\n\n### Operational Specialized Components\n- **Slide-to-Complete Banner:** Linear track pinned to the bottom of the screen with a 48px high thumb handle in `#C00065` to prevent accidental pocket activations.\n- **Route Stop Indicator:** Vertical timeline connector in `#E2E2E6` with completed nodes marked in `#4C1268` and active next-stops highlighted in `#C00065`.",
+      "font": "ROBOTO_FLEX",
+      "headlineFont": "ROBOTO_FLEX",
+      "headlineFontFamily": "Roboto Flex",
+      "labelFont": "ROBOTO_FLEX",
+      "labelFontFamily": "Roboto Flex",
+      "namedColors": {
+        "background": "#fbf8fe",
+        "error": "#ba1a1a",
+        "error_container": "#ffdad6",
+        "inverse_on_surface": "#f3f0f5",
+        "inverse_primary": "#ffb1c7",
+        "inverse_surface": "#303034",
+        "on_background": "#1b1b1f",
+        "on_error": "#ffffff",
+        "on_error_container": "#93000a",
+        "on_primary": "#ffffff",
+        "on_primary_container": "#ffd3de",
+        "on_primary_fixed": "#3e001d",
+        "on_primary_fixed_variant": "#8e0049",
+        "on_secondary": "#ffffff",
+        "on_secondary_container": "#6a3285",
+        "on_secondary_fixed": "#310048",
+        "on_secondary_fixed_variant": "#652d81",
+        "on_surface": "#1b1b1f",
+        "on_surface_variant": "#594047",
+        "on_tertiary": "#ffffff",
+        "on_tertiary_container": "#93f494",
+        "on_tertiary_fixed": "#002105",
+        "on_tertiary_fixed_variant": "#005317",
+        "outline": "#8d6f77",
+        "outline_variant": "#e1bec6",
+        "primary": "#94004d",
+        "primary_container": "#c00065",
+        "primary_fixed": "#ffd9e2",
+        "primary_fixed_dim": "#ffb1c7",
+        "secondary": "#7f469b",
+        "secondary_container": "#e3a3ff",
+        "secondary_fixed": "#f7d9ff",
+        "secondary_fixed_dim": "#e9b3ff",
+        "surface": "#fbf8fe",
+        "surface_bright": "#fbf8fe",
+        "surface_container": "#f0edf2",
+        "surface_container_high": "#eae7ec",
+        "surface_container_highest": "#e4e1e7",
+        "surface_container_low": "#f5f2f8",
+        "surface_container_lowest": "#ffffff",
+        "surface_dim": "#dcd9de",
+        "surface_tint": "#ba0061",
+        "surface_variant": "#e4e1e7",
+        "tertiary": "#005719",
+        "tertiary_container": "#007223",
+        "tertiary_fixed": "#97f998",
+        "tertiary_fixed_dim": "#7bdc7e"
+      },
+      "overrideNeutralColor": "#202024",
+      "overridePrimaryColor": "#c00065",
+      "overrideSecondaryColor": "#4c1268",
+      "roundness": "ROUND_EIGHT",
+      "spacing": {
+        "gutter": "1rem",
+        "margin": "1rem",
+        "space-2xl": "2rem",
+        "space-lg": "1rem",
+        "space-md": "0.75rem",
+        "space-sm": "0.5rem",
+        "space-xl": "1.5rem",
+        "space-xs": "0.25rem"
+      },
+      "spacingScale": 2,
+      "typography": {
+        "body-lg": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "letterSpacing": "0.5px",
+          "lineHeight": "24px"
+        },
+        "body-md": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "14px",
+          "fontWeight": "400",
+          "letterSpacing": "0.25px",
+          "lineHeight": "20px"
+        },
+        "body-sm": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "letterSpacing": "0.4px",
+          "lineHeight": "16px"
+        },
+        "headline-lg": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "letterSpacing": "0px",
+          "lineHeight": "32px"
+        },
+        "headline-md": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "20px",
+          "fontWeight": "700",
+          "letterSpacing": "0.15px",
+          "lineHeight": "28px"
+        },
+        "label-lg": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "14px",
+          "fontWeight": "600",
+          "letterSpacing": "0.1px",
+          "lineHeight": "20px"
+        },
+        "label-md": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "12px",
+          "fontWeight": "600",
+          "letterSpacing": "0.5px",
+          "lineHeight": "16px"
+        },
+        "label-sm": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "11px",
+          "fontWeight": "500",
+          "letterSpacing": "0.5px",
+          "lineHeight": "16px"
+        },
+        "title-md": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "16px",
+          "fontWeight": "600",
+          "letterSpacing": "0.15px",
+          "lineHeight": "24px"
+        }
+      }
+    }
+  },
+  "name": "assets/9f0b0b8dbd0e4f4dae55eb301b0cac8d",
+  "version": "1"
+}

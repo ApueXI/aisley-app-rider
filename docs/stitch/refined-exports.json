@@ -1,0 +1,200 @@
+{
+  "refinements": [
+    {
+      "slug": "08-account-refined",
+      "id": "d3ca2fbff9ad4cbf80c9f47c30e1c621",
+      "name": "projects/13625567050207019759/screens/d3ca2fbff9ad4cbf80c9f47c30e1c621",
+      "title": "AISLEY Rider - Account",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/a1bf72171b794581bb42e74604c71467:download",
+        "name": "projects/13625567050207019759/files/a1bf72171b794581bb42e74604c71467"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/899f1f56fd3c4be5abd04bed522700cd:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/899f1f56fd3c4be5abd04bed522700cd"
+      },
+      "localScreenshot": "screenshots/08-account-refined.png",
+      "supersedes": "08-account",
+      "prompt": "Correct ONLY the existing AISLEY Rider references selected. These are familiar Flutter Material 3 app screens, preserve existing supported workflows. DO NOT add features, actions, IDs or invented metadata. Canvas #F7F7F8 surfaces white, exact bottom labels Home / Work / Task messages / Account wherever a bar exists. Remove technical/server authorization banners, protocol/network-node/version text, fake verification claims and undefined help/filter buttons.\nACCOUNT: compact Mika Santos, Demo Logistics · Main hub, Approved. Exact five rows: Profile (Personal details and profile photo); Security (Change your password); Vehicle and documents (Vehicle details, official receipt and registration); Policies (Current versions and consent history); Support tickets (Contact platform support). Sign out secondary with confirmation. Remove synthetic Courier ID, PIN, biometric login, license verification, incidents and protocol.\nNOTIFICATIONS: preserve only two safe demo notification rows and retryable failure notice 'Could not refresh notifications. Last refreshed 10:20 AM.' with Retry. Remove Mark all as read and invented filter chips/filter icon. Opening row is read-only; Mark as read belongs to individual notification detail. No automatic mark read, acceptance or bulk actions.\nREGISTRATION: replace claim that OTP confirms eligibility/activates profile with 'Verify access to your email before continuing. Logistics reviews your application after registration.' Empty single six-digit field, no numeric placeholder/secret, retain expiry, resend countdown, Verify email and Sign in. Remove Contact Rider Operations Support.\nSIGN IN: empty password field with visibility, standard Email, Sign in and Create account; helper 'Enter your Courier account password'. No password assigned by Logistics claim, invented support control, protocol or role switch.\nTHREAD: keep task/leg/counterpart visible and normal message text. Remove Live Courier Channel, Verified Server Dispatch, packet/tower/consensus/local queue claims and technical/draft-protection footer. Keep 'Message not confirmed. Check connection and retry.' + exact Retry action. While uncertain, disable Send and Edit draft for that pending request, no sent tick.\nPICKUP ROUTE FALLBACK: retain schedule, freshness, Route stops are unavailable, Back to pickup tasks primary and Refresh route secondary. Remove Route Mode Auto, Manifest synchronized, Stops pending dispatch release and authority footer. No map/stops or cause claimed without data.\nLINEHAUL: one existing illustrative released scheduled outbound trip, Demo Main hub to Demo Receiving hub, 2 parcels. Status Scheduled and separate text Released for departure. Primary Depart opens Confirm departure?; no arrival yet. Remove palletized/seal/container, extra fake second trip, manifest action/IDs and fake schedule blocks. Existing View route secondary only. Explain Logistics receives/unloads; departure never delivers parcels.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 121372,
+        "sha256": "2938b1f266cfaac0475b5837d25262b6714b25b8f4b2bf6b4ce4f4e582a536ff"
+      },
+      "review": "reviewed-static-draft"
+    },
+    {
+      "slug": "13-notifications-refined",
+      "id": "82f3f9fa38e041898d261d6ca05ac495",
+      "name": "projects/13625567050207019759/screens/82f3f9fa38e041898d261d6ca05ac495",
+      "title": "AISLEY Rider - Notifications",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/f289152633364c788123ef78d1c95566:download",
+        "name": "projects/13625567050207019759/files/f289152633364c788123ef78d1c95566"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/3a3cc283c5414f958321a70ee3b45c7b:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/3a3cc283c5414f958321a70ee3b45c7b"
+      },
+      "localScreenshot": "screenshots/13-notifications-refined.png",
+      "supersedes": "13-notifications",
+      "prompt": "Correct ONLY the existing AISLEY Rider references selected. These are familiar Flutter Material 3 app screens, preserve existing supported workflows. DO NOT add features, actions, IDs or invented metadata. Canvas #F7F7F8 surfaces white, exact bottom labels Home / Work / Task messages / Account wherever a bar exists. Remove technical/server authorization banners, protocol/network-node/version text, fake verification claims and undefined help/filter buttons.\nACCOUNT: compact Mika Santos, Demo Logistics · Main hub, Approved. Exact five rows: Profile (Personal details and profile photo); Security (Change your password); Vehicle and documents (Vehicle details, official receipt and registration); Policies (Current versions and consent history); Support tickets (Contact platform support). Sign out secondary with confirmation. Remove synthetic Courier ID, PIN, biometric login, license verification, incidents and protocol.\nNOTIFICATIONS: preserve only two safe demo notification rows and retryable failure notice 'Could not refresh notifications. Last refreshed 10:20 AM.' with Retry. Remove Mark all as read and invented filter chips/filter icon. Opening row is read-only; Mark as read belongs to individual notification detail. No automatic mark read, acceptance or bulk actions.\nREGISTRATION: replace claim that OTP confirms eligibility/activates profile with 'Verify access to your email before continuing. Logistics reviews your application after registration.' Empty single six-digit field, no numeric placeholder/secret, retain expiry, resend countdown, Verify email and Sign in. Remove Contact Rider Operations Support.\nSIGN IN: empty password field with visibility, standard Email, Sign in and Create account; helper 'Enter your Courier account password'. No password assigned by Logistics claim, invented support control, protocol or role switch.\nTHREAD: keep task/leg/counterpart visible and normal message text. Remove Live Courier Channel, Verified Server Dispatch, packet/tower/consensus/local queue claims and technical/draft-protection footer. Keep 'Message not confirmed. Check connection and retry.' + exact Retry action. While uncertain, disable Send and Edit draft for that pending request, no sent tick.\nPICKUP ROUTE FALLBACK: retain schedule, freshness, Route stops are unavailable, Back to pickup tasks primary and Refresh route secondary. Remove Route Mode Auto, Manifest synchronized, Stops pending dispatch release and authority footer. No map/stops or cause claimed without data.\nLINEHAUL: one existing illustrative released scheduled outbound trip, Demo Main hub to Demo Receiving hub, 2 parcels. Status Scheduled and separate text Released for departure. Primary Depart opens Confirm departure?; no arrival yet. Remove palletized/seal/container, extra fake second trip, manifest action/IDs and fake schedule blocks. Existing View route secondary only. Explain Logistics receives/unloads; departure never delivers parcels.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 118990,
+        "sha256": "0083491e56f4cdd590cd41eda58f3bae072896fead6d1b796db8e8b2f4f31cbb"
+      },
+      "review": "reviewed-static-draft"
+    },
+    {
+      "slug": "10-registration-refined",
+      "id": "c11bcb7ce3a8427d9808d35c6ba0e13f",
+      "name": "projects/13625567050207019759/screens/c11bcb7ce3a8427d9808d35c6ba0e13f",
+      "title": "AISLEY Rider - Email verification (Step 1 of 6)",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/32c2c98b240d4900a64811208f1211b2:download",
+        "name": "projects/13625567050207019759/files/32c2c98b240d4900a64811208f1211b2"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/cd5795f009444ebb98fc52c67be5352a:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/cd5795f009444ebb98fc52c67be5352a"
+      },
+      "localScreenshot": "screenshots/10-registration-refined.png",
+      "supersedes": "10-registration",
+      "prompt": "Correct ONLY the existing AISLEY Rider references selected. These are familiar Flutter Material 3 app screens, preserve existing supported workflows. DO NOT add features, actions, IDs or invented metadata. Canvas #F7F7F8 surfaces white, exact bottom labels Home / Work / Task messages / Account wherever a bar exists. Remove technical/server authorization banners, protocol/network-node/version text, fake verification claims and undefined help/filter buttons.\nACCOUNT: compact Mika Santos, Demo Logistics · Main hub, Approved. Exact five rows: Profile (Personal details and profile photo); Security (Change your password); Vehicle and documents (Vehicle details, official receipt and registration); Policies (Current versions and consent history); Support tickets (Contact platform support). Sign out secondary with confirmation. Remove synthetic Courier ID, PIN, biometric login, license verification, incidents and protocol.\nNOTIFICATIONS: preserve only two safe demo notification rows and retryable failure notice 'Could not refresh notifications. Last refreshed 10:20 AM.' with Retry. Remove Mark all as read and invented filter chips/filter icon. Opening row is read-only; Mark as read belongs to individual notification detail. No automatic mark read, acceptance or bulk actions.\nREGISTRATION: replace claim that OTP confirms eligibility/activates profile with 'Verify access to your email before continuing. Logistics reviews your application after registration.' Empty single six-digit field, no numeric placeholder/secret, retain expiry, resend countdown, Verify email and Sign in. Remove Contact Rider Operations Support.\nSIGN IN: empty password field with visibility, standard Email, Sign in and Create account; helper 'Enter your Courier account password'. No password assigned by Logistics claim, invented support control, protocol or role switch.\nTHREAD: keep task/leg/counterpart visible and normal message text. Remove Live Courier Channel, Verified Server Dispatch, packet/tower/consensus/local queue claims and technical/draft-protection footer. Keep 'Message not confirmed. Check connection and retry.' + exact Retry action. While uncertain, disable Send and Edit draft for that pending request, no sent tick.\nPICKUP ROUTE FALLBACK: retain schedule, freshness, Route stops are unavailable, Back to pickup tasks primary and Refresh route secondary. Remove Route Mode Auto, Manifest synchronized, Stops pending dispatch release and authority footer. No map/stops or cause claimed without data.\nLINEHAUL: one existing illustrative released scheduled outbound trip, Demo Main hub to Demo Receiving hub, 2 parcels. Status Scheduled and separate text Released for departure. Primary Depart opens Confirm departure?; no arrival yet. Remove palletized/seal/container, extra fake second trip, manifest action/IDs and fake schedule blocks. Existing View route secondary only. Explain Logistics receives/unloads; departure never delivers parcels.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 76499,
+        "sha256": "c28be8c4dabfa90d55fc692a58a1987e2c4997364ec987febb87f91c4f839655"
+      },
+      "review": "rejected-missing-verification-form"
+    },
+    {
+      "slug": "09-sign-in-refined",
+      "id": "18b10e7a2b484041a851e946083a2985",
+      "name": "projects/13625567050207019759/screens/18b10e7a2b484041a851e946083a2985",
+      "title": "AISLEY Rider - Sign in",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/5dd89108b36e4a0685e083776ec17b3e:download",
+        "name": "projects/13625567050207019759/files/5dd89108b36e4a0685e083776ec17b3e"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/c62fd0d862d440759e46c2e59d19391c:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/c62fd0d862d440759e46c2e59d19391c"
+      },
+      "localScreenshot": "screenshots/09-sign-in-refined.png",
+      "supersedes": "09-sign-in",
+      "prompt": "Correct ONLY the existing AISLEY Rider references selected. These are familiar Flutter Material 3 app screens, preserve existing supported workflows. DO NOT add features, actions, IDs or invented metadata. Canvas #F7F7F8 surfaces white, exact bottom labels Home / Work / Task messages / Account wherever a bar exists. Remove technical/server authorization banners, protocol/network-node/version text, fake verification claims and undefined help/filter buttons.\nACCOUNT: compact Mika Santos, Demo Logistics · Main hub, Approved. Exact five rows: Profile (Personal details and profile photo); Security (Change your password); Vehicle and documents (Vehicle details, official receipt and registration); Policies (Current versions and consent history); Support tickets (Contact platform support). Sign out secondary with confirmation. Remove synthetic Courier ID, PIN, biometric login, license verification, incidents and protocol.\nNOTIFICATIONS: preserve only two safe demo notification rows and retryable failure notice 'Could not refresh notifications. Last refreshed 10:20 AM.' with Retry. Remove Mark all as read and invented filter chips/filter icon. Opening row is read-only; Mark as read belongs to individual notification detail. No automatic mark read, acceptance or bulk actions.\nREGISTRATION: replace claim that OTP confirms eligibility/activates profile with 'Verify access to your email before continuing. Logistics reviews your application after registration.' Empty single six-digit field, no numeric placeholder/secret, retain expiry, resend countdown, Verify email and Sign in. Remove Contact Rider Operations Support.\nSIGN IN: empty password field with visibility, standard Email, Sign in and Create account; helper 'Enter your Courier account password'. No password assigned by Logistics claim, invented support control, protocol or role switch.\nTHREAD: keep task/leg/counterpart visible and normal message text. Remove Live Courier Channel, Verified Server Dispatch, packet/tower/consensus/local queue claims and technical/draft-protection footer. Keep 'Message not confirmed. Check connection and retry.' + exact Retry action. While uncertain, disable Send and Edit draft for that pending request, no sent tick.\nPICKUP ROUTE FALLBACK: retain schedule, freshness, Route stops are unavailable, Back to pickup tasks primary and Refresh route secondary. Remove Route Mode Auto, Manifest synchronized, Stops pending dispatch release and authority footer. No map/stops or cause claimed without data.\nLINEHAUL: one existing illustrative released scheduled outbound trip, Demo Main hub to Demo Receiving hub, 2 parcels. Status Scheduled and separate text Released for departure. Primary Depart opens Confirm departure?; no arrival yet. Remove palletized/seal/container, extra fake second trip, manifest action/IDs and fake schedule blocks. Existing View route secondary only. Explain Logistics receives/unloads; departure never delivers parcels.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 77626,
+        "sha256": "57b71acc79ca1ded7e1b1851b2fe2e72ebe07ebae6588004d3abede6df110bc6"
+      },
+      "review": "reviewed-static-draft"
+    },
+    {
+      "slug": "07-thread-refined",
+      "id": "944ae32fd0674318a524d153cb93b290",
+      "name": "projects/13625567050207019759/screens/944ae32fd0674318a524d153cb93b290",
+      "title": "AISLEY Rider - Message Logistics (ORD-DEMO-1042)",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/3b64632d0e254b2683defc800bbcba0b:download",
+        "name": "projects/13625567050207019759/files/3b64632d0e254b2683defc800bbcba0b"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/49bb3cd53b1145f6837d8d5b4e8d4621:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/49bb3cd53b1145f6837d8d5b4e8d4621"
+      },
+      "localScreenshot": "screenshots/07-thread-refined.png",
+      "supersedes": "07-thread",
+      "prompt": "Correct ONLY the existing AISLEY Rider references selected. These are familiar Flutter Material 3 app screens, preserve existing supported workflows. DO NOT add features, actions, IDs or invented metadata. Canvas #F7F7F8 surfaces white, exact bottom labels Home / Work / Task messages / Account wherever a bar exists. Remove technical/server authorization banners, protocol/network-node/version text, fake verification claims and undefined help/filter buttons.\nACCOUNT: compact Mika Santos, Demo Logistics · Main hub, Approved. Exact five rows: Profile (Personal details and profile photo); Security (Change your password); Vehicle and documents (Vehicle details, official receipt and registration); Policies (Current versions and consent history); Support tickets (Contact platform support). Sign out secondary with confirmation. Remove synthetic Courier ID, PIN, biometric login, license verification, incidents and protocol.\nNOTIFICATIONS: preserve only two safe demo notification rows and retryable failure notice 'Could not refresh notifications. Last refreshed 10:20 AM.' with Retry. Remove Mark all as read and invented filter chips/filter icon. Opening row is read-only; Mark as read belongs to individual notification detail. No automatic mark read, acceptance or bulk actions.\nREGISTRATION: replace claim that OTP confirms eligibility/activates profile with 'Verify access to your email before continuing. Logistics reviews your application after registration.' Empty single six-digit field, no numeric placeholder/secret, retain expiry, resend countdown, Verify email and Sign in. Remove Contact Rider Operations Support.\nSIGN IN: empty password field with visibility, standard Email, Sign in and Create account; helper 'Enter your Courier account password'. No password assigned by Logistics claim, invented support control, protocol or role switch.\nTHREAD: keep task/leg/counterpart visible and normal message text. Remove Live Courier Channel, Verified Server Dispatch, packet/tower/consensus/local queue claims and technical/draft-protection footer. Keep 'Message not confirmed. Check connection and retry.' + exact Retry action. While uncertain, disable Send and Edit draft for that pending request, no sent tick.\nPICKUP ROUTE FALLBACK: retain schedule, freshness, Route stops are unavailable, Back to pickup tasks primary and Refresh route secondary. Remove Route Mode Auto, Manifest synchronized, Stops pending dispatch release and authority footer. No map/stops or cause claimed without data.\nLINEHAUL: one existing illustrative released scheduled outbound trip, Demo Main hub to Demo Receiving hub, 2 parcels. Status Scheduled and separate text Released for departure. Primary Depart opens Confirm departure?; no arrival yet. Remove palletized/seal/container, extra fake second trip, manifest action/IDs and fake schedule blocks. Existing View route secondary only. Explain Logistics receives/unloads; departure never delivers parcels.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 116934,
+        "sha256": "7cedf739f2fe121460e9700117d475a3ca7febf3600fa1e456f2d74952cfadf1"
+      },
+      "review": "reviewed-static-draft"
+    },
+    {
+      "slug": "15-linehaul-refined",
+      "id": "0d506afb36fe4afd89f53523ef6e8ed9",
+      "name": "projects/13625567050207019759/screens/0d506afb36fe4afd89f53523ef6e8ed9",
+      "title": "AISLEY Rider - Linehaul jobs",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/7a19c764f47d467ebf1d183217b55607:download",
+        "name": "projects/13625567050207019759/files/7a19c764f47d467ebf1d183217b55607"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/a376e8c5e00e4ecebb889941a612b9cf:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/a376e8c5e00e4ecebb889941a612b9cf"
+      },
+      "localScreenshot": "screenshots/15-linehaul-refined.png",
+      "supersedes": "15-linehaul",
+      "prompt": "Correct ONLY the existing AISLEY Rider references selected. These are familiar Flutter Material 3 app screens, preserve existing supported workflows. DO NOT add features, actions, IDs or invented metadata. Canvas #F7F7F8 surfaces white, exact bottom labels Home / Work / Task messages / Account wherever a bar exists. Remove technical/server authorization banners, protocol/network-node/version text, fake verification claims and undefined help/filter buttons.\nACCOUNT: compact Mika Santos, Demo Logistics · Main hub, Approved. Exact five rows: Profile (Personal details and profile photo); Security (Change your password); Vehicle and documents (Vehicle details, official receipt and registration); Policies (Current versions and consent history); Support tickets (Contact platform support). Sign out secondary with confirmation. Remove synthetic Courier ID, PIN, biometric login, license verification, incidents and protocol.\nNOTIFICATIONS: preserve only two safe demo notification rows and retryable failure notice 'Could not refresh notifications. Last refreshed 10:20 AM.' with Retry. Remove Mark all as read and invented filter chips/filter icon. Opening row is read-only; Mark as read belongs to individual notification detail. No automatic mark read, acceptance or bulk actions.\nREGISTRATION: replace claim that OTP confirms eligibility/activates profile with 'Verify access to your email before continuing. Logistics reviews your application after registration.' Empty single six-digit field, no numeric placeholder/secret, retain expiry, resend countdown, Verify email and Sign in. Remove Contact Rider Operations Support.\nSIGN IN: empty password field with visibility, standard Email, Sign in and Create account; helper 'Enter your Courier account password'. No password assigned by Logistics claim, invented support control, protocol or role switch.\nTHREAD: keep task/leg/counterpart visible and normal message text. Remove Live Courier Channel, Verified Server Dispatch, packet/tower/consensus/local queue claims and technical/draft-protection footer. Keep 'Message not confirmed. Check connection and retry.' + exact Retry action. While uncertain, disable Send and Edit draft for that pending request, no sent tick.\nPICKUP ROUTE FALLBACK: retain schedule, freshness, Route stops are unavailable, Back to pickup tasks primary and Refresh route secondary. Remove Route Mode Auto, Manifest synchronized, Stops pending dispatch release and authority footer. No map/stops or cause claimed without data.\nLINEHAUL: one existing illustrative released scheduled outbound trip, Demo Main hub to Demo Receiving hub, 2 parcels. Status Scheduled and separate text Released for departure. Primary Depart opens Confirm departure?; no arrival yet. Remove palletized/seal/container, extra fake second trip, manifest action/IDs and fake schedule blocks. Existing View route secondary only. Explain Logistics receives/unloads; departure never delivers parcels.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 155600,
+        "sha256": "5c8d24c4dc8bc584f01dcded666c55331d0660485952aaa659b9191f57dda5be"
+      },
+      "review": "reviewed-static-draft"
+    },
+    {
+      "slug": "14-route-fallback-refined",
+      "id": "5b21c90a121a4e7f9a4fd2e05c90fdff",
+      "name": "projects/13625567050207019759/screens/5b21c90a121a4e7f9a4fd2e05c90fdff",
+      "title": "AISLEY Rider - Pickup route (SCH-DEMO-12)",
+      "width": "780",
+      "height": "1768",
+      "deviceType": "MOBILE",
+      "screenshot": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/02388bee6b344b94b687e6787457a876:download",
+        "name": "projects/13625567050207019759/files/02388bee6b344b94b687e6787457a876"
+      },
+      "htmlCode": {
+        "downloadUrl": "https://stitch.googleapis.com/v1/projects/13625567050207019759/files/2ec55bae44424a4199a6c7c276545d3b:download",
+        "mimeType": "text/html",
+        "name": "projects/13625567050207019759/files/2ec55bae44424a4199a6c7c276545d3b"
+      },
+      "localScreenshot": "screenshots/14-route-fallback-refined.png",
+      "supersedes": "14-route-fallback",
+      "prompt": "Correct ONLY the existing AISLEY Rider references selected. These are familiar Flutter Material 3 app screens, preserve existing supported workflows. DO NOT add features, actions, IDs or invented metadata. Canvas #F7F7F8 surfaces white, exact bottom labels Home / Work / Task messages / Account wherever a bar exists. Remove technical/server authorization banners, protocol/network-node/version text, fake verification claims and undefined help/filter buttons.\nACCOUNT: compact Mika Santos, Demo Logistics · Main hub, Approved. Exact five rows: Profile (Personal details and profile photo); Security (Change your password); Vehicle and documents (Vehicle details, official receipt and registration); Policies (Current versions and consent history); Support tickets (Contact platform support). Sign out secondary with confirmation. Remove synthetic Courier ID, PIN, biometric login, license verification, incidents and protocol.\nNOTIFICATIONS: preserve only two safe demo notification rows and retryable failure notice 'Could not refresh notifications. Last refreshed 10:20 AM.' with Retry. Remove Mark all as read and invented filter chips/filter icon. Opening row is read-only; Mark as read belongs to individual notification detail. No automatic mark read, acceptance or bulk actions.\nREGISTRATION: replace claim that OTP confirms eligibility/activates profile with 'Verify access to your email before continuing. Logistics reviews your application after registration.' Empty single six-digit field, no numeric placeholder/secret, retain expiry, resend countdown, Verify email and Sign in. Remove Contact Rider Operations Support.\nSIGN IN: empty password field with visibility, standard Email, Sign in and Create account; helper 'Enter your Courier account password'. No password assigned by Logistics claim, invented support control, protocol or role switch.\nTHREAD: keep task/leg/counterpart visible and normal message text. Remove Live Courier Channel, Verified Server Dispatch, packet/tower/consensus/local queue claims and technical/draft-protection footer. Keep 'Message not confirmed. Check connection and retry.' + exact Retry action. While uncertain, disable Send and Edit draft for that pending request, no sent tick.\nPICKUP ROUTE FALLBACK: retain schedule, freshness, Route stops are unavailable, Back to pickup tasks primary and Refresh route secondary. Remove Route Mode Auto, Manifest synchronized, Stops pending dispatch release and authority footer. No map/stops or cause claimed without data.\nLINEHAUL: one existing illustrative released scheduled outbound trip, Demo Main hub to Demo Receiving hub, 2 parcels. Status Scheduled and separate text Released for departure. Primary Depart opens Confirm departure?; no arrival yet. Remove palletized/seal/container, extra fake second trip, manifest action/IDs and fake schedule blocks. Existing View route secondary only. Explain Logistics receives/unloads; departure never delivers parcels.",
+      "export": {
+        "width": 780,
+        "height": 1768,
+        "bytes": 102429,
+        "sha256": "b8de5b1a988181a605eca8fde2a1c634e1e2f891482e73da0e4ffafcb1e9ca57"
+      },
+      "review": "reviewed-static-draft"
+    }
+  ]
+}
