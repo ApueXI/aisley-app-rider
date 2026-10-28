@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+import '../../core/scanning/fixtures/scanner_platform.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aisley_app/core/networking/api_client.dart';
@@ -96,9 +100,15 @@ void main() {
   testWidgets('accepts a first-mile task before showing pickup confirmation', (
     tester,
   ) async {
-    final controller = PickupController(
-      pickupRepository: _WidgetPickupRepository(),
-    );
+    final originalPlatform = MobileScannerPlatform.instance;
+    final scanner = ScannerPlatform();
+    MobileScannerPlatform.instance = scanner;
+    addTearDown(() async {
+      MobileScannerPlatform.instance = originalPlatform;
+      await scanner.captures.close();
+    });
+    final repository = _WidgetPickupRepository();
+    final controller = PickupController(pickupRepository: repository);
     final authController = _authenticatedAuthController();
 
     await tester.pumpWidget(
@@ -134,10 +144,70 @@ void main() {
     expect(find.text('Confirm pickup'), findsOneWidget);
     expect(find.text('Pickup confirmed'), findsNothing);
 
-    await tester.enterText(find.byType(TextField), 'ORD-100');
+    expect(find.byType(TextField), findsNothing);
+    expect(find.byType(SegmentedButton<String>), findsNothing);
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, 'Confirm pickup'),
+          )
+          .onPressed,
+      isNull,
+    );
+    await tester.tap(find.text('Scan QR or tracking ID'));
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, 'Confirm pickup'),
+          )
+          .onPressed,
+      isNull,
+    );
+    await tester.tap(find.text('Scan QR or tracking ID'));
+    await tester.pumpAndSettle();
+    scanner.captures.add(
+      const BarcodeCapture(
+        barcodes: [
+          Barcode(rawValue: 'AISLEY:WB:1:WB-100', format: BarcodeFormat.qrCode),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Captured QR payload'), findsOneWidget);
+    expect(repository.confirmations, 0);
+    await tester.ensureVisible(find.text('Check QR match'));
+    await tester.tap(find.text('Check QR match'));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('different or unavailable task'),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(find.text('Scan again'));
+    await tester.tap(find.text('Scan again'));
+    await tester.pumpAndSettle();
+    scanner.captures.add(
+      const BarcodeCapture(
+        barcodes: [
+          Barcode(rawValue: 'TRACK-100', format: BarcodeFormat.code128),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Captured tracking ID'), findsOneWidget);
+    expect(find.text('TRACK-100'), findsOneWidget);
+    expect(find.text('Check QR match'), findsNothing);
+    expect(find.textContaining('different or unavailable task'), findsNothing);
+    expect(repository.confirmations, 0);
+    await tester.ensureVisible(find.text('Confirm pickup'));
     await tester.tap(find.text('Confirm pickup'));
     await tester.pumpAndSettle();
 
+    expect(repository.confirmations, 1);
+    expect(repository.lastIdentifierType, 'tracking_id');
+    expect(repository.lastIdentifier, 'TRACK-100');
     expect(find.text('Pickup confirmed'), findsOneWidget);
     expect(
       find.text('The server recorded physical pickup from the Seller.'),
@@ -279,6 +349,9 @@ class _WidgetPickupRepository implements PickupRepository {
 
   final bool includeFinalMile;
   Object? finalMileError;
+  int confirmations = 0;
+  String? lastIdentifierType;
+  String? lastIdentifier;
 
   @override
   Future<FirstMileTaskPage> fetchFirstMileTasks({
@@ -295,7 +368,7 @@ class _WidgetPickupRepository implements PickupRepository {
 
   @override
   Future<WaybillResolution> resolveWaybill(String payload) async {
-    return const WaybillResolution(taskId: 'task-1');
+    return const WaybillResolution(taskId: 'other-task');
   }
 
   @override
@@ -305,6 +378,9 @@ class _WidgetPickupRepository implements PickupRepository {
     required String identifier,
     required String idempotencyKey,
   }) async {
+    confirmations++;
+    lastIdentifierType = identifierType;
+    lastIdentifier = identifier;
     return const FirstMilePickupResult(
       taskId: 'task-1',
       taskStatus: 'picked_up_from_seller',

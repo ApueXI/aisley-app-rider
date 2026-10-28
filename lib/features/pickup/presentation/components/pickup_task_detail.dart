@@ -27,8 +27,7 @@ class PickupTaskDetailScreen extends StatefulWidget {
 }
 
 class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
-  final _identifierController = TextEditingController();
-  String _identifierType = 'qr';
+  BarcodeScanCandidate? _scanCandidate;
   bool? _resolvedForThisTask;
   String? _resolutionMessage;
 
@@ -47,12 +46,6 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
   bool get _pickupMounted => mounted;
 
   void _pickupSetState(VoidCallback callback) => setState(callback);
-
-  @override
-  void dispose() {
-    _identifierController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

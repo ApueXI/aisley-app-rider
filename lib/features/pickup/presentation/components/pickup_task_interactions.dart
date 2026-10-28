@@ -11,9 +11,8 @@ extension _PickupTaskInteractions on _PickupTaskDetailScreenState {
     if (candidate == null || !_pickupMounted) {
       return;
     }
-    _identifierController.text = candidate.value;
     _pickupSetState(() {
-      _identifierType = candidate.identifierType;
+      _scanCandidate = candidate;
       _resolvedForThisTask = null;
       _resolutionMessage =
           'Captured ${candidate.typeLabel}. Review the value, then confirm the pickup action.';
@@ -100,11 +99,11 @@ extension _PickupTaskInteractions on _PickupTaskDetailScreenState {
   }
 
   Future<void> _resolveQr() async {
-    final payload = _identifierController.text.trim();
+    final payload = _scanCandidate?.value.trim() ?? '';
     if (payload.isEmpty) {
       _pickupSetState(() {
         _resolvedForThisTask = false;
-        _resolutionMessage = 'Enter or scan a QR payload first.';
+        _resolutionMessage = 'Scan a QR code first.';
       });
       return;
     }
@@ -115,7 +114,7 @@ extension _PickupTaskInteractions on _PickupTaskDetailScreenState {
     if (resolution == null) {
       _pickupSetState(() {
         _resolvedForThisTask = false;
-        _resolutionMessage = _pickupController.waybillResolutionError ?? 'The QR could not be matched. You may enter the printed Order reference instead.';
+        _resolutionMessage = _pickupController.waybillResolutionError ?? 'The QR could not be matched. Try scanning the QR code or tracking barcode again.';
       });
       await _closeIfSessionEnded();
       return;
@@ -144,18 +143,19 @@ extension _PickupTaskInteractions on _PickupTaskDetailScreenState {
     if (!task.isFirstMile) {
       return;
     }
-    final identifier = _identifierController.text.trim();
+    final identifier = _scanCandidate?.value.trim() ?? '';
     if (identifier.isEmpty || identifier.length > 128) {
       _pickupSetState(() {
         _resolvedForThisTask = false;
-        _resolutionMessage = 'Enter an identifier up to 128 characters.';
+        _resolutionMessage =
+            'Scan a QR code or tracking ID up to 128 characters.';
       });
       return;
     }
 
     await _pickupController.confirmFirstMilePickup(
       task,
-      identifierType: _identifierType,
+      identifierType: _scanCandidate!.identifierType,
       identifier: identifier,
     );
     await _closeIfSessionEnded();

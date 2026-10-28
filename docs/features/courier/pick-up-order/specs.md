@@ -4,7 +4,7 @@ feature: courier-pick-up-order
 title: Pick Up Order
 system: AISLEY
 type: Feature Specification
-version: 2.12
+version: 2.13
 status: Implemented first-mile identifier pickup and task-bound final-mile hub handoff
 implementation_status: First-mile Courier API and route-manifest API retain QR/tracking-ID/Order-reference verification; final-mile hub handoff uses an accepted task and revision without identifier entry; Flutter remains external
 flutter_status: First-mile pickup, schedule filtering, task-bound hub handoff, and Android/web MapLibre pickup routes implemented locally; live API and installed-device/browser map acceptance remain unverified
@@ -218,13 +218,13 @@ Example GeoJSON geometry (first-mile manifest only):
 - `src/couriermockup` implements the temporary browser contract check with `@zxing/browser` and `maplibre-gl`, both loaded only when their scanner/map state opens. It groups tasks by schedule, renders the authorized GeoJSON and numbered stops, resolves a scanned QR or manual tracking-ID/Order reference to the matching parcel in that open schedule, keeps the identifier as an untrusted candidate until the explicit confirmation call, and selects the matched task before showing the server result.
 - Flutter stores tokens only in OS secure storage and sends Bearer auth. It implements loading, empty, assigned, accepted, manifest-pending, manifest-ready, map-unavailable, permission-denied, mismatch, not-found, offline, retry, success, and stale-task states.
 - Ordinary Flutter schedule filtering uses at most 50 choices from its latest authorized unfiltered page. Notification entry instead carries its authorized schedule ID into a separate fixed-filter route and rechecks `pickup_schedule_id` through the same list API, including IDs outside those options. Refresh/retry retain the ID; empty/error states stay distinct, old task snapshots cannot restore removed work, and normal selection/final-mile entry remain independent. Neither navigation nor filtering mutates work.
-- The scanner requests camera permission at use time, exposes a manual-entry fallback, announces textual results, uses adequate touch targets, and never relies on camera preview/color alone.
+- Flutter UI revision (2026-10-29): first-mile verification is scan-only (QR or Code 128), with automatically selected identifier type, read-only captured value, Scan again, and explicit Confirm pickup after capture; manual entry/type selectors are removed. The responsive square camera guide uses min(85% preview width, preview height minus 32px); full-preview decoding remains enabled. Camera failures explain recovery/Back without manual fallback; unsupported platforms cannot prepare a new candidate. Backend/manual compatibility above remains unchanged.
 - Routes remain in memory only and clear on disposal/logout/denial/affiliation invalidation/account switch. Pending, unavailable, partial/unreachable, unsupported, offline, timeout, forbidden, storage-failure, and retry states retain authorized text where permitted.
 
 ### Verification, rollout, and open decisions
 - API coverage verifies task receipt, schedule handling, QR/tracking-ID/manual matching, wrong identifiers without side effects, idempotent replay, immutable confirmation and Order-status history, the `picked_up` Order transition, Inventory fulfillment, and private/no-store reads. Dedicated concurrent database verification remains part of the production rollout gate.
 - Current route fixtures cover exact/default/missing coordinates, same-address parcel grouping, cache reuse, matrix metrics, road geometry with Logistics return, sanitized GeoJSON, attribution, credential hiding, and tenant scope. Null-route, 31-node boundary, quota circuit-breaker, and dedicated PostgreSQL concurrency fixtures remain rollout work.
-- Add Logistics map tests for GeoJSON layers, ordered markers, accessible list fallback, stale revisions, and no map mutation. Add Flutter contract/widget tests for scanner fallback and server-error mapping.
+- Add Logistics map tests for GeoJSON layers, ordered markers, accessible list fallback, stale revisions, and no map mutation. Add Flutter contract/widget tests for scan-only capture/review, camera failure recovery, and server-error mapping.
 - Production rollout still requires PostgreSQL verification, populated and reviewed address-coordinate defaults, and Geoapify usage monitoring; current list/accept/resolve behavior remains intact.
 - Open: schedule early/late pickup grace, installed Android/localhost authenticated map acceptance, turn-by-turn navigation, offline mutation queue, and Courier push transport. MapLibre is adopted; Logistics receipt remains a separate Logistics action.
 External Geoapify, MapLibre, and scanner references are maintained in the canonical backend copy of this specification.
