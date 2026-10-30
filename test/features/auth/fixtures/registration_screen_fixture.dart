@@ -93,16 +93,6 @@ class RegistrationScreenFixture {
       ),
     );
     await tester.pump();
-    if (verifyEmail) {
-      await enter(tester, 'Email address', 'courier@example.com');
-      await tester.ensureVisible(find.text('Send verification code'));
-      await tester.tap(find.text('Send verification code'));
-      await tester.pump();
-      await enter(tester, 'Verification code', '012345');
-      await tester.ensureVisible(find.text('Verify email'));
-      await tester.tap(find.text('Verify email'));
-      await tester.pump();
-    }
     if (settle) {
       await tester.pumpAndSettle();
     } else {
@@ -150,6 +140,7 @@ class RegistrationScreenFixture {
   }
 
   Future<void> fillPersonal(WidgetTester tester) async {
+    await enter(tester, 'Email', 'courier@example.com');
     await enter(tester, 'First name', 'Ana');
     await enter(tester, 'Last name', 'Santos');
     await enter(tester, 'Contact number', '09171234567');
@@ -169,6 +160,20 @@ class RegistrationScreenFixture {
     }
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
+    if (find.text('Continue to email verification').evaluate().isNotEmpty) {
+      await tester.ensureVisible(find.text('Continue to email verification'));
+      await tester.tap(find.text('Continue to email verification'));
+      await tester.pumpAndSettle();
+    }
+    if (find.text('Send verification code').evaluate().isNotEmpty) {
+      await tester.ensureVisible(find.text('Send verification code'));
+      await tester.tap(find.text('Send verification code'));
+      await tester.pumpAndSettle();
+      await enter(tester, 'Verification code', '012345');
+      await tester.ensureVisible(find.text('Verify email'));
+      await tester.tap(find.text('Verify email'));
+      await tester.pumpAndSettle();
+    }
     final submit = find.widgetWithText(FilledButton, 'Submit registration');
     await tester.ensureVisible(submit);
     await tester.pump();
@@ -223,7 +228,8 @@ int registrationStep(WidgetTester tester) {
   final progress = tester
       .widgetList<Text>(find.byType(Text))
       .firstWhere((text) => text.data?.startsWith('Step ') == true);
-  return int.parse(progress.data!.split(' ')[1]) - 1;
+  final displayed = int.parse(progress.data!.split(' ')[1]);
+  return displayed == 6 ? 0 : displayed;
 }
 
 Future<void> nextRegistrationStep(
@@ -236,7 +242,12 @@ Future<void> nextRegistrationStep(
   } else {
     await tester.pump(const Duration(milliseconds: 400));
   }
-  final next = find.widgetWithText(FilledButton, 'Continue');
+  final next = find.widgetWithText(
+    FilledButton,
+    registrationStep(tester) == 5
+        ? 'Continue to email verification'
+        : 'Continue',
+  );
   await tester.ensureVisible(next);
   await tester.pump();
   await tester.tap(next);
@@ -251,7 +262,7 @@ Future<void> navigateRegistrationStep(WidgetTester tester, int target) async {
   for (var attempts = 0; attempts < 8; attempts++) {
     final current = registrationStep(tester);
     if (current == target) return;
-    if (current > target) {
+    if (current == 0 || (target != 0 && current > target)) {
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
     } else {

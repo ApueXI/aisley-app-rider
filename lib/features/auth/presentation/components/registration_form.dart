@@ -12,7 +12,7 @@ const _registrationSteps = [
 extension _RegistrationForm on _RegistrationScreenState {
   Widget _buildRegistrationForm(BuildContext context) {
     if (_result case final result?) return _buildSubmitted(context, result);
-    final step = _verification.verified ? _step : 0;
+    final step = _step;
     final busy = _isSubmitting || _isPickingEvidence;
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +58,7 @@ extension _RegistrationForm on _RegistrationScreenState {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (step == 0) ...[
+              if (step == 1) ...[
                 Row(
                   children: [
                     Icon(
@@ -86,7 +86,7 @@ extension _RegistrationForm on _RegistrationScreenState {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Verify access to your email before continuing. Logistics reviews your application after registration.',
+                  'Complete your details before verifying your email. Logistics reviews your application after registration.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -94,13 +94,14 @@ extension _RegistrationForm on _RegistrationScreenState {
                 const SizedBox(height: 20),
               ],
               Text(
-                'Step ${step + 1} of 6 · ${_registrationSteps[step]}',
+                'Step ${step == 0 ? 6 : step} of 6 · ${_registrationSteps[step]}',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               LinearProgressIndicator(
-                value: (step + 1) / 6,
-                semanticsLabel: 'Registration step ${step + 1} of 6',
+                value: (step == 0 ? 6 : step) / 6,
+                semanticsLabel:
+                    'Registration step ${step == 0 ? 6 : step} of 6',
               ),
               const SizedBox(height: 24),
               CourierSurfaceCard(
@@ -118,6 +119,7 @@ extension _RegistrationForm on _RegistrationScreenState {
                     switch (step) {
                       0 => RegistrationEmailFields(
                         controller: _verification,
+                        draftEmail: _emailController.text,
                         disabled: busy,
                         emailFocusNode: _emailVerificationFocus,
                       ),
@@ -141,7 +143,7 @@ extension _RegistrationForm on _RegistrationScreenState {
                   onPressed: _cancelSubmission,
                   child: const Text('Cancel upload'),
                 ),
-              ] else if (step == 5) ...[
+              ] else if (step == 0 && _verification.verified) ...[
                 if (!widget.authController.canRegister)
                   const Text(
                     'Please wait before submitting your registration again.',
@@ -157,12 +159,14 @@ extension _RegistrationForm on _RegistrationScreenState {
                   icon: const Icon(Icons.send_outlined),
                   label: const Text('Submit registration'),
                 ),
-              ] else if (step > 0 || _verification.verified)
+              ] else if (step > 0)
                 FilledButton(
                   onPressed: busy ? null : _continueStep,
-                  child: const Text('Continue'),
+                  child: Text(
+                    step == 5 ? 'Continue to email verification' : 'Continue',
+                  ),
                 ),
-              if (step > 0)
+              if (step != 1)
                 TextButton(
                   onPressed: busy ? null : _backRegistration,
                   child: const Text('Back'),

@@ -57,7 +57,7 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   late final RegistrationEmailController _verification;
   final _emailVerificationFocus = FocusNode(debugLabel: 'registration_email');
-  int _step = 0;
+  int _step = 1;
   bool _wasVerified = false;
   final _stepScrolls = List.generate(6, (_) => ScrollController());
   final _stepFormKeys = List.generate(5, (_) => GlobalKey<FormState>());
@@ -133,16 +133,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _emailController.text = _verification.verifiedEmail;
     }
     setState(() {
-      if (_verification.verified && !_wasVerified) _step = 1;
+      if (_verification.verified && !_wasVerified) _step = 0;
       if (!_verification.verified && _wasVerified) {
-        _step = 0;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && !_verification.verified) {
             _emailVerificationFocus.requestFocus();
           }
         });
-        _passwordController.clear();
-        _passwordConfirmationController.clear();
       }
       _wasVerified = _verification.verified;
     });

@@ -115,3 +115,8 @@ Short, dated implementation log. Append entries; archive complete logs after 150
 ## 2026-10-29 — Independent nullable-notification retest
 
 - Independent tester confirms Courier accepts the saved nullable-resource reproduction with no new findings; 62 repository/target/navigation/screen checks pass. No app build, environment access, live API, or device acceptance occurred. Buyer retest also passed; see the main progress log for its separate result.
+
+## 2026-10-30 — Details-first Courier registration
+
+- Reordered existing personal/address/Logistics/vehicle/evidence/review steps before email OTP, followed by explicit submission. Draft controllers and evidence remain mounted; verification changes no longer clear passwords. Email changes require another OTP. Updated affected auth and registration contracts.
+- Verification: 27 focused registration wizard/OTP tests pass, including app-switch password/evidence retention, cancellation and validation; full analyzer and web build pass. No live API/SMTP, installed Android or release APK verification; process termination recovery is outside scope.

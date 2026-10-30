@@ -32,7 +32,7 @@ int _stepForField(String key) {
 extension _RegistrationStepNavigation on _RegistrationScreenState {
   void _goToStep(int step) {
     FocusManager.instance.primaryFocus?.unfocus();
-    _updateState(() => _step = _verification.verified ? step : 0);
+    _updateState(() => _step = step);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _stepScrolls[_step].hasClients) {
         _stepScrolls[_step].jumpTo(0);
@@ -41,7 +41,9 @@ extension _RegistrationStepNavigation on _RegistrationScreenState {
   }
 
   void _backRegistration() {
-    if (_step > 0) {
+    if (_step == 0) {
+      _goToStep(5);
+    } else if (_step > 1) {
       _goToStep(_step - 1);
     } else {
       _leaveRegistration();
@@ -49,7 +51,7 @@ extension _RegistrationStepNavigation on _RegistrationScreenState {
   }
 
   Future<void> _continueStep() async {
-    if (_isSubmitting || _isPickingEvidence || !_verification.verified) return;
+    if (_isSubmitting || _isPickingEvidence) return;
     if (_step == 0) {
       _goToStep(1);
       return;
@@ -83,7 +85,7 @@ extension _RegistrationStepNavigation on _RegistrationScreenState {
       await _revealRegistrationError();
       return;
     }
-    _goToStep((_step + 1).clamp(0, 5));
+    _goToStep(_step == 5 ? 0 : _step + 1);
   }
 
   Widget _buildReviewSummary(BuildContext context) => Column(

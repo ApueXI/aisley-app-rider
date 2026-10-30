@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'fixtures/registration_screen_fixture.dart';
 
 void main() {
-  testWidgets('initial step explains inbox verification and six steps', (
+  testWidgets('initial step collects personal details before OTP', (
     tester,
   ) async {
     final fixture = RegistrationScreenFixture();
@@ -20,15 +20,57 @@ void main() {
 
     expect(find.text('AISLEY Rider'), findsOneWidget);
     expect(find.text('Create your account'), findsOneWidget);
-    expect(find.text('Step 1 of 6 · Email verification'), findsOneWidget);
-    expect(find.textContaining('confirms inbox access only'), findsOneWidget);
-    expect(
-      find.textContaining('does not determine Courier eligibility'),
-      findsOneWidget,
-    );
-    expect(find.text('Personal details'), findsNothing);
+    expect(find.text('Step 1 of 6 · Personal details'), findsOneWidget);
+    expect(find.text('Send verification code'), findsNothing);
     expect(find.text('012345'), findsNothing);
 
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('details and evidence survive switching apps to read OTP', (
+    tester,
+  ) async {
+    final fixture = RegistrationScreenFixture();
+    addTearDown(fixture.auth.dispose);
+    await fixture.open(tester);
+    await fixture.fill(tester);
+    await tester.ensureVisible(find.text('Continue to email verification'));
+    await tester.tap(find.text('Continue to email verification'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Send verification code'));
+    await tester.tap(find.text('Send verification code'));
+    await tester.pumpAndSettle();
+    for (final state in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(field('Password')).controller!.text,
+      'TestInput123',
+    );
+    expect(
+      tester.widget<TextField>(field('First name')).controller!.text,
+      'Ana',
+    );
+    await enter(tester, 'Verification code', '012345');
+    await tester.ensureVisible(find.text('Verify email'));
+    await tester.tap(find.text('Verify email'));
+    await tester.pumpAndSettle();
+    expect(find.text('Submit registration'), findsOneWidget);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('test-image.png'), findsWidgets);
+    expect(
+      tester.widget<TextField>(field('Password')).controller!.text,
+      'TestInput123',
+    );
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -310,6 +352,16 @@ void main() {
       fixture.repository.pending = Completer<RegistrationResult>();
       await fixture.open(tester);
       await fixture.fill(tester);
+      await tester.ensureVisible(find.text('Continue to email verification'));
+      await tester.tap(find.text('Continue to email verification'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Send verification code'));
+      await tester.tap(find.text('Send verification code'));
+      await tester.pumpAndSettle();
+      await enter(tester, 'Verification code', '012345');
+      await tester.ensureVisible(find.text('Verify email'));
+      await tester.tap(find.text('Verify email'));
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Submit registration'));
       await tester.tap(find.text('Submit registration'));
       await tester.pump();
