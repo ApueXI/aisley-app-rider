@@ -21,6 +21,7 @@ void main() {
 
     final page = await repository.fetchNotifications(
       filter: NotificationFilter.unread,
+      category: 'support',
       limit: 20,
       cursor: 'signed-cursor',
     );
@@ -29,6 +30,7 @@ void main() {
     expect(request.url.path, '/api/v1/courier/notifications');
     expect(request.url.queryParameters, <String, String>{
       'status': 'unread',
+      'category': 'support',
       'limit': '20',
       'cursor': 'signed-cursor',
     });
@@ -37,7 +39,80 @@ void main() {
     expect(page.items.single.isRead, isFalse);
     expect(page.nextCursor, 'next-cursor');
     expect(page.generatedAt, isNotNull);
+    expect(page.categories.map((item) => item.key), [
+      'pickups',
+      'deliveries',
+      'linehaul',
+      'support',
+      'other',
+    ]);
+    expect(page.items.single.categoryLabel, 'Deliveries');
   });
+
+  test(
+    'parses redacted ticket notifications for list, detail, and read',
+    () async {
+      final ticket = <String, dynamic>{
+        'id': 'notification-redacted',
+        'type': 'support-ticket.admin-replied',
+        'title': 'Support reply received',
+        'summary': 'SUP-1234 has a new reply.',
+        'category': 'support',
+        'category_label': 'Support tickets',
+        'read_at': null,
+        'created_at': '2026-10-29T02:00:00Z',
+        'resource_type': null,
+        'resource_id': null,
+        'destination': null,
+      };
+      final repository = _repository((request) async {
+        if (request.url.path == '/api/v1/courier/notifications') {
+          return http.Response(
+            jsonEncode(<String, dynamic>{
+              'data': <Map<String, dynamic>>[ticket],
+              'meta': <String, dynamic>{
+                'next_cursor': null,
+                'generated_at': '2026-10-29T02:00:01Z',
+              },
+            }),
+            200,
+          );
+        }
+
+        final responseTicket = Map<String, dynamic>.from(ticket);
+        if (request.url.path.endsWith('/read')) {
+          responseTicket['read_at'] = '2026-10-29T02:01:00Z';
+        }
+        return http.Response(
+          jsonEncode(<String, dynamic>{'data': responseTicket}),
+          200,
+        );
+      });
+
+      final page = await repository.fetchNotifications();
+      final detail = await repository.fetchDetail('notification-redacted');
+      final marked = await repository.markRead('notification-redacted');
+
+      expect(page.items.single.title, 'Support reply received');
+      for (final notification in [page.items.single, detail, marked]) {
+        expect(notification.summary, 'SUP-1234 has a new reply.');
+        expect(notification.resourceType, isNull);
+        expect(notification.resourceId, isNull);
+        expect(notification.destination, isNull);
+      }
+      expect(marked.isRead, isTrue);
+      expect(
+        () => CourierNotification.fromJson({...ticket, 'title': null}),
+        throwsA(
+          isA<ApiContractException>().having(
+            (error) => error.field,
+            'field',
+            'notification.title',
+          ),
+        ),
+      );
+    },
+  );
 
   test('reads unread count from the dedicated endpoint', () async {
     late http.Request request;
@@ -104,6 +179,17 @@ void main() {
       ),
     );
   });
+
+  test('normalizes unknown notification categories to Other', () {
+    final raw =
+        Map<String, dynamic>.from((_listResponse['data'] as List).first as Map)
+          ..['category'] = 'unexpected'
+          ..['category_label'] = 'Untrusted future label';
+    final notification = CourierNotification.fromJson(raw);
+
+    expect(notification.category, 'other');
+    expect(notification.categoryLabel, 'Other');
+  });
 }
 
 ApiNotificationRepository _repository(
@@ -138,6 +224,8 @@ const _listResponse = <String, dynamic>{
       'type': 'courier-task.final-mile-offered',
       'title': 'Delivery offered',
       'summary': 'A delivery request is available.',
+      'category': 'deliveries',
+      'category_label': 'Deliveries',
       'read_at': null,
       'created_at': '2026-09-20T02:00:00Z',
       'resource_type': 'delivery_task',
@@ -148,6 +236,13 @@ const _listResponse = <String, dynamic>{
   'meta': <String, dynamic>{
     'next_cursor': 'next-cursor',
     'generated_at': '2026-09-20T02:00:01Z',
+    'categories': <Map<String, dynamic>>[
+      <String, dynamic>{'key': 'pickups', 'label': 'Pickups'},
+      <String, dynamic>{'key': 'deliveries', 'label': 'Deliveries'},
+      <String, dynamic>{'key': 'linehaul', 'label': 'Linehaul'},
+      <String, dynamic>{'key': 'support', 'label': 'Support tickets'},
+      <String, dynamic>{'key': 'other', 'label': 'Other'},
+    ],
   },
 };
 

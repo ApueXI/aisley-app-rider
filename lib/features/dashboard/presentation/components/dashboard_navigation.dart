@@ -145,6 +145,50 @@ mixin _DashboardNavigation on State<DashboardScreen> {
       return;
     }
     final target = NotificationTarget.resolve(notification);
+    if (target?.kind == NotificationTargetKind.supportTicket) {
+      final support = widget.supportTicketController;
+      if (support == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'The related support ticket is not currently available.',
+            ),
+          ),
+        );
+        return;
+      }
+      final ticket = await support.openDetailById(target!.resourceId);
+      if (!mounted ||
+          widget.authController.status != AuthStatus.authenticated) {
+        support.closeDetail();
+        return;
+      }
+      if (ticket == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              support.detailError ??
+                  'The related support ticket is no longer available.',
+            ),
+          ),
+        );
+        support.closeDetail();
+        return;
+      }
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => SupportTicketDetailScreen(
+            controller: support,
+            authController: widget.authController,
+            ticket: ticket,
+            initiallyLoaded: true,
+          ),
+        ),
+      );
+      support.closeDetail();
+      return;
+    }
+
     final pickup = widget.pickupController;
     final delivery = widget.deliveryController;
     if (target == null ||

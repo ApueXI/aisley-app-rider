@@ -29,6 +29,8 @@ class _NotificationListBody extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _NotificationFilterBar(controller: controller),
+        const SizedBox(height: 12),
+        _NotificationCategoryBar(controller: controller),
         const SizedBox(height: 16),
         if (controller.unreadCount != null)
           _UnreadCountSummary(count: controller.unreadCount!),
@@ -117,6 +119,46 @@ class _NotificationFilterBar extends StatelessWidget {
   }
 }
 
+class _NotificationCategoryBar extends StatelessWidget {
+  const _NotificationCategoryBar({required this.controller});
+
+  final NotificationController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      label: 'Filter notifications by category',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Category', style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilterChip(
+                key: const ValueKey('notification-category-all'),
+                label: const Text('All categories'),
+                selected: controller.category == 'all',
+                onSelected: (_) => controller.setCategory('all'),
+              ),
+              for (final category in controller.categories)
+                FilterChip(
+                  key: ValueKey('notification-category-${category.key}'),
+                  label: Text(category.label),
+                  selected: controller.category == category.key,
+                  onSelected: (_) => controller.setCategory(category.key),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _UnreadCountSummary extends StatelessWidget {
   const _UnreadCountSummary({required this.count});
 
@@ -197,6 +239,10 @@ class _NotificationCard extends StatelessWidget {
               tone: notification.isRead
                   ? CourierStatusTone.neutral
                   : CourierStatusTone.warning,
+            ),
+            CourierStatusBadge(
+              label: notification.categoryLabel,
+              tone: CourierStatusTone.neutral,
             ),
           ],
         ),

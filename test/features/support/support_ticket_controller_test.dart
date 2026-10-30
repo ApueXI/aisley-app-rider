@@ -5,6 +5,27 @@ import 'package:aisley_app/features/support/presentation/controllers/support_tic
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'notification target detail reads by UUID without loading a list',
+    () async {
+      const ticketId = '11111111-1111-4111-8111-111111111111';
+      final repository = _SupportRepository();
+      final controller = SupportTicketController(repository: repository);
+
+      final ticket = await controller.openDetailById(ticketId);
+
+      expect(ticket?.id, ticketId);
+      expect(controller.activeTicketId, ticketId);
+      expect(controller.detailStatus, SupportTicketLoadStatus.loaded);
+      expect(controller.events, hasLength(2));
+      expect(repository.detailCalls, 1);
+      expect(repository.statuses, isEmpty);
+      expect(await controller.openDetailById('not-a-uuid'), isNull);
+      expect(repository.detailCalls, 1);
+      controller.dispose();
+    },
+  );
+
   test('loads filters and appends a deduplicated cursor page', () async {
     final repository = _SupportRepository()
       ..listPages.add(SupportTicketPage(items: [_ticket()], nextCursor: 'next'))

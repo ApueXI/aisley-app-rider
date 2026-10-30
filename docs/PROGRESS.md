@@ -94,3 +94,29 @@ Short, dated implementation log. Append entries; archive complete logs after 150
 - Reviewed source/theme, relevant contracts and the historical synthetic Home capture. Flagged generated unsupported capabilities/copy and requested core plus auxiliary refinements. Seven auxiliary variants add 23 total PNG exports; six show principal corrections, while the registration variant is rejected because its form disappeared. Core edit acknowledgments remain distinct from screenshot evidence: the Home re-download is byte-identical. Draft PNGs are not approved implementation designs; see [review](stitch/REVIEW.md).
 - Backend/API unchanged: platform adoption `1858785e`; separately adopted Auth `4c3f504`, registration `27a6361` / registration-email v1, maps `51d9694`, failed attempts `4d8bfef`, media `28fc740`. Flutter inspected at `a4f17bab5dd337c4a34f0a2d7f374cf12a91d003`; deployed revision remains unknown. Created documentation branch `docs/aisley-rider-stitch-designs` before local writes.
 - Documentation/export checks cover JSON, unique IDs, PNG signatures/dimensions/hashes, local links, spec line-count inventory, unchanged application source and whitespace. Pre-existing deferred specs exceed the line-count rule; see the Stitch review. Stitch listing exposes four core screens while individual retrieval preserves all 16 references. No Flutter code, frontend assets, dependencies, API/DTOs, copied feature contracts or environment files changed. No analyzer/tests/builds, live API, fresh Flutter runtime, installed-device or accessibility acceptance was rerun for this design-only task.
+
+
+## 2026-10-29 — Scan-only pickup verification
+
+- Removed manual identifier entry/type selection from first-mile pickup. Camera QR/Code 128 capture selects the type automatically, displays a read-only candidate and Scan again, and enables explicit Confirm pickup only for a nonempty candidate of at most 128 characters. QR matching, cancellation, idempotent retries, server authority and task-bound final-mile handoff remain intact.
+- Enlarged the camera guide from 280×150 to a responsive square (min of 85% preview width and preview height minus 32px), retaining full-preview detection. Instructions scroll within 35% of available height so large text cannot consume the camera preview. Removed manual-entry fallback buttons/copy; camera errors explain recovery and Back.
+- Verification: Flutter analyzer and all 25 focused scanning/pickup-screen tests pass; scanner/candidate/pickup interaction coverage includes capture, cancellation, automatic types, mismatch/rescan, read-only review, no mutation before confirmation, camera failures, and 320×640/390×844/640×320 light/dark at 1×/2× text. Broad scanning/pickup run: 127 pass, one existing route cooldown test fails because it expects TextButton for the unchanged OutlinedButton refresh control; isolated reproduction confirms the same failure. No unrelated route changes were made.
+- Backend/API unchanged: pickup v1 tracking-ID at `d5c160d4a5a21272e487b6f46a82de35e81395cb`, platform adoption `1858785e`; local pickup spec v2.13 records the Flutter-only scan UI while retaining backend manual compatibility (230 lines). No dependencies, endpoint/DTO/permission changes or environment-file access. Reviewed familiar navigation, visible labels/results, action guards and text scaling against the design guide. Only Linux is connected; installed Android/browser camera, assistive technology and deployed API acceptance remain unverified. Branch: `feature/courier-scan-only-verification`.
+
+## 2026-10-29 — Support-ticket notifications and inbox categories
+
+- Synced the Courier support-ticket and notification contracts for safe in-app ticket alerts and role-specific category filtering. The Courier focused suite (90 tests) and `flutter analyze --no-pub` pass; no installed device, deployed API, or Flutter build acceptance is claimed.
+- Independent contract review found both Buyer and Courier parsers reject nullable redacted resource fields (TCK-NOTIF-001, P2); disposition is pending. API validation used isolated SQLite; PostgreSQL/live acceptance remains open.
+
+## 2026-10-29 — Nullable notification projections
+
+- Courier now handles nullable/redacted notification resource fields without treating a missing destination as navigable. The implementation suite (116 tests), analyzer, and diff checks pass per implementor; independent retesting is running. No installed-device, build, deployed API, or live acceptance is claimed.
+
+## 2026-10-29 — Independent nullable-notification retest
+
+- Independent tester confirms Courier accepts the saved nullable-resource reproduction with no new findings; 62 repository/target/navigation/screen checks pass. No app build, environment access, live API, or device acceptance occurred. Buyer retest also passed; see the main progress log for its separate result.
+
+## 2026-10-30 — Details-first Courier registration
+
+- Reordered existing personal/address/Logistics/vehicle/evidence/review steps before email OTP, followed by explicit submission. Draft controllers and evidence remain mounted; verification changes no longer clear passwords. Email changes require another OTP. Updated affected auth and registration contracts.
+- Verification: 27 focused registration wizard/OTP tests pass, including app-switch password/evidence retention, cancellation and validation; full analyzer and web build pass. No live API/SMTP, installed Android or release APK verification; process termination recovery is outside scope.

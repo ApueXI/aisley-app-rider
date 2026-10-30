@@ -107,7 +107,12 @@ extension _RegistrationPersonalStep on _RegistrationScreenState {
         key: _fieldNavigation.fieldKey('email'),
         focusNode: _fieldNavigation.focusNode('email'),
         controller: _emailController,
-        readOnly: true,
+        onChanged: (_) {
+          if (_emailController.text.trim().toLowerCase() !=
+              _verification.email) {
+            _verification.reset();
+          }
+        },
         enabled: !_isSubmitting,
         keyboardType: TextInputType.emailAddress,
         textInputAction: TextInputAction.next,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -84,75 +85,93 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen>
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Semantics(
-                label: 'Live camera preview for QR and Code 128 tracking ID',
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    MobileScanner(
-                      controller: _controller,
-                      onDetect: _onDetect,
-                      onDetectError: _onDetectError,
-                      errorBuilder: _buildScannerError,
-                      placeholderBuilder: (context) => const ColoredBox(
-                        color: Colors.black,
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                    ),
-                    IgnorePointer(
-                      child: Center(
-                        child: Container(
-                          width: 280,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white, width: 2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) => Column(
+            children: [
+              Expanded(
+                child: Semantics(
+                  label: 'Live camera preview for QR and Code 128 tracking ID',
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      MobileScanner(
+                        controller: _controller,
+                        onDetect: _onDetect,
+                        onDetectError: _onDetectError,
+                        errorBuilder: _buildScannerError,
+                        placeholderBuilder: (context) => const ColoredBox(
+                          color: Colors.black,
+                          child: Center(child: CircularProgressIndicator()),
                         ),
                       ),
-                    ),
-                    if (_showDecodeError)
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Container(
-                          margin: const EdgeInsets.all(16),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          color: Colors.black87,
-                          child: const Text(
-                            'The camera could not read that frame. Try again or use manual input.',
-                            style: TextStyle(color: Colors.white),
-                            textAlign: TextAlign.center,
-                          ),
+                      IgnorePointer(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final side = math.max(
+                              0.0,
+                              math.min(
+                                constraints.maxWidth * .85,
+                                constraints.maxHeight - 32,
+                              ),
+                            );
+                            return Center(
+                              child: Container(
+                                key: const ValueKey('scanner-guide'),
+                                width: side,
+                                height: side,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                  ],
+                      if (_showDecodeError)
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            margin: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            color: Colors.black87,
+                            child: const Text(
+                              'The camera could not read that frame. Keep the code steady and try again.',
+                              style: TextStyle(color: Colors.white),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-              child: Column(
-                children: [
-                  const Text(
-                    'Scan a parcel QR code or Code 128 tracking ID. Scanning only fills the form; review it before submitting.',
-                    textAlign: TextAlign.center,
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: constraints.maxHeight * .35,
+                ),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Scan a parcel QR code or Code 128 tracking ID. Review the captured value before confirming pickup.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.keyboard_alt_outlined),
-                    label: const Text('Use manual input'),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -197,10 +216,10 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen>
     MobileScannerException error,
   ) {
     final message = switch (error.errorCode) {
-      MobileScannerErrorCode.permissionDenied => 'Camera permission was denied. Allow camera access or use manual input.',
-      MobileScannerErrorCode.unsupported =>
-        'Camera scanning is unavailable on this device. Use manual input.',
-      _ => 'The camera could not start. Try again or use manual input.',
+      MobileScannerErrorCode.permissionDenied => 'Camera permission was denied. Allow camera access in settings, then reopen the scanner.',
+      MobileScannerErrorCode.unsupported => 'Camera scanning is unavailable on this device. Go back and use a supported device.',
+      _ =>
+        'The camera could not start. Go back and reopen the scanner to retry.',
     };
     return ColoredBox(
       color: Colors.black,
@@ -233,9 +252,7 @@ class _UnsupportedScannerMessage extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Use manual input. Camera scanning is enabled only for the Android release app and the Flutter web-server build.',
-        ),
+        const Text('Use the Android app or a supported browser to scan.'),
       ],
     );
   }

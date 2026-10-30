@@ -96,7 +96,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
   }
 
   Future<void> _submit() async {
-    if (_step != 5) {
+    if (_step != 0) {
       await _continueStep();
       return;
     }

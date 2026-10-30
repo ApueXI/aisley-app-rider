@@ -150,7 +150,12 @@ extension _PickupTaskActions on _PickupTaskDetailScreenState {
     final actionError = controller.actionError(task);
     final busy = controller.isActionBusy(task);
     final isFinalMile = task.isFinalMile;
-    final canSubmit = task.isFirstMile || task.revision != null;
+    final candidate = _scanCandidate;
+    final canSubmit = task.isFirstMile
+        ? candidate != null &&
+              candidate.value.trim().isNotEmpty &&
+              candidate.value.trim().length <= 128
+        : task.revision != null;
     final scheme = Theme.of(context).colorScheme;
     final pendingFinalSubmission =
         isFinalMile &&
@@ -173,85 +178,42 @@ extension _PickupTaskActions on _PickupTaskDetailScreenState {
             Text(
               isFinalMile
                   ? 'Submit the waybill identifier as evidence. Logistics must validate it before the task becomes picked up from the hub.'
-                  : 'Use the waybill QR payload or the printed Order ID/reference. Verification only prepares a candidate; the button below is the physical pickup confirmation.',
-            ),
-            const SizedBox(height: 16),
-            SegmentedButton<String>(
-              segments: const <ButtonSegment<String>>[
-                ButtonSegment<String>(
-                  value: 'qr',
-                  label: Text('Waybill QR'),
-                  icon: Icon(Icons.qr_code_2),
-                ),
-                ButtonSegment<String>(
-                  value: 'tracking_id',
-                  label: Text('Tracking ID'),
-                  icon: Icon(Icons.view_week_outlined),
-                ),
-                ButtonSegment<String>(
-                  value: 'order_id',
-                  label: Text('Order ID/reference'),
-                  icon: Icon(Icons.receipt_long_outlined),
-                ),
-              ],
-              selected: <String>{_identifierType},
-              onSelectionChanged: verificationLocked
-                  ? null
-                  : (selection) {
-                      if (selection.isEmpty) {
-                        return;
-                      }
-                      _pickupSetState(() {
-                        _identifierType = selection.first;
-                        _resolvedForThisTask = null;
-                        _resolutionMessage = null;
-                      });
-                      controller.clearResolution();
-                    },
+                  : 'Scan the waybill QR code or printed tracking barcode. Review the captured value before confirming physical pickup.',
             ),
             const SizedBox(height: 16),
             if (BarcodeScannerScreen.isSupported) ...[
               OutlinedButton.icon(
                 onPressed: verificationLocked ? null : _openScanner,
                 icon: const Icon(Icons.camera_alt_outlined),
-                label: const Text('Scan QR or tracking ID'),
+                label: Text(
+                  candidate == null ? 'Scan QR or tracking ID' : 'Scan again',
+                ),
               ),
-              const SizedBox(height: 10),
-            ],
-            TextField(
-              controller: _identifierController,
-              enabled: !verificationLocked,
-              maxLength: 128,
-              autocorrect: false,
-              enableSuggestions: false,
-              decoration: InputDecoration(
-                labelText: switch (_identifierType) {
-                  'qr' => 'Waybill QR payload',
-                  'tracking_id' => 'Tracking ID',
-                  _ => 'Printed Order ID/reference',
-                },
-                helperText: switch (_identifierType) {
-                  'qr' => 'A camera, scanner keyboard, or paste may enter the decoded payload. It is treated as untrusted text.',
-                  'tracking_id' => 'Enter the printed Code 128 tracking ID. Review it before confirming pickup.',
-                  _ => 'Enter the human-readable reference printed on the waybill.',
-                },
-                border: const OutlineInputBorder(),
+            ] else
+              const Text(
+                'Camera scanning is unavailable on this platform. Use the Android app or a supported browser.',
               ),
-              onChanged: (_) {
-                if (_resolvedForThisTask != null ||
-                    _resolutionMessage != null) {
-                  _pickupSetState(() {
-                    _resolvedForThisTask = null;
-                    _resolutionMessage = null;
-                  });
-                  controller.clearResolution();
-                }
-              },
-            ),
-            if (_identifierType == 'qr') ...[
+            const SizedBox(height: 12),
+            if (candidate == null)
+              const Text('Scan a parcel code to prepare pickup verification.')
+            else
+              Semantics(
+                liveRegion: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Captured ${candidate.typeLabel}'),
+                    Text(candidate.value),
+                  ],
+                ),
+              ),
+            if (candidate?.identifierType == 'qr') ...[
               const SizedBox(height: 4),
               OutlinedButton.icon(
-                onPressed: verificationLocked || !controller.canRetryRateLimit
+                onPressed:
+                    verificationLocked ||
+                        !canSubmit ||
+                        !controller.canRetryRateLimit
                     ? null
                     : _resolveQr,
                 icon: const Icon(Icons.verified_outlined),

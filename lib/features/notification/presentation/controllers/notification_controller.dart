@@ -61,6 +61,8 @@ class NotificationController extends ChangeNotifier {
   final NotificationAuthFailureHandler? onAuthFailure;
 
   NotificationFilter filter = NotificationFilter.all;
+  String category = 'all';
+  List<NotificationCategory> categories = courierNotificationCategories;
   NotificationLoadStatus listStatus = NotificationLoadStatus.idle;
   NotificationLoadStatus countStatus = NotificationLoadStatus.idle;
   List<CourierNotification> items = const <CourierNotification>[];
@@ -155,6 +157,8 @@ class NotificationController extends ChangeNotifier {
     _rateLimitTimer?.cancel();
     _rateLimitTimer = null;
     filter = NotificationFilter.all;
+    category = 'all';
+    categories = courierNotificationCategories;
     listStatus = NotificationLoadStatus.idle;
     countStatus = NotificationLoadStatus.idle;
     items = const <CourierNotification>[];
