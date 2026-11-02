@@ -61,6 +61,7 @@ Apply Jakob's Law by retaining recognizable platform interactions and consistent
 ### Themes
 
 - Support light and dark themes and follow the device's system preference by default.
+- Account settings → Appearance opens a scrollable System/Light/Dark choice dialog with the current selection and Cancel. Apply immediately across startup and authenticated routes without resetting navigation, forms or scroll. Remember this device preference independently of login/logout; use the existing secure-storage dependency with a separate appearance key, never a bearer-token key. Read failures use System; save failures retain the current appearance and offer Retry saving. No backend API is involved.
 - Define colors through Flutter `ColorScheme`/theme extensions rather than inline values. Every semantic color must have a readable foreground in both themes.
 - Keep destructive, warning, pending, and success meanings consistent across screens. Pair color with text, iconography, or shape; never rely on color alone.
 

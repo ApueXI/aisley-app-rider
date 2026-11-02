@@ -1,3 +1,4 @@
+import '../../../app/appearance/appearance_tile.dart';
 import '../../linehaul/presentation/linehaul_controller.dart';
 import '../../linehaul/presentation/linehaul_screen.dart';
 
