@@ -11,6 +11,64 @@ import 'package:aisley_app/features/policy/data/policy_repository.dart';
 import 'package:aisley_app/features/policy/domain/policy_models.dart';
 
 void main() {
+  test(
+    'combined endpoint sends reviewed versions once with bearer auth',
+    () async {
+      late http.Request request;
+      final client = ApiClient(
+        config: const AppConfig(baseUrl: 'https://api.example.test'),
+        tokenStorage: _FakeTokenStorage()..token = 'policy-token',
+        client: MockClient((incoming) async {
+          request = incoming;
+          return http.Response(
+            jsonEncode({
+              'data': {
+                'acceptances': [_acceptanceResponse['data']],
+                'status': {'policies': [], 'all_required_accepted': true},
+              },
+            }),
+            200,
+          );
+        }),
+      );
+      final result = await ApiPolicyRepository(client: client)
+          .acceptTogether({PolicyType.termsOfService: 3});
+      expect(request.url.path, '/api/v1/policy-consent/accept');
+      expect(request.method, 'POST');
+      expect(request.headers['authorization'], 'Bearer policy-token');
+      expect(jsonDecode(request.body), {
+        'acceptances': [
+          {'type': 'terms_of_service', 'version': 3, 'confirmation': true},
+        ],
+      });
+      expect(result.acceptances.single.version.version, 3);
+      expect(result.status.allRequiredAccepted, true);
+    },
+  );
+
+  test('combined repository rejects mismatched accepted versions', () async {
+    final client = ApiClient(
+      config: const AppConfig(baseUrl: 'https://api.example.test'),
+      tokenStorage: _FakeTokenStorage()..token = 'policy-token',
+      client: MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'data': {
+              'acceptances': [_acceptanceResponse['data']],
+              'status': {'policies': [], 'all_required_accepted': true},
+            },
+          }),
+          200,
+        ),
+      ),
+    );
+    await expectLater(
+      ApiPolicyRepository(client: client)
+          .acceptTogether({PolicyType.termsOfService: 4}),
+      throwsA(isA<Exception>()),
+    );
+  });
+
   test('fetches a public current policy without a bearer token', () async {
     late http.Request request;
     final storage = _FakeTokenStorage()..token = 'must-not-be-used';
@@ -88,21 +146,24 @@ void main() {
     expect(status.allRequiredAccepted, isFalse);
   });
 
-  test('reads a direct private status DTO when the envelope is omitted', () async {
-    final client = ApiClient(
-      config: const AppConfig(baseUrl: 'https://api.example.test'),
-      tokenStorage: _FakeTokenStorage()..token = 'policy-token',
-      client: MockClient((incoming) async {
-        return http.Response(jsonEncode(_directStatusResponse), 200);
-      }),
-    );
+  test(
+    'reads a direct private status DTO when the envelope is omitted',
+    () async {
+      final client = ApiClient(
+        config: const AppConfig(baseUrl: 'https://api.example.test'),
+        tokenStorage: _FakeTokenStorage()..token = 'policy-token',
+        client: MockClient((incoming) async {
+          return http.Response(jsonEncode(_directStatusResponse), 200);
+        }),
+      );
 
-    final status = await ApiPolicyRepository(client: client)
-        .fetchConsentStatus();
+      final status = await ApiPolicyRepository(client: client)
+          .fetchConsentStatus();
 
-    expect(status.itemFor(PolicyType.termsOfService)?.currentVersion, 3);
-    expect(status.allRequiredAccepted, isFalse);
-  });
+      expect(status.itemFor(PolicyType.termsOfService)?.currentVersion, 3);
+      expect(status.allRequiredAccepted, isFalse);
+    },
+  );
 
   test('does not cache private status responses', () async {
     var requestCount = 0;
@@ -241,9 +302,7 @@ const _historyResponse = <String, dynamic>{
   },
 };
 
-const _statusResponse = <String, dynamic>{
-  'data': _statusData,
-};
+const _statusResponse = <String, dynamic>{'data': _statusData};
 
 const _directStatusResponse = _statusData;
 

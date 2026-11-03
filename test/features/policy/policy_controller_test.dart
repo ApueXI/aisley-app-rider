@@ -1,3 +1,4 @@
+import 'package:aisley_app/features/policy/domain/policy_batch_acceptance.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aisley_app/core/networking/api_client.dart';
@@ -8,6 +9,43 @@ import 'package:aisley_app/features/policy/domain/policy_models.dart';
 import 'package:aisley_app/features/policy/presentation/controllers/policy_controller.dart';
 
 void main() {
+  test(
+    'combined acceptance requires all pending confirmations and saves once',
+    () async {
+      final api = _FakePolicyApi();
+      final controller = PolicyController(policyApi: api);
+      addTearDown(controller.dispose);
+      await controller.load();
+      expect(await controller.acceptTogether({}), false);
+      expect(api.batches, isEmpty);
+      expect(
+        await controller.acceptTogether({PolicyType.termsOfService: 3}),
+        true,
+      );
+      expect(api.batches, [
+        {PolicyType.termsOfService: 3},
+      ]);
+      expect(controller.consentStatus!.allRequiredAccepted, true);
+    },
+  );
+
+  test(
+    'combined acceptance refuses a changed document before any write',
+    () async {
+      final api = _FakePolicyApi();
+      final controller = PolicyController(policyApi: api);
+      addTearDown(controller.dispose);
+      await controller.load();
+      api.returnNextVersion = 4;
+      expect(
+        await controller.acceptTogether({PolicyType.termsOfService: 3}),
+        false,
+      );
+      expect(api.batches, isEmpty);
+      expect(controller.state, PolicyViewState.staleVersion);
+    },
+  );
+
   test(
     'policy server error explains recovery without setup instructions',
     () async {
@@ -261,6 +299,8 @@ void main() {
 class _FakePolicyApi implements PolicyApi {
   final List<String> calls = <String>[];
   final List<int> acceptedVersions = <int>[];
+  final List<Map<PolicyType, int>> batches = [];
+  bool batchSaved = false;
   Object? statusError;
   Object? acceptError;
   int? returnNextVersion;
@@ -312,13 +352,14 @@ class _FakePolicyApi implements PolicyApi {
       throw error;
     }
     _statusCallCount += 1;
-    final accepted = markAcceptedOnStatusRefresh && _statusCallCount > 1;
+    final accepted =
+        batchSaved || markAcceptedOnStatusRefresh && _statusCallCount > 1;
     return PolicyConsentStatus(
       policies: <PolicyConsentItem>[
         PolicyConsentItem(
           rawType: 'terms_of_service',
           label: 'Terms of Service',
-          required: true,
+          required: !accepted,
           accepted: accepted,
           acceptedAt: accepted ? DateTime.utc(2026, 9, 10) : null,
           currentVersion: 3,
@@ -327,7 +368,7 @@ class _FakePolicyApi implements PolicyApi {
         const PolicyConsentItem(
           rawType: 'privacy_policy',
           label: 'Privacy Policy',
-          required: true,
+          required: false,
           accepted: true,
           acceptedAt: null,
           currentVersion: 2,
@@ -354,6 +395,27 @@ class _FakePolicyApi implements PolicyApi {
       label: type.fallbackLabel,
       version: _document(type, version).version,
       acceptedAt: DateTime.utc(2026, 9, 10),
+    );
+  }
+
+  @override
+  Future<PolicyBatchAcceptance> acceptTogether(
+    Map<PolicyType, int> versions,
+  ) async {
+    batches.add(Map.of(versions));
+    if (acceptError != null) throw acceptError!;
+    batchSaved = true;
+    return PolicyBatchAcceptance(
+      acceptances: [
+        for (final entry in versions.entries)
+          PolicyAcceptance(
+            type: entry.key,
+            label: entry.key.fallbackLabel,
+            version: _document(entry.key, entry.value).version,
+            acceptedAt: DateTime.utc(2026, 11, 3),
+          ),
+      ],
+      status: await fetchConsentStatus(),
     );
   }
 

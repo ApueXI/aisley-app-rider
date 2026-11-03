@@ -84,33 +84,6 @@ class _NoPublishedPolicyView extends StatelessWidget {
   }
 }
 
-class _AcceptedPolicyLabel extends StatelessWidget {
-  const _AcceptedPolicyLabel({required this.item, required this.version});
-
-  final PolicyConsentItem item;
-  final int? version;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      liveRegion: true,
-      label: '${item.label} version $version is accepted',
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.check_circle_outline),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Accepted version $version${item.acceptedAt == null ? '' : ' on ${_formatDate(context, item.acceptedAt)}'}.',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _PolicyBanner extends StatelessWidget {
   const _PolicyBanner({required this.message, required this.isError});
 

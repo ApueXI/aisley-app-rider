@@ -1,6 +1,88 @@
 part of 'policy_controller.dart';
 
 extension PolicyControllerAcceptance on PolicyController {
+  Future<bool> acceptTogether(Map<PolicyType, int> confirmedVersions) async {
+    if (_batchInFlight ||
+        isBusy ||
+        (state == PolicyViewState.rateLimited && !canRetryRateLimit)) {
+      return false;
+    }
+    final selected = <PolicyType, int>{};
+    for (final item in consentStatus?.policies ?? <PolicyConsentItem>[]) {
+      if (!item.required) continue;
+      final type = item.type;
+      if (type == null ||
+          item.currentVersion == null ||
+          confirmedVersions[type] != item.currentVersion ||
+          documentFor(type)?.version.version != item.currentVersion ||
+          isDocumentStale(type)) {
+        return false;
+      }
+      selected[type] = item.currentVersion!;
+    }
+    if (selected.isEmpty) return false;
+    _batchInFlight = true;
+    try {
+      if (!await load(forceRefresh: true)) return false;
+      if (consentStatus?.allRequiredAccepted == true) return true;
+      for (final item in consentStatus!.policies.where(
+        (item) => item.required,
+      )) {
+        if (item.type == null ||
+            selected[item.type] != item.currentVersion ||
+            documentFor(item.type!)?.version.version != item.currentVersion ||
+            isDocumentStale(item.type!)) {
+          return await _setStaleState();
+        }
+      }
+      final operation = _operationEpoch;
+      state = PolicyViewState.accepting;
+      _notifyPolicyListeners();
+      try {
+        final result = await policyApi.acceptTogether(selected);
+        if (operation != _operationEpoch) return false;
+        consentStatus = result.status;
+        _statusLoadedAt = DateTime.now();
+        lastAcceptance = result.acceptances.last;
+        state = PolicyViewState.accepted;
+        successMessage = 'Your policy acceptance has been saved.';
+        errorMessage = null;
+        _notifyPolicyListeners();
+        return true;
+      } on Object catch (error) {
+        if (operation != _operationEpoch) return false;
+        if (error is ApiException && error.statusCode == 409) {
+          return await _refreshAsStale();
+        }
+        if (error is ApiException &&
+            (error.isNetworkError || (error.statusCode ?? 0) >= 500)) {
+          final refreshed = await load(forceRefresh: true);
+          if (refreshed &&
+              selected.entries.every(
+                (entry) =>
+                    consentFor(entry.key)?.accepted == true &&
+                    consentFor(entry.key)?.acceptedVersion == entry.value,
+              )) {
+            state = PolicyViewState.accepted;
+            successMessage = 'Your policy acceptance has been saved.';
+            errorMessage = null;
+            _notifyPolicyListeners();
+            return true;
+          }
+          if (state == PolicyViewState.signedOut ||
+              state == PolicyViewState.unauthorized ||
+              state == PolicyViewState.forbidden) {
+            return false;
+          }
+        }
+        await _setFailure(error);
+        return false;
+      }
+    } finally {
+      _batchInFlight = false;
+    }
+  }
+
   Future<bool> accept(PolicyType type) async {
     if (state == PolicyViewState.accepting) {
       return false;
@@ -16,7 +98,7 @@ extension PolicyControllerAcceptance on PolicyController {
       return false;
     }
     if (document == null || document.version.version != expectedVersion) {
-      return _refreshAsStale();
+      return await _refreshAsStale();
     }
 
     final originalVersion = expectedVersion;
@@ -29,7 +111,7 @@ extension PolicyControllerAcceptance on PolicyController {
     final refreshedDocument = documentFor(type);
     if (refreshedItem?.currentVersion != originalVersion ||
         refreshedDocument?.version.version != originalVersion) {
-      return _setStaleState();
+      return await _setStaleState();
     }
 
     state = PolicyViewState.accepting;
@@ -67,7 +149,7 @@ extension PolicyControllerAcceptance on PolicyController {
       return true;
     } on ApiException catch (error) {
       if (error.statusCode == 409 && error.code == 'POLICY_VERSION_STALE') {
-        return _refreshAsStale();
+        return await _refreshAsStale();
       }
       if (error.isNetworkError) {
         return _reconcileUnknownAcceptance(type, originalVersion, error);

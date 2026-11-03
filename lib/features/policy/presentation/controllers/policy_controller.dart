@@ -48,6 +48,7 @@ class PolicyController extends ChangeNotifier {
   final Map<PolicyType, String> historyErrors = {};
   final Set<PolicyType> _historyLoading = <PolicyType>{};
   final Set<String> _historyVersionLoading = <String>{};
+  bool _batchInFlight = false;
   int _operationEpoch = 0;
   int _historyEpoch = 0;
   bool _statusRequestInFlight = false;

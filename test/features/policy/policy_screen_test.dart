@@ -1,3 +1,11 @@
+import 'package:flutter/services.dart';
+
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+import 'package:aisley_app/features/policy/domain/policy_batch_acceptance.dart';
+
 import '../../helpers/accessibility.dart';
 
 import 'package:flutter/material.dart';
@@ -15,6 +23,68 @@ import 'package:aisley_app/features/policy/presentation/controllers/policy_contr
 import 'package:aisley_app/features/policy/presentation/policy_screen.dart';
 
 void main() {
+  setUpAll(() async {
+    final path = Platform.environment['CONSENT_REVIEW_FONT'];
+    if (path != null) {
+      final loader = FontLoader('Roboto')
+        ..addFont(File(path).readAsBytes().then(ByteData.sublistView));
+      await loader.load();
+    }
+  });
+  for (final scenario in AccessibilityScenario.matrix) {
+    accessibilityTest('combined consent controls ${scenario.name}', scenario, (
+      tester,
+    ) async {
+      final api = _WidgetPolicyApi();
+      final policy = PolicyController(policyApi: api);
+      final auth = AuthController(
+        authRepository: _WidgetAuthRepository(),
+        dashboardRepository: _WidgetDashboardRepository(),
+      )..status = AuthStatus.authenticated;
+      final boundary = GlobalKey();
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: boundary,
+          child: scenario.app(
+            PolicyScreen(authController: auth, policyController: policy),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(CheckboxListTile), findsNWidgets(2));
+      final accept = find.widgetWithText(FilledButton, 'Accept');
+      expect(tester.widget<FilledButton>(accept).onPressed, isNull);
+      if (scenario.size.width == 390 && scenario.scale == 1) {
+        await _capture(tester, boundary, '${scenario.brightness.name}-reading');
+      }
+      final checkbox = find.descendant(
+        of: find.byType(CheckboxListTile).first,
+        matching: find.byType(Checkbox),
+      );
+      await tester.ensureVisible(checkbox);
+      await tester.pumpAndSettle();
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(accept);
+      await tester.pumpAndSettle();
+      expect(tester.widget<FilledButton>(accept).onPressed, isNotNull);
+      expect(tester.takeException(), isNull);
+      if (scenario.size.width == 390 && scenario.scale == 1) {
+        await _capture(
+          tester,
+          boundary,
+          '${scenario.brightness.name}-confirmation',
+        );
+      }
+      await checkAccessibility(tester);
+      await tester.tap(accept);
+      await tester.pumpAndSettle();
+      expect(api.batches, 1);
+      expect(policy.consentStatus!.allRequiredAccepted, true);
+      await unmount(tester, [auth, policy]);
+    });
+  }
+
   for (final scenario in AccessibilityScenario.matrix) {
     accessibilityTest(
       'consent sign-out confirms once ${scenario.name}',
@@ -74,12 +144,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Platform policies'), findsOneWidget);
+      expect(find.text('Terms and Privacy'), findsOneWidget);
       expect(find.text('These are plain policy terms.'), findsOneWidget);
-      expect(find.byType(CheckboxListTile), findsOneWidget);
+      expect(find.byType(CheckboxListTile), findsNWidgets(2));
       expect(
         find.bySemanticsLabel(
-          'I have read and agree to the current Terms of Service, version 3.',
+          'I have read and agree to the Terms of Service, version 3.',
         ),
         findsOneWidget,
       );
@@ -129,6 +199,8 @@ class _WidgetPolicyApi implements PolicyApi {
   _WidgetPolicyApi({this.statusError});
 
   final Object? statusError;
+  bool saved = false;
+  int batches = 0;
 
   @override
   Future<PolicyDocument> fetchCurrent(
@@ -164,13 +236,13 @@ class _WidgetPolicyApi implements PolicyApi {
     if (statusError != null) {
       throw statusError!;
     }
-    return const PolicyConsentStatus(
+    return PolicyConsentStatus(
       policies: <PolicyConsentItem>[
         PolicyConsentItem(
           rawType: 'terms_of_service',
           label: 'Terms of Service',
-          required: true,
-          accepted: false,
+          required: !saved,
+          accepted: saved,
           acceptedAt: null,
           currentVersion: 3,
           acceptedVersion: null,
@@ -178,14 +250,14 @@ class _WidgetPolicyApi implements PolicyApi {
         PolicyConsentItem(
           rawType: 'privacy_policy',
           label: 'Privacy Policy',
-          required: true,
+          required: false,
           accepted: true,
           acceptedAt: null,
           currentVersion: 2,
           acceptedVersion: 2,
         ),
       ],
-      allRequiredAccepted: false,
+      allRequiredAccepted: saved,
     );
   }
 
@@ -199,6 +271,26 @@ class _WidgetPolicyApi implements PolicyApi {
       label: type.fallbackLabel,
       version: _document(type, version).version,
       acceptedAt: DateTime.utc(2026, 9, 10),
+    );
+  }
+
+  @override
+  Future<PolicyBatchAcceptance> acceptTogether(
+    Map<PolicyType, int> versions,
+  ) async {
+    batches++;
+    saved = true;
+    return PolicyBatchAcceptance(
+      acceptances: [
+        for (final entry in versions.entries)
+          PolicyAcceptance(
+            type: entry.key,
+            label: entry.key.fallbackLabel,
+            version: _document(entry.key, entry.value).version,
+            acceptedAt: DateTime.utc(2026, 11, 3),
+          ),
+      ],
+      status: await fetchConsentStatus(),
     );
   }
 
@@ -274,4 +366,19 @@ PolicyDocument _document(PolicyType type, int version) {
       publishedAt: DateTime.utc(2026, 9, 10),
     ),
   );
+}
+
+Future<void> _capture(WidgetTester tester, GlobalKey key, String name) async {
+  final boundary =
+      key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  final image = await tester.runAsync(() => boundary.toImage());
+  final bytes = await tester.runAsync(
+    () => image!.toByteData(format: ui.ImageByteFormat.png),
+  );
+  await tester.runAsync(() async {
+    await Directory('build/consent-review').create(recursive: true);
+    await File('build/consent-review/$name.png')
+        .writeAsBytes(bytes!.buffer.asUint8List());
+  });
+  image!.dispose();
 }

@@ -74,8 +74,8 @@ class _PolicyScreenState extends State<PolicyScreen>
     });
   }
 
-  Future<void> _accept(PolicyType type) async {
-    await controller.accept(type);
+  Future<void> _acceptTogether() async {
+    await controller.acceptTogether(Map.of(_confirmedVersions));
     if (!mounted) {
       return;
     }
@@ -136,7 +136,7 @@ class _PolicyScreenState extends State<PolicyScreen>
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Policy & consent'),
+            title: const Text('Terms and Privacy'),
             actions: [
               if (widget.showSignOutAction)
                 IconButton(
@@ -219,15 +219,6 @@ class _PolicyScreenState extends State<PolicyScreen>
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
-        Semantics(
-          header: true,
-          child: Text(
-            'Platform policies',
-            style: Theme.of(context).textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w800),
-          ),
-        ),
-        const SizedBox(height: 8),
         Text(
           'Read the current Terms of Service and Privacy Policy.',
           style: Theme.of(context).textTheme.bodyMedium
@@ -264,7 +255,19 @@ class _PolicyScreenState extends State<PolicyScreen>
         if (items.isEmpty)
           const _NoPublishedPolicyView()
         else
-          ...items.map((item) => _buildPolicyCard(context, item)),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...items.map((item) => _buildPolicyCard(context, item)),
+                  _buildCombinedConfirmation(context),
+                ],
+              ),
+            ),
+          ),
         if (showRetry) ...[
           const SizedBox(height: 16),
           FilledButton.icon(
