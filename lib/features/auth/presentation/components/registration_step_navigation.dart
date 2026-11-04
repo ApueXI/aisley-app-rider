@@ -51,7 +51,11 @@ extension _RegistrationStepNavigation on _RegistrationScreenState {
   }
 
   Future<void> _continueStep() async {
-    if (_isSubmitting || _isPickingEvidence) return;
+    if (_isSubmitting ||
+        _isPickingEvidence ||
+        (_step == 5 && !widget.authController.canRegister)) {
+      return;
+    }
     if (_step == 0) {
       _goToStep(1);
       return;
@@ -85,7 +89,17 @@ extension _RegistrationStepNavigation on _RegistrationScreenState {
       await _revealRegistrationError();
       return;
     }
-    _goToStep(_step == 5 ? 0 : _step + 1);
+    if (_step == 5) {
+      if (_verification.emailVerificationRequired == null) return;
+      _goToStep(0);
+      if (_verification.ready) {
+        await _submit();
+      } else if (_verification.challenge == null) {
+        await _verification.send(_emailController.text);
+      }
+    } else {
+      _goToStep(_step + 1);
+    }
   }
 
   Widget _buildReviewSummary(BuildContext context) => Column(

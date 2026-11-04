@@ -31,11 +31,27 @@ abstract interface class AuthRepository {
   Future<void> clearStoredToken();
 }
 
-class ApiAuthRepository implements AuthRepository, RegistrationEmailRepository {
+class ApiAuthRepository
+    implements
+        AuthRepository,
+        RegistrationEmailRepository,
+        RegistrationConfigurationRepository {
   ApiAuthRepository({required this._client, required this._tokenStorage});
 
   final ApiClient _client;
   final TokenStorage _tokenStorage;
+
+  @override
+  Future<bool> registrationEmailRequired() async {
+    final value = _decodeObject(
+      (await _client.get('/courier/auth/registration/config')).body,
+    );
+    if (value is! Map<String, dynamic> ||
+        value['email_verification_required'] is! bool) {
+      throw const FormatException('Invalid registration configuration.');
+    }
+    return value['email_verification_required'] as bool;
+  }
 
   @override
   Future<RegistrationEmailChallenge> requestRegistrationCode(

@@ -50,7 +50,58 @@ class VerificationFixture implements RegistrationEmailRepository {
   }
 }
 
+class ConfigVerificationFixture extends VerificationFixture
+    implements RegistrationConfigurationRepository {
+  bool required = true;
+  bool configFailure = false;
+  @override
+  Future<bool> registrationEmailRequired() async {
+    if (configFailure) throw const FormatException('Unavailable');
+    return required;
+  }
+}
+
 void main() {
+  test('configuration failure blocks submission and retry adopts bypass; late enforcement requires proof', () async {
+    final repo = ConfigVerificationFixture()..configFailure = true;
+    final c = RegistrationEmailController(repo, clock: () => instant);
+    addTearDown(c.dispose);
+    await Future<void>.delayed(Duration.zero);
+    expect(c.emailVerificationRequired, isNull);
+    expect(c.beginSubmission(), false);
+    repo
+      ..configFailure = false
+      ..required = false;
+    await c.loadConfig();
+    expect(c.beginSubmission(), true);
+    expect(c.beginSubmission(), false);
+    c.finishSubmission();
+    c.requireVerification();
+    expect(c.ready, false);
+    expect(c.emailVerificationRequired, true);
+  });
+
+  test(
+    'proof remains valid during pending persistence and cannot start twice',
+    () async {
+      var now = instant;
+      final c = RegistrationEmailController(
+        VerificationFixture(),
+        clock: () => now,
+      );
+      addTearDown(c.dispose);
+      await Future<void>.delayed(Duration.zero);
+      await c.send('new@example.com');
+      await c.verify('012345');
+      expect(c.beginSubmission(), true);
+      expect(c.beginSubmission(), false);
+      now = now.add(const Duration(hours: 2));
+      expect(c.verified, true);
+      c.finishSubmission();
+      expect(c.verified, false);
+    },
+  );
+
   test(
     'DTO rejects malformed secrets and timestamps without printing the proof',
     () {

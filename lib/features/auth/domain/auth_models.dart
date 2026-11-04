@@ -229,7 +229,8 @@ class CourierRegistrationRequest {
       'contact_number': contactNumber.trim(),
       'sex': sex,
       'birth_date': _formatDate(birthDate),
-      'email_verification_token': emailVerificationToken,
+      if (emailVerificationToken.isNotEmpty)
+        'email_verification_token': emailVerificationToken,
       'email': email.trim().toLowerCase(),
       'password': password,
       'password_confirmation': passwordConfirmation,

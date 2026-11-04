@@ -23,7 +23,7 @@ extension _RegistrationResult on _RegistrationScreenState {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Application submitted',
+                      'Account created successfully',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(fontWeight: FontWeight.w800),
@@ -32,7 +32,7 @@ extension _RegistrationResult on _RegistrationScreenState {
                     Text(result.message, textAlign: TextAlign.center),
                     const SizedBox(height: 12),
                     Text(
-                      'Your application is pending approval from the selected Logistics organization. Registration did not create a session, so you can sign in after approval.',
+                      'Your application is pending approval from the selected Logistics organization. We’ll email you once your application has been reviewed. You can sign in after approval.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyLarge
                           ?.copyWith(color: scheme.onSurfaceVariant),

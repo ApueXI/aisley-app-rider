@@ -165,20 +165,12 @@ class RegistrationScreenFixture {
       await tester.tap(find.text('Continue to email verification'));
       await tester.pumpAndSettle();
     }
-    if (find.text('Send verification code').evaluate().isNotEmpty) {
-      await tester.ensureVisible(find.text('Send verification code'));
-      await tester.tap(find.text('Send verification code'));
-      await tester.pumpAndSettle();
+    if (find.text('Verification code').evaluate().isNotEmpty) {
       await enter(tester, 'Verification code', '012345');
       await tester.ensureVisible(find.text('Verify email'));
       await tester.tap(find.text('Verify email'));
       await tester.pumpAndSettle();
     }
-    final submit = find.widgetWithText(FilledButton, 'Submit registration');
-    await tester.ensureVisible(submit);
-    await tester.pump();
-    await tester.tap(submit);
-    await tester.pumpAndSettle();
   }
 }
 
@@ -289,7 +281,13 @@ class TestImagePicker extends FileSelectorPlatform {
 }
 
 class RegistrationTestRepository
-    implements AuthRepository, RegistrationEmailRepository {
+    implements
+        AuthRepository,
+        RegistrationEmailRepository,
+        RegistrationConfigurationRepository {
+  bool otpRequired = true;
+  @override
+  Future<bool> registrationEmailRequired() async => otpRequired;
   DateTime Function() clock = DateTime.now;
   @override
   Future<RegistrationEmailChallenge> requestRegistrationCode(

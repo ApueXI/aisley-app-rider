@@ -6,6 +6,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'fixtures/registration_screen_fixture.dart';
 
 void main() {
+  testWidgets(
+    'disabled OTP submits from review directly to Logistics approval success',
+    (tester) async {
+      final fixture = RegistrationScreenFixture();
+      fixture.repository.otpRequired = false;
+      await fixture.open(tester);
+      await fixture.fill(tester);
+      await tester.ensureVisible(find.text('Create account'));
+      await tester.tap(find.text('Create account'));
+      await tester.pumpAndSettle();
+      expect(fixture.repository.submissions, 1);
+      expect(find.text('Account created successfully'), findsOneWidget);
+      expect(
+        find.textContaining('selected Logistics organization'),
+        findsOneWidget,
+      );
+      expect(find.text('Verification code'), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      fixture.auth.dispose();
+    },
+  );
+
   setUp(() {
     final original = FileSelectorPlatform.instance;
     FileSelectorPlatform.instance = TestImagePicker();
@@ -33,7 +55,7 @@ void main() {
     fixture.auth.dispose();
   });
   testWidgets(
-    'verification expiry preserves drafts and evidence and clears passwords',
+    'OTP challenge expiry preserves drafts and evidence before submission',
     (tester) async {
       var now = DateTime.utc(2026, 10, 15);
       final fixture = RegistrationScreenFixture()
@@ -41,11 +63,14 @@ void main() {
       fixture.repository.clock = () => now;
       await fixture.open(tester);
       await fixture.fill(tester);
-      now = now.add(const Duration(minutes: 61));
+      await tester.ensureVisible(find.text('Continue to email verification'));
+      await tester.tap(find.text('Continue to email verification'));
+      await tester.pumpAndSettle();
+      now = now.add(const Duration(minutes: 11));
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
       expect(registrationStep(tester), 0);
-      expect(find.textContaining('Email verification expired'), findsOneWidget);
+      expect(find.textContaining('This code expired'), findsOneWidget);
       expect(
         tester.widget<TextField>(field('First name')).controller!.text,
         'Ana',
@@ -56,16 +81,13 @@ void main() {
       );
       expect(
         tester.widget<TextField>(field('Password')).controller!.text,
-        isEmpty,
+        'TestInput123',
       );
       expect(
         tester.widget<TextField>(field('Confirm password')).controller!.text,
-        isEmpty,
+        'TestInput123',
       );
-      expect(
-        FocusManager.instance.primaryFocus?.debugLabel,
-        'registration_email',
-      );
+
       expect(fixture.repository.submissions, 0);
       await tester.pumpWidget(const SizedBox.shrink());
       fixture.auth.dispose();
