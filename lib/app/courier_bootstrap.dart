@@ -1,3 +1,4 @@
+import 'appearance/appearance_scope.dart';
 import '../features/linehaul/data/linehaul_repository.dart';
 import '../features/linehaul/presentation/linehaul_controller.dart';
 import '../core/chat_media/api_repository.dart';
@@ -266,7 +267,7 @@ class _CourierBootstrapAppState extends State<CourierBootstrapApp> {
       title: 'AISLEY Courier',
       theme: buildCourierTheme(Brightness.light),
       darkTheme: buildCourierTheme(Brightness.dark),
-      themeMode: ThemeMode.system,
+      themeMode: AppearanceScope.maybeOf(context)?.mode ?? ThemeMode.system,
       builder: (context, child) => CourierViewport(child: child!),
       home: Scaffold(
         body: SafeArea(

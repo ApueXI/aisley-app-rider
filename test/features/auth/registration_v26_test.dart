@@ -70,7 +70,7 @@ void main() {
         }
         if (failure == 'timeout') {
           expect(
-            find.textContaining('registration request timed out'),
+            find.textContaining('registration result is unconfirmed'),
             findsOneWidget,
           );
         }

@@ -100,7 +100,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       await _continueStep();
       return;
     }
-    if (!_verification.verified ||
+    if (!_verification.ready ||
         _isSubmitting ||
         _isPickingEvidence ||
         !widget.authController.canRegister) {
@@ -143,6 +143,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       return;
     }
 
+    if (!_verification.beginSubmission()) return;
     FocusManager.instance.primaryFocus?.unfocus();
     final serial = ++_submissionSerial;
     _updateState(() {
@@ -157,8 +158,12 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       contactNumber: _contactNumberController.text,
       sex: _sex!,
       birthDate: _birthDate!,
-      email: _verification.verifiedEmail,
-      emailVerificationToken: _verification.proof!.token,
+      email: _verification.emailVerificationRequired == false
+          ? _emailController.text
+          : _verification.verifiedEmail,
+      emailVerificationToken: _verification.emailVerificationRequired == false
+          ? ''
+          : _verification.proof!.token,
       password: _passwordController.text,
       passwordConfirmation: _passwordConfirmationController.text,
       logisticsOrganizationId: _organization!.id,
@@ -209,21 +214,30 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       }
       _updateState(() {
         if (error.fieldErrors.containsKey('email_verification_token')) {
-          _verification.reset();
+          _verification.requireVerification();
         }
         _fieldErrors = error.fieldErrors;
-        _submissionError = _messageForRegistrationError(error);
+        _submissionError =
+            error.isNetworkError || (error.statusCode ?? 0) >= 500
+            ? 'The registration result is unconfirmed. Try signing in before deliberately submitting again; your application may already be pending.'
+            : _messageForRegistrationError(error);
+        _step = 5;
         _isSubmitting = false;
         _cancelUpload = null;
         _passwordController.clear();
         _passwordConfirmationController.clear();
       });
-      if (_fieldErrors.isNotEmpty) await _revealRegistrationError();
+      if (_fieldErrors.isNotEmpty) {
+        await _revealRegistrationError();
+      } else {
+        _goToStep(5);
+      }
     } on ApiContractException {
       if (!mounted || serial != _submissionSerial) {
         return;
       }
       _updateState(() {
+        _step = 5;
         _submissionError = 'The registration result is unconfirmed. Try signing in before deliberately submitting again; your application may already be pending.';
         _isSubmitting = false;
         _cancelUpload = null;
@@ -235,6 +249,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
         return;
       }
       _updateState(() {
+        _step = 5;
         _submissionError = 'A selected document could not be read. Choose the files again and retry.';
         _isSubmitting = false;
         _cancelUpload = null;
@@ -242,6 +257,7 @@ extension _RegistrationSubmission on _RegistrationScreenState {
         _passwordConfirmationController.clear();
       });
     } finally {
+      _verification.finishSubmission();
       if (mounted && serial == _submissionSerial && _isSubmitting) {
         _updateState(() {
           _isSubmitting = false;
@@ -256,10 +272,12 @@ extension _RegistrationSubmission on _RegistrationScreenState {
       return;
     }
     _submissionSerial++;
+    _verification.finishSubmission();
     _cancelUpload?.call();
     _updateState(() {
       _isSubmitting = false;
       _cancelUpload = null;
+      _step = 5;
       _submissionError = 'The request was cancelled; registration may already have been submitted. Try signing in before deliberately submitting again.';
       _passwordController.clear();
       _passwordConfirmationController.clear();

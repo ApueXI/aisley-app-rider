@@ -120,8 +120,9 @@ extension _RegistrationForm on _RegistrationScreenState {
                       0 => RegistrationEmailFields(
                         controller: _verification,
                         draftEmail: _emailController.text,
-                        disabled: busy,
+                        disabled: busy || !widget.authController.canRegister,
                         emailFocusNode: _emailVerificationFocus,
+                        onVerified: _submit,
                       ),
                       1 => _buildPersonalStep(context),
                       2 => _buildAddressStep(context),
@@ -143,29 +144,38 @@ extension _RegistrationForm on _RegistrationScreenState {
                   onPressed: _cancelSubmission,
                   child: const Text('Cancel upload'),
                 ),
-              ] else if (step == 0 && _verification.verified) ...[
-                if (!widget.authController.canRegister)
-                  const Text(
-                    'Please wait before submitting your registration again.',
-                  ),
-                const Text(
-                  'Your selected Logistics organization must approve your application before you can sign in.',
-                ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: widget.authController.canRegister && !busy
-                      ? _submit
-                      : null,
-                  icon: const Icon(Icons.send_outlined),
-                  label: const Text('Submit registration'),
-                ),
               ] else if (step > 0)
                 FilledButton(
-                  onPressed: busy ? null : _continueStep,
+                  onPressed:
+                      busy ||
+                          (step == 5 &&
+                              (_verification.emailVerificationRequired ==
+                                      null ||
+                                  !widget.authController.canRegister))
+                      ? null
+                      : _continueStep,
                   child: Text(
-                    step == 5 ? 'Continue to email verification' : 'Continue',
+                    step == 5
+                        ? (_verification.emailVerificationRequired == false
+                              ? 'Create account'
+                              : 'Continue to email verification')
+                        : 'Continue',
                   ),
                 ),
+              if ((step == 5 || step == 0) &&
+                  !widget.authController.canRegister)
+                const Text(
+                  'Please wait before submitting your registration again.',
+                ),
+              if (step == 5 && _verification.configLoading)
+                const Text('Loading registration settings…'),
+              if (step == 5 && _verification.configError != null) ...[
+                Text(_verification.configError!),
+                TextButton(
+                  onPressed: _verification.loadConfig,
+                  child: const Text('Retry registration settings'),
+                ),
+              ],
               if (step != 1)
                 TextButton(
                   onPressed: busy ? null : _backRegistration,

@@ -1,3 +1,5 @@
+import 'package:aisley_app/features/policy/domain/policy_batch_acceptance.dart';
+
 import 'features/auth/fixtures/registration_screen_fixture.dart'
     as registration;
 
@@ -217,8 +219,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Policy & consent'), findsOneWidget);
-    expect(find.text('Platform policies'), findsOneWidget);
+    expect(find.text('Terms and Privacy'), findsOneWidget);
     expect(
       find.text('Accept the required policies to continue to your work.'),
       findsOneWidget,
@@ -579,6 +580,15 @@ class _FakePolicyApi implements PolicyApi {
       label: type.fallbackLabel,
       version: _policyDocument(type).version,
       acceptedAt: DateTime.utc(2026, 9, 12),
+    );
+  }
+
+  @override
+  Future<PolicyBatchAcceptance> acceptTogether(
+    Map<PolicyType, int> versions,
+  ) async {
+    throw UnimplementedError(
+      'Batch acceptance must be configured by the test.',
     );
   }
 

@@ -1,3 +1,4 @@
+import 'appearance/appearance_scope.dart';
 import '../features/linehaul/presentation/linehaul_controller.dart';
 
 import 'package:flutter/material.dart';
@@ -62,7 +63,7 @@ class CourierApp extends StatelessWidget {
       title: 'AISLEY Courier',
       theme: buildCourierTheme(Brightness.light),
       darkTheme: buildCourierTheme(Brightness.dark),
-      themeMode: ThemeMode.system,
+      themeMode: AppearanceScope.maybeOf(context)?.mode ?? ThemeMode.system,
       navigatorObservers: [courierRouteObserver],
       builder: (context, child) => CourierViewport(child: child!),
       home: AuthGate(

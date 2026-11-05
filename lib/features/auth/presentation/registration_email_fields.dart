@@ -89,7 +89,7 @@ class _RegistrationEmailFieldsState extends State<RegistrationEmailFields> {
             Text(
               c.verified
                   ? 'Inbox access verified for ${c.verifiedEmail}. This does not determine Courier eligibility or activate your account.'
-                  : 'Enter your email to receive a six-digit code. Verifying it confirms inbox access only; it does not determine Courier eligibility or activate your account. Logistics reviews your application after registration.',
+                  : 'Enter the six-digit code sent to your email. Check your spam folder too. Verifying automatically submits your registration; Logistics approval is still required.',
             ),
             if (c.message != null) ...[
               const SizedBox(height: 12),

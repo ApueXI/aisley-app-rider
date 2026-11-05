@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../../../core/networking/api_client.dart';
 import '../../../core/networking/api_contract_exception.dart';
 import '../domain/policy_models.dart';
+import '../domain/policy_batch_acceptance.dart';
 
 abstract interface class PolicyApi {
   Future<PolicyDocument> fetchCurrent(
@@ -28,6 +29,8 @@ abstract interface class PolicyApi {
     required PolicyType type,
     required int version,
   });
+
+  Future<PolicyBatchAcceptance> acceptTogether(Map<PolicyType, int> versions);
 
   void clearPublicCache();
 }
@@ -151,6 +154,44 @@ class ApiPolicyRepository implements PolicyApi {
   }
 
   @override
+  Future<PolicyBatchAcceptance> acceptTogether(
+    Map<PolicyType, int> versions,
+  ) async {
+    if (versions.isEmpty || versions.values.any((version) => version < 1)) {
+      throw const ApiContractException('policy.batch.selection');
+    }
+    final response = await _client.postJson(
+      '/policy-consent/accept',
+      authenticated: true,
+      body: {
+        'acceptances': versions.entries
+            .map(
+              (entry) => {
+                'type': entry.key.apiValue,
+                'version': entry.value,
+                'confirmation': true,
+              },
+            )
+            .toList(growable: false),
+      },
+    );
+    final result = PolicyBatchAcceptance.fromJson(
+      _dataMap(response.body, 'policy.batch'),
+    );
+    if (result.acceptances.length != versions.length ||
+        result.acceptances.map((item) => item.type).toSet().length !=
+            versions.length ||
+        result.acceptances.any(
+          (item) =>
+              versions[item.type] != item.version.version ||
+              item.version.status != 'published',
+        )) {
+      throw const ApiContractException('policy.batch.versions');
+    }
+    return result;
+  }
+
+  @override
   void clearPublicCache() {
     _currentCache.clear();
     _historyCache.clear();
@@ -208,8 +249,7 @@ Map<String, dynamic> _dataMap(String body, String field) {
 bool _isDirectPolicyDto(Map<String, dynamic> payload, String field) {
   return switch (field) {
     'policy.consent' =>
-      payload['policies'] is List &&
-          payload['all_required_accepted'] is bool,
+      payload['policies'] is List && payload['all_required_accepted'] is bool,
     'policy.history' =>
       payload['type'] is String &&
           payload['label'] is String &&

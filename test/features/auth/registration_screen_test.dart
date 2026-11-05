@@ -37,9 +37,6 @@ void main() {
     await tester.ensureVisible(find.text('Continue to email verification'));
     await tester.tap(find.text('Continue to email verification'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Send verification code'));
-    await tester.tap(find.text('Send verification code'));
-    await tester.pumpAndSettle();
     for (final state in [
       AppLifecycleState.inactive,
       AppLifecycleState.hidden,
@@ -63,14 +60,13 @@ void main() {
     await tester.ensureVisible(find.text('Verify email'));
     await tester.tap(find.text('Verify email'));
     await tester.pumpAndSettle();
-    expect(find.text('Submit registration'), findsOneWidget);
-    await tester.tap(find.byTooltip('Back'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('test-image.png'), findsWidgets);
+    expect(find.text('Account created successfully'), findsOneWidget);
     expect(
-      tester.widget<TextField>(field('Password')).controller!.text,
-      'TestInput123',
+      find.textContaining('selected Logistics organization'),
+      findsOneWidget,
     );
+    expect(fixture.repository.submissions, 1);
+    expect(find.text('Submit registration'), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -338,7 +334,7 @@ void main() {
     await fixture.open(tester);
     await fixture.fill(tester);
     await fixture.submit(tester);
-    expect(find.text('Application submitted'), findsOneWidget);
+    expect(find.text('Account created successfully'), findsOneWidget);
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.text('Sign in destination'), findsOneWidget);
@@ -355,16 +351,11 @@ void main() {
       await tester.ensureVisible(find.text('Continue to email verification'));
       await tester.tap(find.text('Continue to email verification'));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Send verification code'));
-      await tester.tap(find.text('Send verification code'));
-      await tester.pumpAndSettle();
       await enter(tester, 'Verification code', '012345');
       await tester.ensureVisible(find.text('Verify email'));
       await tester.tap(find.text('Verify email'));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Submit registration'));
-      await tester.tap(find.text('Submit registration'));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.binding.handlePopRoute();
       await tester.pump();
       expect(find.byType(AlertDialog), findsNothing);

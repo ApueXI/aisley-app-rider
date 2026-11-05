@@ -124,6 +124,8 @@ class _AccountDestinations extends StatelessWidget {
                 onTap: onVehicle,
               ),
               const Divider(height: 1),
+              const AppearanceTile(),
+              const Divider(height: 1),
               _DestinationRow(
                 icon: Icons.policy_outlined,
                 title: 'Policies',
