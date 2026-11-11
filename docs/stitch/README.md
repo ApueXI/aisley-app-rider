@@ -1,5 +1,7 @@
 # AISLEY Rider — Stitch references
 
+Latest exploration: [AISLEY Rider V2 — 2026-11-12](v2/README.md), in a separate private Stitch project. The original references below are preserved.
+
 [Open AISLEY Rider in Google Stitch](https://stitch.withgoogle.com/projects/13625567050207019759).
 
 Project ID: `13625567050207019759` · Private · Created 2026-10-28 using Google Stitch MCP.

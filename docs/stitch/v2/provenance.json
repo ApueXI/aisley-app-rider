@@ -1,0 +1,500 @@
+{
+  "date": "2026-11-12",
+  "projectId": "8494920215314554832",
+  "projectTitle": "AISLEY Rider V2",
+  "projectUrl": "https://stitch.withgoogle.com/projects/8494920215314554832",
+  "baselineFlutter": "dc53bc05fe093bb81c19efee24898ea43cf99d99",
+  "branch": "docs/aisley-rider-v2-stitch",
+  "previousProjectId": "13625567050207019759",
+  "designSystemId": "assets/cf67e39ea951477bacd66dec7dda7a16",
+  "core": {
+    "sessionId": "11936316318392558521",
+    "prompt": "Create a coherent set of SIX separate MOBILE portrait screen designs for AISLEY Rider V2, the existing native Flutter Android courier app. Design references only. Every screen should be a separate named screen resource, not a montage or website. 390x844 logical portrait, scroll when needed.\nAuthority: preserve existing Material 3 controls and labels. Neutral #F7F7F8 canvas, white surfaces, ink #202024, secondary #55555D, border #E2E2E6, magenta primary #C00065. Roboto Flex stands in for platform Material font; 24px titles, 16px body, readable 14px metadata, 48px targets, 16px margins, 10px buttons and 12px flat cards. No gradients, lavender canvas, hero banners, decorative photography, slide gestures, floating pill nav or oversized identity cards. Magenta limited to next action/selection. Plain list rows and compact task context.\nROOTS have exactly Home / Work / Task messages / Account bottom NavigationBar with full visible labels. PUSHED screens have Back and no bottom nav. Synthetic demonstration data only: Mika Santos, Example Logistics, Main hub, ORD-DEMO-1042/1043, Pasig/Marikina. No real PII, secrets, evidence, readable QR/barcodes, raw paths, backend jargon, internal IDs, invented eligibility facts or certification.\n1. V2 Home (root selected Home): AISLEY Rider app bar and Notifications bell; compact name and read-only organization/hub; Pickup orders and Delivery work shortcuts; Active work section one final-mile accepted reference ORD-DEMO-1042/Pasig with View task; Available work one first-mile offer ORD-DEMO-1043/Marikina Review task. Each section Last refreshed 09:41, View all, no totals. One calm inline refresh-failed state retains prior available row labelled Stale and Retry. Home taps only navigate. No online toggle, earnings, GPS, ETA or mutation.\n2. V2 Work (root selected Work): title Work. Exactly five familiar ListTile rows: Pickup orders — Seller pickups and hub handoff; Delivery work — Photo proof and delivery review; Final-mile batches — Review individual parcel decisions; Linehaul jobs — Assigned hub transfers and company-truck routes; Delivery history — Completed deliveries. No stats/counters, help icons, authority banners or dispatch controls.\n3. V2 Task details (pushed offered final-mile): reference ORD-DEMO-1042, Final mile, Delivery offered. Origin Example Logistics · Main hub, destination area Pasig City, one parcel. Primary Accept delivery, secondary Reject offer (reason step) and Message Logistics. No Buyer contact/full address before acceptance, no route action for offers, no bulk accept, no cash promise, no invented handling/zone/weight.\n4. V2 Pickup scan review (pushed accepted first-mile): reference ORD-DEMO-1043, First mile, Pickup accepted, Example shop · Marikina City. Read-only captured tracking identifier DEMO-1043 with clear label Scanned code. Automatically detected Code 128, Scan again secondary. Primary Confirm pickup. Capture alone never confirms custody. NO editable identifier, manual input, type selector, fake barcode decoration or final-mile transfer claim.\n5. V2 Delivery photo and cash (pushed accepted final-mile): ORD-DEMO-1042, Delivery accepted, authorized synthetic destination area Pasig City. Selected photo represented by neutral local-preview panel, no actual personal photo, secondary Retake/Choose photo/Remove. Cash to collect PHP 115.00, unchecked checkbox 'I collected PHP 115.00'. Exact primary label Delivered, visibly disabled until cash acknowledgment and photo prerequisites hold. Next submission goes to Logistics review, never instant delivered/paid. No mandatory transit timeline, signature, recipient OTP, sliders, GPS or pay amounts entry.\n6. V2 Task messages (root selected Task messages): title Task messages; two compact task-linked conversation rows with safe Logistics/Seller labels, visible task reference/leg, short plain-text demo previews, text unread indication; read-only thread state where appropriate. Refresh recovery inline. No global people directory/new-chat FAB, broadcast, support mixing or presence claims.\nReturn each as a separate screen with retrieval IDs and screenshot.",
+    "screens": [
+      {
+        "name": "projects/8494920215314554832/screens/e829b85f9846460aac05031619a522b8",
+        "title": "V2 Task details",
+        "id": "e829b85f9846460aac05031619a522b8",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/90142ffd06fd4eaa9c370a1b7dadb134",
+        "htmlReference": "projects/8494920215314554832/files/75961138116347e381dd45cc911df43d",
+        "generatorPrompt": "AISLEY Rider V2 mobile portrait screen (390x844). Pushed screen (NO bottom NavigationBar).\nTop AppBar: Leading back arrow button, Title 'Task details'.\nCanvas background #F7F7F8. White flat cards (12px rounded, 1px border #E2E2E6).\nHeader card: Reference 'ORD-DEMO-1042', status pill 'Final mile · Delivery offered'.\nDetail list card:\n- Leg: Final mile delivery\n- Origin: Example Logistics · Main hub\n- Destination area: Pasig City (Note: synthetic general destination area only)\n- Quantity: 1 parcel\n- Notice box (calm neutral callout): 'Buyer contact details and exact street address will be revealed upon accepting this delivery task.'\nBottom fixed actions bar (white background, border-t #E2E2E6, 16px padding):\nPrimary action button: 'Accept delivery' (full width, magenta #C00065 background, white text, 10px rounded, 48px height).\nSecondary action buttons row:\n- Outlined button 'Reject offer' (reason step)\n- Outlined button 'Message Logistics' with chat icon.\nStrict constraints: No buyer contact or full address before acceptance, no map or route navigation action for offers, no bulk accept, no cash promises, no invented handling/zone/weight metrics.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/63c3c5ac2d7f4a47bff87348a516ba4c",
+        "title": "V2 Home",
+        "id": "63c3c5ac2d7f4a47bff87348a516ba4c",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/8adc00301636405ab03a0ea218deea75",
+        "htmlReference": "projects/8494920215314554832/files/23bd9cc10d784179af343f789afa82aa",
+        "generatorPrompt": "AISLEY Rider V2 mobile portrait screen (390x844). Root screen with Bottom NavigationBar: Home (selected active with magenta #C00065 indicator), Work, Task messages, Account.\nTop AppBar: 'AISLEY Rider' title, notifications bell trailing icon with unread dot.\nCanvas background #F7F7F8. Text color #202024. Secondary #55555D. Border #E2E2E6.\nHeader profile summary card (flat white 12px rounded, 1px border #E2E2E6): Courier name 'Mika Santos', read-only organization and hub 'Example Logistics · Main hub'.\nTwo quick action shortcut cards in a 2-column grid: 'Pickup orders' (subtitle: 'Seller pickups') and 'Delivery work' (subtitle: 'Dropoffs & proof').\nSection: 'Active work' with header showing 'Last refreshed 09:41' and 'View all' link. Contains one final-mile accepted order card: Reference 'ORD-DEMO-1042', badge 'Final mile · Accepted', Area 'Pasig City', 1 parcel. Button: 'View task' (outlined button, 10px rounded, 48px touch target).\nSection: 'Available work' with header showing 'Last refreshed 09:41' and 'View all'. Shows calm inline warning banner: 'Refresh failed · Showing cached data' with a 'Retry' action. Underneath is one first-mile offer card labelled 'Stale': Reference 'ORD-DEMO-1043', badge 'First mile · Offer (Stale)', Area 'Marikina City', 1 parcel. Button: 'Review task' (magenta #C00065 button, 10px rounded).\nClean Material 3 layout, 16px margins, no gradients, no hero banner, no earnings, no online toggle, no GPS/ETA. Fully adheres to strict constraints.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/c0e082c81c76446abed3aaeaee19d2a3",
+        "title": "V2 Pickup scan review",
+        "id": "c0e082c81c76446abed3aaeaee19d2a3",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/edd87fdfc6e34548a4280141c8447e8c",
+        "htmlReference": "projects/8494920215314554832/files/0987458b0a5646598023c82fb9953f61",
+        "generatorPrompt": "AISLEY Rider V2 mobile portrait screen (390x844). Pushed screen (NO bottom NavigationBar).\nTop AppBar: Leading back arrow button, Title 'Pickup scan review'.\nCanvas background #F7F7F8.\nTask summary card (white flat card, 12px rounded, border #E2E2E6):\n- Reference: 'ORD-DEMO-1043'\n- Status tag: 'First mile · Pickup accepted'\n- Merchant: 'Example shop · Marikina City'\n- Leg: 'First-mile seller collection'\nBarcode review panel (white flat card with 12px rounded corner, 1px border #E2E2E6, 16px padding):\n- Section label: 'Scan verification'\n- Field label: 'Scanned code' (prominent read-only label)\n- Value box: 'DEMO-1043' displayed in high-contrast monospace font on neutral container (#F3F3F4), read-only, non-editable.\n- Detection badge: 'Automatically detected: Code 128' with verified check icon.\n- Neutral informational note: 'Verification successful. Captured barcode matches merchant manifest.'\n- Secondary action: 'Scan again' (outlined button, 10px rounded, 48px height).\nCustody note: 'Notice: Capturing scan confirms code readability. Tap Confirm pickup below to transfer physical custody.'\nBottom pinned action bar:\nPrimary button: 'Confirm pickup' (magenta #C00065 background, white text, 10px rounded, 48px height).\nStrict negative constraints: NO editable identifier, NO manual text input, NO barcode type selector, NO fake barcode graphical decoration, NO final-mile transfer claim.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/3a95500f6d384a089f1b110d486a58ef",
+        "title": "V2 Work",
+        "id": "3a95500f6d384a089f1b110d486a58ef",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/2f7430ce68af4edf9bfcd737bbb44ffa",
+        "htmlReference": "projects/8494920215314554832/files/a8a9d2f781a242c6be2da69a919e4988",
+        "generatorPrompt": "AISLEY Rider V2 mobile portrait screen (390x844). Root screen with Bottom NavigationBar: Home, Work (selected active with magenta #C00065 indicator), Task messages, Account.\nTop AppBar: Title 'Work'.\nCanvas background #F7F7F8. Pure white flat cards/list items with subtle border #E2E2E6, 12px rounded. Ink #202024, secondary #55555D.\nMain content shows exactly five familiar Material ListTile rows in a clean white rounded card container with dividers:\n1. 'Pickup orders' — Subtitle: 'Seller pickups and hub handoff', trailing chevron right.\n2. 'Delivery work' — Subtitle: 'Photo proof and delivery review', trailing chevron right.\n3. 'Final-mile batches' — Subtitle: 'Review individual parcel decisions', trailing chevron right.\n4. 'Linehaul jobs' — Subtitle: 'Assigned hub transfers and company-truck routes', trailing chevron right.\n5. 'Delivery history' — Subtitle: 'Completed deliveries', trailing chevron right.\n48px touch target minimum for each row, 16px horizontal margins. No stats, no counter badges, no help icons, no dispatch controls or authority banners. Strictly utilitarian and clear.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/5e86eb66587e4cb086806b286ce4792b",
+        "title": "V2 Delivery photo and cash",
+        "id": "5e86eb66587e4cb086806b286ce4792b",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "2110",
+        "screenshot": "projects/8494920215314554832/files/96589f7eb8524ea68c92afe794950ba3",
+        "htmlReference": "projects/8494920215314554832/files/6201edee4f5c491ca6a2abf7ab5f9e5a",
+        "generatorPrompt": "AISLEY Rider V2 mobile portrait screen (390x844). Pushed screen (NO bottom NavigationBar).\nTop AppBar: Leading back arrow button, Title 'Delivery photo & cash'.\nCanvas background #F7F7F8.\nTask summary card:\n- Reference: 'ORD-DEMO-1042'\n- Status: 'Delivery accepted'\n- Destination area: 'Pasig City'\nPhoto prerequisite card (white flat card, 12px rounded, border #E2E2E6):\n- Section header: 'Proof of delivery'\n- Selected photo neutral preview panel: Neutral placeholder container with camera icon and label 'Parcel at doorstep preview (neutral synthetic mockup)', no personal photo/face.\n- Photo secondary actions row: 'Retake' (outlined button) and 'Remove' (text button).\nCash collection prerequisite card (white flat card, 12px rounded, border #E2E2E6):\n- Section header: 'Cash collection'\n- Amount to collect: 'PHP 115.00' prominently styled in 24px font.\n- Unchecked interactive-style Checkbox with label: 'I collected PHP 115.00' (unchecked).\n- Helper note: 'Submission will be sent to Logistics review before completion.'\nBottom pinned action container:\n- Primary button: Exact label 'Delivered' (visibly DISABLED style: muted gray background #E2E2E6, muted text #8E8E93, non-clickable appearance because cash acknowledgment checkbox is unchecked).\n- Clarification label under button: 'Requires photo proof and cash confirmation before submitting to Logistics review.'\nStrict constraints: Primary is visibly disabled until prerequisites hold. Next submission goes to Logistics review, never instant delivered/paid. No mandatory transit timeline, signature, recipient OTP, sliders, GPS or payment amount text entry.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/1ca0c4cb3c1d41c1b3d03d6f067d3fc1",
+        "title": "V2 Task messages",
+        "id": "1ca0c4cb3c1d41c1b3d03d6f067d3fc1",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/63a77be61d134481bfe4f72666fbd0d5",
+        "htmlReference": "projects/8494920215314554832/files/25f2019f42a14a7f980654522c81454c",
+        "generatorPrompt": "AISLEY Rider V2 mobile portrait screen (390x844). Root screen with Bottom NavigationBar: Home, Work, Task messages (selected active with magenta #C00065 indicator), Account.\nTop AppBar: Title 'Task messages'.\nCanvas background #F7F7F8.\nTop refresh state bar: 'Synced 09:41 · Tap to refresh' with subtle refresh icon.\nMain conversation list in a clean card container or list layout:\nRow 1 (Logistics coordination thread):\n- Sender: 'Logistics Dispatch · Main hub'\n- Linked Task: 'ORD-DEMO-1042 · Final mile'\n- Preview: 'Please confirm when arrived at Pasig dropoff location.'\n- Timestamp: '09:38'\n- Indicator: Text unread pill '1 unread' (magenta accent background or border).\nRow 2 (Merchant pickup coordination thread):\n- Sender: 'Example shop · Marikina'\n- Linked Task: 'ORD-DEMO-1043 · First mile'\n- Preview: 'Packages are sealed and ready at loading bay 2.'\n- Timestamp: '09:15'\n- Indicator: 'Read' status text.\nEmpty / status notice card at bottom:\n- 'Conversations are linked directly to active courier tasks. No general messaging directory.'\nStrict negative constraints: No global people directory, no floating action button (FAB) for new chat, no broadcast messages, no customer support mixing, no fake online/presence dots. Clean utilitarian Material 3 styling.",
+        "generatorPromptSource": "generation response screen.prompt"
+      }
+    ]
+  },
+  "auxiliary": {
+    "prompt": "# AISLEY Rider V2 — reference-only Flutter Material 3\nRepository docs/design-courier.md is authoritative. A courier acts on one parcel/task leg at a time within a server-derived organization and sole hub. Existing root tabs: Home, Work, Task messages, Account. Pushed routes use Back without bottom navigation. Familiar Material NavigationBar selection indicator, ordinary tap buttons, one dominant next action. 48px targets, scrollable content, 16px margins, 10px controls, 12px cards. Titles 24px, body 16px, metadata 14px. Neutral light #F7F7F8 / #FFFFFF / ink #202024 / secondary #55555D / border #E2E2E6, primary #C00065. Dark #141416 / #1C1C1E / ink #F3F3F5 / secondary #C6C6CE / primary #FF85BD.\nNo slide actions, earnings, payout/performance, shift/availability toggle, live GPS, typing/presence, arbitrary fleet controls, bulk acceptance, global people directory, chat system alerts, biometrics, app PIN, recipient signatures/OTP, incident/SOS or unimplemented capabilities. No hero, gradients, glass, ornamental photos, decorative barcodes, technical banners or fake certifications. Do not invent metadata to fill space.\nHome has bounded read-only sections and per-section freshness/failure, never queue totals. Work contains Pickup orders, Delivery work, Final-mile batches, Linehaul jobs, Delivery history. Account contains Profile, Security, Vehicle and documents, Appearance, Policies, Support tickets, Sign out.\nFirst-mile pickup is scan-only QR/Code128 candidate capture + review + explicit Confirm pickup; no manual/type entry. Final-mile offers have per-parcel accept/reject; hub handoff is task-bound without identifier. Direct accepted final-mile delivery: photo + exact COD acknowledgment + Delivered intent; server/Logistics confirms delivered. Never claim custody/payment from a tap.\nRegistration details/evidence/review first, dedicated OTP next, successful verification automatically submits once. No account/session until registration persistence; Courier waits for Logistics approval. No password recovery UI. Combined Terms/Privacy consent has two unchecked version-bound checkboxes, one Accept.\nDesigns are synthetic static references; tool-generated descriptions do not establish implemented behavior or accessibility compliance.\nGenerate TEN additional distinct named mobile portrait screen resources for the existing AISLEY Rider V2 app. Each independently retrievable screen, not a montage. Reuse the existing six-screen visual family but strictly obey the repository tokens and constraints above over any autogenerated design-system text. All pushed screens Back/no bottom bar except Account root. Use synthetic demonstration content and no real evidence.\n7 V2 Account: root Account selected, compact Mika Santos / mika@example.invalid / Example Logistics · Main hub, Active and Affiliation approved text. List Profile, Security (Change your password), Vehicle and documents, Appearance (System), Policies, Support tickets. Secondary Sign out, no PIN/biometrics/payout/license badge.\n8 V2 Sign in: AISLEY Rider brand, Email and Password labelled fields, visibility control, primary Sign in, secondary Create account. No forgot password, social login, PIN, reset link, or assigned-password claims.\n9 V2 Registration OTP: pushed Verify your email after details completed; mika@example.invalid; ONE EMPTY six-digit code field with numeric keyboard/autofill intent, expiry helper, Resend code (cooldown), Back to review. Explain 'Verifying your email submits your registration automatically.' Primary 'Verify and submit'. Do not show sample code or account activation; successful persistence awaits selected Logistics approval.\n10 V2 Final-mile batches: pushed dispatch detail, synthetic schedule ref DEMO-DISPATCH-01, three current parcel rows; one Delivery accepted, two Delivery offered; each offered row navigates Review parcel (only one row emphasis if needed), no Accept all. Secondary View delivery route includes only accepted members; unaccepted siblings remain unchanged, no addresses/contact in offered rows. No invented aggregate totals beyond the three displayed members.\n11 V2 Delivery history: pushed exact Order reference field, Search primary and Clear secondary. Submitted reference ORD-DEMO-1030, one Delivered final-mile row with safe hub/destination area Pasig, server delivery date labelled synthetic, item count 1 and proof validated. No date filter/export, cash payout, contact or street address; no fake Next page.\n12 V2 Notifications: pushed list status All/Unread/Read plus category Filters control; safe pickup and support-ticket alert examples, readable Unread label/time. Opening stays read-only. No bulk Mark all as read; detail owns explicit Mark as read and Open related work, no mutations in list.\n13 V2 Pickup route unavailable: pushed Pickup route; no route stops returned. Explain 'No route stops are available. Return to pickup tasks to review your work.' Primary Back to pickup tasks, secondary Refresh route. No map blank promise, coordinate readout, invented cause or fake markers; empty route doesn't mean no tasks.\n14 V2 Linehaul arrival reported: pushed Linehaul job, Example Logistics Main hub → Example destination hub, status In transfer, Arrival reported 10:15, note 'Wait for Logistics to receive the parcels.' Secondary Refresh and View route. No Delivered/Receive/Unload/Complete, seal/pallet invention, driver arrival never receives cargo.\n15 V2 Delivery awaiting review: pushed ORD-DEMO-1042, Final mile, Delivery accepted plus separate intent Awaiting Logistics validation; photo submitted, cash declaration PHP115.00 submitted for review, no paid/delivered claim. Primary operational mutation absent, secondary Refresh completion status. No presence/dispatcher-connected claims.\n16 V2 Policies consent: pushed Terms and Privacy, two full scrollable document sections represented with short excerpt and explicit continuing-scroll cue (no fabricated official legal terms); two separate UNCHECKED version-bound consent checkboxes, exactly one Accept disabled until required consent selected; Sign out secondary with confirmation. Both full documents must remain available in future implementation; static text is demo only. No Accept each separate buttons.\nReturn these 10 screenshots as separate designs with IDs.",
+    "sessionId": "6234987441563442702",
+    "screens": [
+      {
+        "name": "projects/8494920215314554832/screens/670ec83b02ba444fbe8f72eccd2d46ec",
+        "id": "670ec83b02ba444fbe8f72eccd2d46ec",
+        "title": "V2 Registration OTP",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/236e1dea426f4f38b1d522ad08afd188",
+        "htmlReference": "projects/8494920215314554832/files/301a8e3f4b974be0bf653359051fdb26",
+        "generatorPrompt": "V2 Registration OTP screen. Pushed route with back button in top bar, title 'Verify your email'. No bottom navigation.\nContent:\n- Subtitle / context: 'A 6-digit verification code was sent to mika@example.invalid'\n- Helper banner/note: 'Verifying your email submits your registration automatically.'\n- Single EMPTY six-digit code input field (with placeholder '------' or 6 distinct empty cell boxes, empty state) with numeric keyboard intent and expiry helper text 'Code expires in 04:59'.\n- Action row: Secondary text button 'Resend code (0:45 cooldown)' and 'Back to review'.\n- Primary full-width button at bottom or under field: 'Verify and submit' (primary #C00065).\n- Information footnote card: 'Courier account activation awaits selected Logistics approval upon submission.'\nStrict constraints: Do not show sample prefilled code, no account activation claims, no biometrics.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/fa396b66774d463cbb88b4ede2924e52",
+        "id": "fa396b66774d463cbb88b4ede2924e52",
+        "title": "V2 Sign in",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/337b7f1c8aca41d3a0e736998c30f269",
+        "htmlReference": "projects/8494920215314554832/files/c39f2868f3c14ab1aab039b97e433851",
+        "generatorPrompt": "V2 Sign in screen. Pushed standalone screen without bottom navigation. Top bar or back icon / clean header with AISLEY Rider branding wordmark.\nTitle: 'Sign in to your rider account'. Subtext: 'Authorized courier logistics portal'.\nForm fields:\n1. Email address input with label 'Email' and placeholder 'name@example.invalid'.\n2. Password input with label 'Password', password dots, and a visibility toggle eye icon.\nPrimary full-width button (48px height, rounded 10px, background #C00065, white text): 'Sign in'.\nSecondary outlined button or text button: 'Create account'.\nStrict constraints: No forgot password, no social login, no PIN, no reset link, no assigned-password claims, no hero illustrations or decorative graphics. Clean Material 3 forms.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/a218184f782f44799fc2e523e6ded921",
+        "id": "a218184f782f44799fc2e523e6ded921",
+        "title": "V2 Account",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/fb18152a3b804fa5907da124deec644f",
+        "htmlReference": "projects/8494920215314554832/files/15cb3e989d3847ff84cd9602a9712a1b",
+        "generatorPrompt": "V2 Account root screen. Header: AISLEY Rider top app bar with menu and notification bell icons. Active bottom navigation bar with Account tab highlighted in primary magenta #C00065.\nProfile header card: Mika Santos, mika@example.invalid, Example Logistics · Main hub. Badges/status: Active, Affiliation approved text.\nList items in card grouping (clean Material 3 rounded card with divider borders):\n- Profile\n- Security (subtext: 'Change your password')\n- Vehicle and documents\n- Appearance (subtext: 'System')\n- Policies\n- Support tickets\nBottom section: Secondary outlined button 'Sign out'.\nNo PIN, biometrics, payout, earnings, or license badge. Neutral light background #F7F7F8, card #FFFFFF, text #202024, secondary #55555D, border #E2E2E6. Clean Flutter Material 3 style.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/7be05fb253904c159b0c6c48084b0674",
+        "id": "7be05fb253904c159b0c6c48084b0674",
+        "title": "V2 Delivery history",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/10a26932b886453cbe7403f8f41e9e9c",
+        "htmlReference": "projects/8494920215314554832/files/9a566838a19f4005b8b16ab64bee56cc",
+        "generatorPrompt": "V2 Delivery history screen. Pushed screen with top back button, title 'Delivery history'. No bottom navigation bar.\nSearch section card:\n- Exact Order reference input field with value filled 'ORD-DEMO-1030'.\n- Action row: Primary button 'Search' (#C00065) and Secondary outlined button 'Clear'.\nResults section:\nDisplay exactly one Delivered final-mile record card:\n- Order reference: ORD-DEMO-1030\n- Status badge: 'Delivered' (neutral/subtle green or grey pill)\n- Leg: Final mile delivery\n- Hub: Example Logistics · Main hub\n- Destination area: Pasig City (general area only)\n- Delivery date: '2023-10-24 14:22 (Synthetic demo record)'\n- Quantity: 1 parcel\n- Verification: 'Proof of delivery validated by Logistics'\nStrict constraints: No date range picker filter, no export CSV button, no cash payout/earnings, no recipient contact or street address, no fake Next page / pagination.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/5222aee6c43c4c1ba7a8d23c3ed7c51c",
+        "id": "5222aee6c43c4c1ba7a8d23c3ed7c51c",
+        "title": "V2 Final-mile batches",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/1db7faa2ae9d43f8a8bf3828df05d1b7",
+        "htmlReference": "projects/8494920215314554832/files/193fc85df03240bfbf18ee52dd18d35f",
+        "generatorPrompt": "V2 Final-mile batches screen. Pushed dispatch detail with back arrow in top bar, title 'Final-mile batches'. No bottom navigation bar.\nHeader card: Synthetic schedule reference DEMO-DISPATCH-01, Route: Pasig City Sector 4, 3 parcels assigned.\nDisplay exactly three current parcel rows in a card list (no aggregate totals beyond these 3):\n1. Parcel ORD-DEMO-1042: Status pill 'Delivery accepted' (active/highlighted). Action: 'View parcel details'.\n2. Parcel ORD-DEMO-1044: Status pill 'Delivery offered'. Action button: 'Review parcel' (filled or prominent).\n3. Parcel ORD-DEMO-1045: Status pill 'Delivery offered'. Action button: 'Review parcel'.\nNote: Unaccepted offered rows show only parcel ID and general area, no recipient names, no street addresses or contact numbers.\nBottom action area: Secondary outlined button 'View delivery route' with helper text 'Route includes accepted deliveries only (1 parcel)'.\nStrict constraints: No Accept all button, no live GPS or map embeds, no slide actions.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/4bd9e664a6a34a53a5b5352538722e49",
+        "id": "4bd9e664a6a34a53a5b5352538722e49",
+        "title": "V2 Notifications",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/0e29605e90184ea2b80bc9b639241cfd",
+        "htmlReference": "projects/8494920215314554832/files/29f3f685644c4dd0b442ff9874937332",
+        "generatorPrompt": "V2 Notifications screen. Pushed screen with back button in top bar, title 'Notifications'. No bottom navigation bar.\nHeader filter chips bar:\n- Filter chips: 'All', 'Unread (2)', 'Read' with an additional 'Category filters' dropdown/button.\nNotification card list (read-only list items, no swipe/inline mutation buttons):\n1. Card 1 (Unread):\n   - Category tag: 'Pickup task'\n   - Timestamp: '10:05 AM' (with prominent 'Unread' dot/badge)\n   - Title: 'Pickup manifest updated'\n   - Body: 'Seller Example shop (Marikina) added 1 parcel to ORD-DEMO-1043.'\n   - Detail cue: 'Tap to view detail and actions'\n2. Card 2 (Unread):\n   - Category tag: 'Support ticket'\n   - Timestamp: '09:20 AM' (with 'Unread' badge)\n   - Title: 'Ticket #TK-402 response'\n   - Body: 'Logistics desk replied regarding vehicle inspection schedule.'\n3. Card 3 (Read):\n   - Category tag: 'Linehaul'\n   - Timestamp: 'Yesterday 16:30' (Read state)\n   - Title: 'Linehaul dispatch assigned'\n   - Body: 'Scheduled transfer to Example destination hub.'\nBottom notice: 'Open notification to mark as read or access linked tasks. List view is read-only.'\nStrict constraints: No bulk 'Mark all as read' button, no swipe-to-dismiss, no sound toggles.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/8e5d258a0eaf4651a65d0a9d8d578790",
+        "id": "8e5d258a0eaf4651a65d0a9d8d578790",
+        "title": "V2 Pickup route unavailable",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/a970b78bccd24765b0351861e3c8ab9e",
+        "htmlReference": "projects/8494920215314554832/files/07f54f5bcbd84b02be6c4f85b80a160b",
+        "generatorPrompt": "V2 Pickup route unavailable screen. Pushed screen with top back button, title 'Pickup route'. No bottom navigation bar.\nEmpty state layout:\n- State icon: subtle outlined route/alt_route or local_shipping icon inside neutral circle.\n- Headline: 'No route stops available'\n- Informational explanation paragraph: 'No route stops are available. Return to pickup tasks to review your work.'\n- Explanatory card / info box: 'Pickup tasks may still be active in your work list even when navigation route points are unassigned or pending dispatch sequence.'\n- Primary action button (48px height, rounded 10px, #C00065): 'Back to pickup tasks'.\n- Secondary action button (outlined): 'Refresh route'.\nStrict constraints: No blank map promise, no GPS coordinates readout, no fake pins or error codes, no decorative graphics. Clean Flutter Material 3 empty state.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/d19c79caa1c849f09515fe538837c1fc",
+        "id": "d19c79caa1c849f09515fe538837c1fc",
+        "title": "V2 Linehaul arrival reported",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/efd18c9057324980878b41989898df5d",
+        "htmlReference": "projects/8494920215314554832/files/f64f6af5fec1419d9ac9604a024efdf4",
+        "generatorPrompt": "V2 Linehaul arrival reported screen. Pushed screen with back button, title 'Linehaul job'. No bottom navigation bar.\nJob details card:\n- Route: Example Logistics Main hub → Example destination hub\n- Job Ref: LH-DEMO-802\n- Status badge: 'In transfer'\n- Progress highlight card: 'Arrival reported at 10:15'\n- Operational instruction banner (info container): 'Wait for Logistics to receive the parcels. Hub staff will verify cargo custody upon gate entry.'\n- Summary details list:\n  - Estimated load: Hub consolidation batch (12 sealed bins)\n  - Vehicle: Assigned company truck\n  - Check-in status: Gate arrival acknowledged\nBottom action area:\n- Secondary button 1: 'Refresh arrival status'\n- Secondary button 2: 'View route'\nStrict constraints: No 'Delivered', 'Receive', 'Unload', or 'Complete' buttons (driver arrival never receives cargo). No seal or pallet number fabrication.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/396b5b06307c4d758e38f747773574cb",
+        "id": "396b5b06307c4d758e38f747773574cb",
+        "title": "V2 Delivery awaiting review",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "2062",
+        "screenshot": "projects/8494920215314554832/files/c7cd7d8e55724a12a03f30b7fcd07e34",
+        "htmlReference": "projects/8494920215314554832/files/320b55e4be414635b3cb523d76cdf52d",
+        "generatorPrompt": "V2 Delivery awaiting review screen. Pushed screen with back button, title 'Delivery verification'. No bottom navigation bar.\nOrder card:\n- Order reference: ORD-DEMO-1042\n- Service leg: Final mile delivery\n- Area: Pasig City\nStatus banners and inspection cards:\n- Status banner 1: 'Delivery accepted'\n- Status banner 2 (accentuated pending state): 'Awaiting Logistics validation'\nVerification submission summary card:\n- Proof of delivery: 'Photo submitted (synthetic doorstep preview)' with thumbnail icon\n- Cash declaration: 'PHP 115.00 submitted for review'\n- Policy note: 'Submission received. Logistics review confirms completion and cargo release. No further courier action required at this step.'\nBottom action area:\n- Primary operational mutation is ABSENT (no complete or finish buttons).\n- Secondary button: 'Refresh completion status'.\nStrict constraints: Never claim custody/payment completed, no dispatcher-connected or live agent typing indicators, clean structured status view.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/4fcd7d9cda0e4235be1186048d86aa9d",
+        "id": "4fcd7d9cda0e4235be1186048d86aa9d",
+        "title": "V2 Policies consent",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "2152",
+        "screenshot": "projects/8494920215314554832/files/33b352705b154d39a98b2f357dbbe3cb",
+        "htmlReference": "projects/8494920215314554832/files/923529ced4134bf4b223eb11fae8da54",
+        "generatorPrompt": "V2 Policies consent screen. Pushed screen with top back button, title 'Terms & Privacy consent'. No bottom navigation bar.\nIntroduction text: 'Review and accept the current policy agreements to continue courier dispatch operations.'\nTwo document scroll containers (styled cards with short synthetic excerpt and explicit continuing scroll cues):\n1. Section 1: 'Courier Terms of Service (v2.4)'\n   - Excerpt text: 'Synthetic demo text: Courier agrees to standard custody handoff, scan verification, and safe transport protocols...'\n   - Continuing-scroll cue: 'Scroll to view full terms in application document viewer ↓'\n2. Section 2: 'Privacy and Telemetry Policy (v1.8)'\n   - Excerpt text: 'Synthetic demo text: Task telemetry and scan timestamps are recorded solely for order auditing and verification...'\n   - Continuing-scroll cue: 'Scroll to view full privacy policy ↓'\nConsent form controls:\n- Checkbox 1 (UNCHECKED): 'I have read and agree to the Courier Terms of Service (v2.4)'\n- Checkbox 2 (UNCHECKED): 'I agree to the Privacy and Telemetry Policy (v1.8)'\nBottom action area:\n- Exactly one primary button 'Accept policies' (DISABLED state, greyed out, because checkboxes are unchecked).\n- Secondary button: 'Sign out' (with subtext or confirmation cue).\nStrict constraints: Two separate unchecked version-bound checkboxes, exactly one disabled Accept button (no accept each buttons), no fabricated legal jargon.",
+        "generatorPromptSource": "generation response screen.prompt"
+      }
+    ]
+  },
+  "designSystemCorrection": {
+    "requestedMarkdown": "# AISLEY Rider V2 — reference-only Flutter Material 3\nRepository docs/design-courier.md is authoritative. A courier acts on one parcel/task leg at a time within a server-derived organization and sole hub. Existing root tabs: Home, Work, Task messages, Account. Pushed routes use Back without bottom navigation. Familiar Material NavigationBar selection indicator, ordinary tap buttons, one dominant next action. 48px targets, scrollable content, 16px margins, 10px controls, 12px cards. Titles 24px, body 16px, metadata 14px. Neutral light #F7F7F8 / #FFFFFF / ink #202024 / secondary #55555D / border #E2E2E6, primary #C00065. Dark #141416 / #1C1C1E / ink #F3F3F5 / secondary #C6C6CE / primary #FF85BD.\nNo slide actions, earnings, payout/performance, shift/availability toggle, live GPS, typing/presence, arbitrary fleet controls, bulk acceptance, global people directory, chat system alerts, biometrics, app PIN, recipient signatures/OTP, incident/SOS or unimplemented capabilities. No hero, gradients, glass, ornamental photos, decorative barcodes, technical banners or fake certifications. Do not invent metadata to fill space.\nHome has bounded read-only sections and per-section freshness/failure, never queue totals. Work contains Pickup orders, Delivery work, Final-mile batches, Linehaul jobs, Delivery history. Account contains Profile, Security, Vehicle and documents, Appearance, Policies, Support tickets, Sign out.\nFirst-mile pickup is scan-only QR/Code128 candidate capture + review + explicit Confirm pickup; no manual/type entry. Final-mile offers have per-parcel accept/reject; hub handoff is task-bound without identifier. Direct accepted final-mile delivery: photo + exact COD acknowledgment + Delivered intent; server/Logistics confirms delivered. Never claim custody/payment from a tap.\nRegistration details/evidence/review first, dedicated OTP next, successful verification automatically submits once. No account/session until registration persistence; Courier waits for Logistics approval. No password recovery UI. Combined Terms/Privacy consent has two unchecked version-bound checkboxes, one Accept.\nDesigns are synthetic static references; tool-generated descriptions do not establish implemented behavior or accessibility compliance.",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Request contains an invalid argument."
+        }
+      ],
+      "isError": true
+    }
+  },
+  "toolNotes": [
+    {
+      "text": "I have created the complete set of **six separate mobile portrait screen designs (390×844)** for **AISLEY Rider V2**, adhering to Flutter Android Material 3 guidelines and all negative and positive constraints:\n\n### Generated Screens:\n1. **V2 Home — V2 Home (Root)**:\n   - Features the standard Material 3 NavigationBar (`Home` active with magenta `#C00065` indicator, `Work`, `Task messages`, `Account`).\n   - Profile card showing courier Mika Santos and organization `Example Logistics · Main hub`.\n   - Grid shortcuts for *Pickup orders* and *Delivery work*.\n   - *Active work* section showing accepted final-mile order `ORD-DEMO-1042` (Pasig City, 1 parcel) with *View task* action.\n   - *Available work* section showing the calm inline refresh-failed state (`Refresh failed · Showing cached data` with `Retry`) retaining the stale first-mile offer `ORD-DEMO-1043` (Marikina City) with *Review task*.\n   - Strictly navigation-only (no online toggle, earnings, GPS, or ETA).\n\n2. **V2 Work — V2 Work (Root)**:\n   - Root screen with `Work` selected in the bottom NavigationBar.\n   - Standard 48px min-height ListTile rows inside a flat surface card:\n     1. *Pickup orders* — Seller pickups and hub handoff\n     2. *Delivery work* — Photo proof and delivery review\n     3. *Final-mile batches* — Review individual parcel decisions\n     4. *Linehaul jobs* — Assigned hub transfers and company-truck routes\n     5. *Delivery history* — Completed deliveries\n   - No counters, help icons, or dispatch authority banners.\n\n3. **V2 Task details — V2 Task details (Pushed)**:\n   - Pushed hierarchy with Material Back button and no bottom nav.\n   - Context for offered final-mile task `ORD-DEMO-1042`: Origin `Example Logistics · Main hub`, destination area `Pasig City` (general area only), 1 parcel.\n   - Clear privacy guard notice: Buyer contact details and street address revealed only upon acceptance.\n   - Pinned actions: Magenta `Accept delivery`, secondary `Reject offer` (reason step), and `Message Logistics`.\n\n4. **V2 Pickup scan review — V2 Pickup scan review (Pushed)**:\n   - First-mile pickup verification for `ORD-DEMO-1043` at `Example shop · Marikina City`.\n   - Read-only captured code `DEMO-1043` labeled *Scanned code* with *Automatically detected: Code 128* badge and manifest match verification.\n   - *Scan again* secondary action and pinned magenta *Confirm pickup* button.\n   - Clear notice that capture confirms readability and tapping confirm transfers physical custody. No manual input or fake barcode graphic.\n\n5. **V2 Delivery photo and cash — V2 Delivery photo and cash (Pushed)**:\n   - Final-mile proof collection for `ORD-DEMO-1042` (Pasig City).\n   - Prerequisite 1: Neutral synthetic photo preview box with *Retake* and *Remove* controls (no personal PII/faces).\n   - Prerequisite 2: Cash collection box for `PHP 115.00` with unchecked acknowledgment checkbox *'I collected PHP 115.00'*.\n   - Primary button exact label `Delivered`, visibly disabled until prerequisites are satisfied, leading to Logistics review rather than immediate closure.\n\n6. **V2 Task messages — V2 Task messages (Root)**:\n   - Root screen with `Task messages` selected in bottom NavigationBar.\n   - Inline sync indicator (`Synced 09:41 · Tap to refresh`).\n   - Task-linked conversation rows: Logistics Dispatch (`ORD-DEMO-1042 · Final mile` with unread badge) and Example shop (`ORD-DEMO-1043 · First mile`).\n   - Clear policy indicator noting task-bound conversations with no open directory, global FAB, or presence indicators."
+    },
+    {
+      "suggestion": "Inspect the cash collection checkbox state in Delivery photo & cash"
+    },
+    {
+      "suggestion": "Add the Account root screen to complete the 4 bottom tabs"
+    },
+    {
+      "suggestion": "Create the Reject offer reason bottom sheet for Task details"
+    },
+    {
+      "text": "All ten mobile portrait screens for the AISLEY Rider V2 system have been generated and published to the canvas, strictly adhering to the repository specification in `docs/design-courier.md` and design system tokens.\n\n### Screens Generated:\n1. **V2 Account** (`V2 Account`): Root navigation tab screen featuring Mika Santos profile info, hub affiliation badges, grouped list items (Profile, Security, Vehicle and documents, Appearance, Policies, Support tickets), and secondary Sign out.\n2. **V2 Sign in** (`V2 Sign in`): Rider authentication screen with standard Email and Password fields, visibility toggle, primary Sign in, and secondary Create account.\n3. **V2 Registration OTP** (`V2 Registration OTP`): Email verification screen with an empty 6-digit code input, expiration countdown, automatic submission notice, and primary Verify & submit.\n4. **V2 Final-mile batches** (`V2 Final-mile batches`): Batch dispatch detail (`DEMO-DISPATCH-01`) showing three parcels (1 accepted, 2 offered with individual Review actions) and secondary View delivery route.\n5. **V2 Delivery history** (`V2 Delivery history`): Historical lookup with exact Order reference input (`ORD-DEMO-1030`), Search/Clear actions, and one verified final-mile delivery card.\n6. **V2 Notifications** (`V2 Notifications`): Read-only alert feed with category chips, distinct unread/read items, and task-bound opening cues without bulk mutation controls.\n7. **V2 Pickup route unavailable** (`V2 Pickup route unavailable`): Clean empty-state route view informing that no navigation stops are available while tasks may remain in the work list.\n8. **V2 Linehaul arrival reported** (`V2 Linehaul arrival reported`): Inter-hub transfer checkpoint screen reporting gate arrival at 10:15 without claiming custody handover.\n9. **V2 Delivery awaiting review** (`V2 Delivery awaiting review`): Post-delivery status showing submitted photo proof and PHP 115.00 cash declaration pending Logistics validation.\n10. **V2 Policies consent** (`V2 Policies consent`): Mandatory terms and privacy consent screen with scrollable previews, two unchecked version-bound checkboxes, and a single disabled Accept button until conditions are met."
+    },
+    {
+      "suggestion": "Explore Dark Mode variants for these screens"
+    },
+    {
+      "suggestion": "Generate the parcel inspection detail for ORD-DEMO-1044"
+    },
+    {
+      "suggestion": "Add interactive state transitions or flow prototypes"
+    }
+  ],
+  "refinement": {
+    "selectedScreens": [
+      "e829b85f9846460aac05031619a522b8",
+      "63c3c5ac2d7f4a47bff87348a516ba4c",
+      "c0e082c81c76446abed3aaeaee19d2a3",
+      "3a95500f6d384a089f1b110d486a58ef",
+      "5e86eb66587e4cb086806b286ce4792b",
+      "1ca0c4cb3c1d41c1b3d03d6f067d3fc1",
+      "670ec83b02ba444fbe8f72eccd2d46ec",
+      "fa396b66774d463cbb88b4ede2924e52",
+      "a218184f782f44799fc2e523e6ded921",
+      "7be05fb253904c159b0c6c48084b0674",
+      "5222aee6c43c4c1ba7a8d23c3ed7c51c",
+      "4bd9e664a6a34a53a5b5352538722e49",
+      "8e5d258a0eaf4651a65d0a9d8d578790",
+      "d19c79caa1c849f09515fe538837c1fc",
+      "396b5b06307c4d758e38f747773574cb",
+      "4fcd7d9cda0e4235be1186048d86aa9d"
+    ],
+    "sessionId": "14208552372908042033",
+    "screens": [
+      {
+        "name": "projects/8494920215314554832/screens/867ede9097484d37901c1dc03fc5714b",
+        "id": "867ede9097484d37901c1dc03fc5714b",
+        "title": "V3 Home",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/64595b6f9ccb4b60903ad4f2ac06057a",
+        "htmlReference": "projects/8494920215314554832/files/3382e245d80f432ebae16c4c6fc65d34",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Remove rider ID 8842 and hamburger menu from top app bar. Keep clean TopAppBar with title 'AISLEY Rider' and bell notification icon.\n- Compact identity card for Mika Santos, affiliate/hub info without ID tag.\n- Shortcuts: replace icon-top cards with two ordinary labelled controls for 'Pickup orders' and 'Delivery work'.\n- Typography: strictly Roboto Flex / sans-serif, body 16px, metadata 14px, title 24px.\n- Colors: flat #F7F7F8 background, white surface cards, #202024 ink, #55555D secondary, #C00065 primary.\n- Remove left-edge accent strips, square icon boxes, and invented metric totals.\n- Active work and Available work lists: keep 'Last refreshed 09:41' and 'View all' headers. Show ORD-DEMO-1042 (Final mile • Accepted, Pasig City, 1 parcel) with secondary 'View task' button. Show stale banner 'Refresh failed • Showing cached data' with Retry. Show ORD-DEMO-1043 (First mile • Offer (Stale), Marikina City, 1 parcel) with primary 'Review task' button.\n- Root bottom nav: exact labels Home, Work, Task messages, Account with normal Material NavigationBar indicator on Home. No hamburger.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/b845f6d3eaf2443d8d2b3c6fb5efa4e8",
+        "id": "b845f6d3eaf2443d8d2b3c6fb5efa4e8",
+        "title": "V3 Pickup scan review",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/b46e29460bc84922841edaf7c01f4cb2",
+        "htmlReference": "projects/8494920215314554832/files/b353140ff6eb4c2f90da9a5e5192e6ce",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar with back arrow and title 'Pickup scan review'.\n- Order reference card: ORD-DEMO-1043, First mile • Pickup accepted, Example shop • Marikina City.\n- Remove 'Step 1 of 1', remove fake QR icon, remove 'Verification successful', remove 'matches merchant manifest'.\n- Scanned code block: readonly 'DEMO-1043' with lock icon and detected format 'Code 128'.\n- Add exact helper: 'Review the scanned code before confirming pickup.' (Do not claim it matches manifest from capture alone).\n- Actions: Outlined button 'Scan again', Primary full-width button 'Confirm pickup' (#C00065).\n- Helper note: 'Notice: Capturing scan confirms code readability. Tap Confirm pickup below to transfer physical custody.'\n- Sans-serif typography, flat #F7F7F8 background, white surfaces, #202024 ink, #55555D secondary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/ea8dc129cf8f4de898c6d5ccba645327",
+        "id": "ea8dc129cf8f4de898c6d5ccba645327",
+        "title": "V3 Task details",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/dd92cd608c8a46119c83ed035eab57c8",
+        "htmlReference": "projects/8494920215314554832/files/cd20b7de6c4d4621ae2a7e51662964f2",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar with back arrow and title 'Task details'. Remove 'RIDER V2' badge.\n- Order reference on full width separate line: 'ORD-DEMO-1042' (do not split across hyphen or wrap awkwardly). Tag: 'Final mile • Delivery offered'.\n- Remove invented dispatch-window text and protocol banners.\n- Clean summary details: Leg: Final mile delivery, Origin: Example Logistics • Main hub, Destination area: Pasig City (General area only), Quantity: 1 parcel.\n- Notice: 'Buyer contact details and exact street address will be revealed upon accepting this delivery task.'\n- Primary action: 'Accept delivery' (full width, #C00065).\n- Secondary action row: 'Reject offer' and 'Message Logistics' as outlined/tonal buttons.\n- Sans-serif Roboto Flex, 16px margins, flat #F7F7F8 background, white surface card, #202024 ink, #55555D secondary. Remove decorative badges and accent strips.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/a2e9bdcc6dbf4d1d8ceb2d3ab7d7cca9",
+        "id": "a2e9bdcc6dbf4d1d8ceb2d3ab7d7cca9",
+        "title": "V3 Work",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/0caf8c0139ba486aaf90d88b6e313152",
+        "htmlReference": "projects/8494920215314554832/files/feec84b0ea804440b1ee96238610813e",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Change typography strictly to Roboto Flex sans-serif (remove any serif fonts!).\n- Remove top app bar menu and bell icon; display standard Material title 'Work'.\n- Five plain rows: 'Pickup orders', 'Delivery work', 'Final-mile batches', 'Linehaul jobs', 'Delivery history' with clean secondary sublabels and chevrons, no square icon boxes or accent strips.\n- Root bottom navigation bar: exact case 'Home', 'Work', 'Task messages', 'Account' with Material pill indicator highlighting 'Work'. Full label 'Task messages' (not truncated or wrapped awkwardly).\n- Flat #F7F7F8 background, white cards, #202024 ink, #55555D secondary, #C00065 primary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/a830464baad94e4d91481b6518df5797",
+        "id": "a830464baad94e4d91481b6518df5797",
+        "title": "V3 Task messages",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/9cfd1918ac0d424e93c921a5cfcbad61",
+        "htmlReference": "projects/8494920215314554832/files/366b64c030644dcba340432b67f7f888",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: title 'Task messages'. Remove menu hamburger and bell icon.\n- REMOVE entirely: 'Linked Active Shifts', 'Queue Priority', '2 Assigned', '1 Alert', 'Live Hub', 'ETA: 14 mins', 'Bay 2 Dock Access', and 'Strict Task Dispatch Policy'.\n- Display clean header with 'Refresh' control (e.g. 'Synced 09:41 • Tap to refresh').\n- Display ONLY two plain task-linked conversation rows:\n  1. Logistics Dispatch • Main hub | ORD-DEMO-1042 • Final mile | 'Please confirm when arrived at Pasig dropoff location.' | 09:38 • 1 unread\n  2. Example shop • Marikina | ORD-DEMO-1043 • First mile | 'Packages are sealed and ready at loading bay 2.' | 09:15 • Read\n- Bottom nav: 'Home', 'Work', 'Task messages', 'Account' with Material indicator highlighting 'Task messages'.\n- Sans-serif Roboto Flex, flat #F7F7F8 ground, white card surfaces, #202024 ink, #55555D secondary, #C00065 primary. No left-edge accent strips.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/0dcc3688836945938fafdd17e1a15928",
+        "id": "0dcc3688836945938fafdd17e1a15928",
+        "title": "V3 Delivery photo and cash",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1894",
+        "screenshot": "projects/8494920215314554832/files/7ce1ada203534ea184dfe48156ababed",
+        "htmlReference": "projects/8494920215314554832/files/48dca4956e384a778f2d4e49511cf512",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Delivery photo & cash'. Remove 'Step 2 of 2'.\n- Task reference card: ORD-DEMO-1042, Delivery accepted, Pasig City. REMOVE 'Service Level' and 'Standard Courier'.\n- Proof of delivery section: remove 'Prerequisite 1', remove synthetic mockup verification text/metadata. Display small neutral 'Selected photo' placeholder with clean controls: 'Retake photo', 'Replace from files', and 'Remove photo'.\n- Cash collection section: remove 'Prerequisite 2'. Display 'AMOUNT TO COLLECT' and 'PHP 115.00' exact amount. Checkbox: unchecked 'I collected PHP 115.00' with label 'Confirm physical receipt of exact cash payment before handoff.'\n- Notice: concise Logistics-review helper 'Submission will be sent to Logistics review before completion.' No unsupported payment claim.\n- Action: disabled 'Delivered' button with caption 'Requires photo proof and cash confirmation before submitting to Logistics review.'\n- Roboto Flex sans-serif, 16px margins, flat #F7F7F8 background, white cards, #202024 ink, #55555D secondary, #C00065 primary. No accent strips or square icon boxes.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/0f35a0c872c94b54952ce13cae2cf861",
+        "id": "0f35a0c872c94b54952ce13cae2cf861",
+        "title": "V3 Account",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/bbd8427ea56f47bdaaa57674cb5e9d77",
+        "htmlReference": "projects/8494920215314554832/files/65811363250847dca597bdd766908e95",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: standard title 'Account'. Remove menu hamburger and bell icon.\n- Profile header card: REMOVE generated human photo. Replace with clean circle avatar showing initials 'MS'. Mika Santos, mika@example.invalid, Example Logistics • Main hub. Read-only status: 'Active', 'Affiliation approved'.\n- List rows: clean Material list items without square icon boxes:\n  - Profile\n  - Security (Change your password)\n  - Vehicle and documents\n  - Appearance (System)\n  - Policies\n  - Support tickets\n- Action: Outlined button 'Sign out'.\n- REMOVE version footer ('AISLEY Rider Client • v2.4.12-rc').\n- Bottom nav: 'Home', 'Work', 'Task messages', 'Account' with Material indicator on 'Account'.\n- Roboto Flex sans-serif, flat #F7F7F8 ground, white surfaces, #202024 ink, #55555D secondary, #C00065 primary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/c3413f2d215d4902a486457783e104f5",
+        "id": "c3413f2d215d4902a486457783e104f5",
+        "title": "V3 Sign in",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/54973859757d4884988d5cba5a8ce605",
+        "htmlReference": "projects/8494920215314554832/files/3858c5bb6d8c4589bba75e3e4a048a41",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'AISLEY Rider'. REMOVE version badge 'v2.4.0'.\n- Card: title 'Sign in to your rider account', subtitle 'Authorized courier logistics portal'.\n- Email input: label 'Email', placeholder 'name@example.invalid'.\n- Password input: label 'Password', empty password field with visibility toggle icon. DO NOT draw filled dots as if password entered.\n- Primary button: 'Sign in' (#C00065).\n- Secondary outlined button: 'Create account'.\n- Existing approval helper: 'Courier accounts require authorization from affiliated logistics partner.'\n- REMOVE 'End-to-end encrypted dispatch gateway' badge and remove portal/system footer.\n- Sans-serif Roboto Flex, flat #F7F7F8 ground, white surface card, #202024 ink, #55555D secondary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/3eefebc580494fb885809f69bef7c965",
+        "id": "3eefebc580494fb885809f69bef7c965",
+        "title": "V3 Registration OTP",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/5e4cb78c72e04c4388640b32d0bcf401",
+        "htmlReference": "projects/8494920215314554832/files/c773c507dbfc42d2be330b5a52153f54",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Verify your email'. Remove 'Step 2 of 2' badge.\n- Subtitle: 'A 6-digit verification code was sent to mika@example.invalid'.\n- Replace the 6 separate boxes with ONE conventional empty 6-digit input field with placeholder 'Enter 6-digit code' or clean single field styling, showing 'Code expires in 04:59'.\n- Helper note: 'Verifying your email submits your registration automatically, pending Logistics approval upon review.' (Remove dispatch-inbox wording or account-activation claim).\n- Buttons:\n  - Primary button: 'Verify and submit' (#C00065).\n  - Outlined button: 'Resend code (0:45 cooldown)'.\n  - Outlined button: 'Back to review'.\n- Remove 'Verification Notice' bottom card.\n- Typography: Roboto Flex sans-serif throughout. Flat #F7F7F8 background, white cards, #202024 ink, #55555D secondary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/646b20f1476c45f2882fff1c24d4cfe8",
+        "id": "646b20f1476c45f2882fff1c24d4cfe8",
+        "title": "V3 Final-mile batches",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/0bf2f3fcde9145f597013fcf2171b658",
+        "htmlReference": "projects/8494920215314554832/files/fdc58e0f8cfc4977b91874533399279c",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Final-mile batches'. REMOVE 'ACTIVE' badge.\n- Header card: Reference DEMO-DISPATCH-01, 3 parcels assigned. Location: 'Pasig City' only (REMOVE Sector 4, full streets).\n- List of 3 parcels:\n  1. ORD-DEMO-1042: Status tag 'Delivery accepted'. Area: 'Pasig City'. (REMOVE standard carton/weight, full street). Secondary outlined button: 'View parcel details'.\n  2. ORD-DEMO-1044: Status tag 'Delivery offered'. Area: 'Pasig City' (REMOVE Kapitolyo area). Secondary outlined button: 'Review parcel' (do not use competing filled buttons!).\n  3. ORD-DEMO-1045: Status tag 'Delivery offered'. Area: 'Pasig City' (REMOVE Ortigas Center). Secondary outlined button: 'Review parcel'.\n- Bottom action: Button 'View delivery route' with caption 'Route includes accepted deliveries only (1 parcel)'.\n- Remove left-edge accent strips. Clean white surface cards, Roboto Flex sans-serif, flat #F7F7F8 ground, #202024 ink, #55555D secondary, #C00065 primary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/f35201e0917c4b05b77239c774b2572e",
+        "id": "f35201e0917c4b05b77239c774b2572e",
+        "title": "V3 Delivery history",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/655dfc24f40c431788d46da8f22ff476",
+        "htmlReference": "projects/8494920215314554832/files/0b985092ef8248bfb793a82d741271c6",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Delivery history'. REMOVE 'Archive' badge.\n- Search card: 'Exact Order reference' input with text 'ORD-DEMO-1030'. Two equal buttons below: 'Clear' (outlined) and 'Search' (primary #C00065).\n- Search results section: REMOVE copy-to-clipboard icon and REMOVE verified-query claims / checkmark icons.\n- Result card:\n  - Reference: ORD-DEMO-1030 | Delivered\n  - Leg: Final mile delivery\n  - Quantity: 1 parcel\n  - Hub: Example Logistics • Main hub\n  - Destination area: Pasig City (general area only)\n  - Delivery date: 2023-10-24 14:22\n  - Proof status: 'Proof of delivery validated by Logistics'\n- Clean layout, Roboto Flex sans-serif, 16px margins, flat #F7F7F8 ground, white card, #202024 ink, #55555D secondary. No extra changes.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/98dfb5bd58794a17a014b3f643e884a5",
+        "id": "98dfb5bd58794a17a014b3f643e884a5",
+        "title": "V3 Notifications",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/d9b8025bda004c2aacc2734071d6dbde",
+        "htmlReference": "projects/8494920215314554832/files/6005f347e491427c940918a5a3599da9",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Notifications'. REMOVE 'Rider Feed' badge.\n- Filter chips: 'All', 'Unread (2)', 'Read', 'Category filters'.\n- List of ordinary read-only alert rows (no mutations, bulk read, or task actions directly in list, remove left-edge accent strips):\n  1. Pickup task | 10:05 AM • UNREAD\n     Title: 'Pickup manifest updated'\n     Body: 'Seller Example shop (Marikina) added 1 parcel to ORD-DEMO-1043.'\n  2. Support ticket | 09:20 AM • UNREAD\n     Title: 'Ticket #TK-402 response'\n     Body: 'Admin platform support replied regarding vehicle inspection schedule.' (Admin platform support, NOT Logistics desk).\n  3. Linehaul | Yesterday 16:30\n     Title: 'Linehaul dispatch assigned'\n     Body: 'Scheduled transfer to Example destination hub.' (REMOVE linehaul navigation claim / transfer summary completed button).\n- Info notice: 'Open notification to mark as read or access linked tasks. List view is read-only.'\n- Roboto Flex sans-serif, 16px margins, flat #F7F7F8 ground, white cards, #202024 ink, #55555D secondary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/40e2e67affb8464ba323997afd06972c",
+        "id": "40e2e67affb8464ba323997afd06972c",
+        "title": "V3 Linehaul arrival reported",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/a3bfe91b1bc0413f90efac4a0f1ffa28",
+        "htmlReference": "projects/8494920215314554832/files/fbf67a93fb4d4dfb91076b34d83cfa99",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Linehaul job'. REMOVE 'V2.4' badge.\n- Job header card: Job Ref: LH-DEMO-802, status 'In transfer'. Origin: Example Logistics Main hub, Destination: Example destination hub. Remove left accent strip.\n- Checkpoint card: GATE CHECKPOINT: 'Arrival reported at 10:15'.\n- Instructions card: 'Wait for Logistics to receive the parcels.' (Remove invented claims about parking in staging lanes or docking bay assignment).\n- REMOVE entirely: gate/check-in status, custody & manifest summary, 12 sealed bins, assigned company truck, staging bay, STG-BAY-04, loading location claims. Do not add any new cargo/receipt controls!\n- Bottom action buttons:\n  - Outlined button: 'Refresh arrival status'\n  - Outlined button: 'View route'\n- Clean Roboto Flex sans-serif, flat #F7F7F8 background, white cards, #202024 ink, #55555D secondary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/7ee8e5b57abd46e995b9a58e5b2b9b1d",
+        "id": "7ee8e5b57abd46e995b9a58e5b2b9b1d",
+        "title": "V3 Pickup route unavailable",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/e7ca6a06a5e34c7eb0ed70b757202563",
+        "htmlReference": "projects/8494920215314554832/files/11433097d6cd4a6c96403ea19534e352",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Pickup route'. REMOVE the 3-dots kebab menu icon!\n- Main illustration/icon: simple neutral route icon.\n- Heading: 'No route stops available'.\n- Subtitle / text: 'No route stops are available. Return to pickup tasks to review your work.'\n- REMOVE the unsupported info card reason about pins unassigned or pending sequence. Keep the screen clean with NO invented reason or no-tasks claim.\n- Action buttons at bottom:\n  - Primary button: 'Back to pickup tasks' (#C00065).\n  - Outlined button: 'Refresh route'.\n- Typography: Roboto Flex sans-serif, body 16px, title 24px, 16px margins, flat #F7F7F8 background, white cards, #202024 ink, #55555D secondary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/d4ea9b9bf1a2470ca862904025b2e2f1",
+        "id": "d4ea9b9bf1a2470ca862904025b2e2f1",
+        "title": "V3 Policies consent",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "2032",
+        "screenshot": "projects/8494920215314554832/files/45d93f19fa8c41a5afd6dab6031da267",
+        "htmlReference": "projects/8494920215314554832/files/b6ab95586e85480f910af9babf450f1d",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Terms & Privacy consent'. REMOVE 'MANDATORY' badge.\n- Policy update notice card: 'Policy Update Notification', 'Review and accept the current policy agreements to continue courier dispatch operations.'\n- Section 1: Exact label 'Terms of Service'. REMOVE 'v2.4', REMOVE 'Effective: June 2025', REMOVE vehicle safety regulations.\n  - Short synthetic preview: 'Synthetic demo text: Courier agrees to standard custody handoff, scan verification, and safe transport protocols...'\n  - Notice text: 'Full current document remains scrollable in application document viewer.'\n  - Checkbox: UNCHECKED checkbox with label 'I have read and agree to the Terms of Service'.\n- Section 2: Exact label 'Privacy Policy'. REMOVE 'v1.8', REMOVE 'Effective: May 2025', REMOVE 'Telemetry', REMOVE 'GPS logging', REMOVE dispatch vehicle regulations.\n  - Short synthetic preview: 'Synthetic demo text: Task telemetry and scan timestamps are recorded solely for order auditing and verification...'\n  - Notice text: 'Full current document remains scrollable in application document viewer.'\n  - Checkbox: UNCHECKED checkbox with label 'I agree to the Privacy Policy'.\n- Action buttons:\n  - Button 1: Disabled 'Accept policies' (do not allow accept without consent).\n  - Button 2: Secondary outlined button 'Sign out'.\n  - Helper: 'Requires re-authentication upon next session launch'.\n- Roboto Flex sans-serif, flat #F7F7F8 ground, white card surfaces, #202024 ink, #55555D secondary, #C00065 primary. Remove decorative badges and accent strips.",
+        "generatorPromptSource": "generation response screen.prompt"
+      },
+      {
+        "name": "projects/8494920215314554832/screens/7278e291fd16413e9262cbd35eaf7004",
+        "id": "7278e291fd16413e9262cbd35eaf7004",
+        "title": "V3 Delivery awaiting review",
+        "deviceType": "MOBILE",
+        "width": "780",
+        "height": "1768",
+        "screenshot": "projects/8494920215314554832/files/17aa9a64f83b4acdab8c7a3561dfdf53",
+        "htmlReference": "projects/8494920215314554832/files/1e256302894c48baa185519bf2d3d26d",
+        "generatorPrompt": "Refine to native Flutter Material 3 MOBILE:\n- Top bar: back arrow and title 'Delivery verification'. REMOVE 'V2 REVIEW' badge.\n- Order reference card: ORD-DEMO-1042, Final mile delivery, Area: Pasig City. REMOVE 'Manifest synced' and REMOVE 'Logistics Unit 4'.\n- Accepted status card: 'Delivery accepted', Rider drop-off timestamp recorded. REMOVE '14:38 PST'.\n- Awaiting review section:\n  - Heading: 'Awaiting Logistics validation'\n  - Subtitle: 'Automated cargo inspection pipeline is evaluating drop-off metadata and declaration alignment.'\n  - REMOVE 'QUEUE ACTIVE' badge, REMOVE 'Average inspection turnaround: ~2–4 minutes', REMOVE left accent strip.\n- Summary section 'Verification submission summary':\n  - Item 1: 'Photo submitted' (clean preview row, remove synthetic mock text/file size).\n  - Item 2: 'Cash declaration PHP 115.00 submitted for review' (REMOVE package slip matching).\n  - Info note: 'Submission received. Logistics review confirms completion and cargo release. No further courier action required at this step.' (REMOVE auto-poll 30 seconds claim).\n- Action button: 'Refresh completion status' (Outlined button, full width).\n- Roboto Flex sans-serif, flat #F7F7F8 ground, white surface cards, #202024 ink, #55555D secondary.",
+        "generatorPromptSource": "generation response screen.prompt"
+      }
+    ],
+    "toolNotes": [
+      {
+        "text": "I have refined all 16 AISLEY Rider mobile screens to strict Flutter Material 3 standards, removing all invented operations data, technical badges, and unsupported claims while establishing consistent visual craft.\n\n### Summary of Refinements Across All 16 Screens\n\n1. **Global Material 3 & Design Consistency:**\n   - **Typography:** Strictly enforced sans-serif (Roboto Flex) across every screen (correcting the serif typography in Work). Unified hierarchy to Title 24px, Body 16px, and Metadata 14px.\n   - **Color & Surfaces:** Clean `#F7F7F8` background, crisp white container cards, `#202024` primary ink, `#55555D` secondary text, and single brand primary `#C00065`.\n   - **Clean Components:** Stripped away all non-standard left-edge accent stripes, square icon wrappers, decorative version badges, and pseudo-metric counters.\n   - **Navigation:** Standardized root bottom navigation across main views with exact case (`Home`, `Work`, `Task messages`, `Account`) and standard Material NavigationBar pill indicator.\n\n2. **Per-Screen Highlights:**\n   - **Home (`V3 Home`):** Removed rider ID 8842 and top-bar hamburger; identity card is now compact; replaced icon-top shortcut cards with standard labeled actions; cleaned active and cached lists.\n   - **Work (`V3 Work`):** Switched to clean sans-serif typography; removed menu/bell; 5 plain rows with chevrons; full `Task messages` bottom navigation label.\n   - **Task Details (`V3 Task details`):** Full-width order reference `ORD-DEMO-1042`; removed version marker and dispatch window text; primary `Accept delivery` with secondary outlined `Reject offer` and `Message Logistics`.\n   - **Pickup Scan Review (`V3 Pickup scan review`):** Removed \"Verification successful\" and \"matches merchant manifest\"; Code128 treated as an untrusted candidate with clear instruction to review code before confirming; removed fake QR and step badges.\n   - **Delivery Photo & Cash (`V3 Delivery photo and cash`):** Removed Service Level, prerequisite tags, and verification claims; neutral `Selected photo` placeholder with Retake/Replace/Remove actions; exact PHP 115.00 cash confirmation; disabled `Delivered` button until conditions are met.\n   - **Task Messages (`V3 Task messages`):** Stripped away invented shift counts, queue priority, live hub, and ETA badges; two clean task-linked conversation rows with explicit timestamps and read/unread status.\n   - **Account (`V3 Account`):** Removed hamburger, bell, and version footer; replaced photo with neutral initials avatar (`MS`); pure read-only status and clean navigation rows.\n   - **Sign In (`V3 Sign in`):** Removed version tag, gateway badge, and footer; clean empty password field with visibility toggle (no pre-filled dots).\n   - **Registration OTP (`V3 Registration OTP`):** Replaced 6 split boxes with one conventional 6-digit input field; removed inbox wording and step tags; clear submission disclaimer.\n   - **Final-Mile Batches (`V3 Final-mile batches`):** Removed active badge, sector tags, package weight, and street details; safely scoped to Pasig City with secondary `Review parcel` actions.\n   - **Delivery History (`V3 Delivery history`):** Removed archive badge, copy icon, and verified-query banner; clean search controls and exact delivered task record.\n   - **Notifications (`V3 Notifications`):** Removed Rider Feed and navigation actions; reattributed support message to Admin platform support; clean read-only alert list.\n   - **Pickup Route Unavailable (`V3 Pickup route unavailable`):** Removed kebab menu and invented reasons about unassigned stops; clear and direct fallback message with `Back to pickup tasks` and `Refresh route`.\n   - **Linehaul Arrival Reported (`V3 Linehaul arrival reported`):** Removed gate status, manifest summary, staging bays, and sealed bin metrics; displays concise checkpoint arrival and arrival refresh.\n   - **Delivery Awaiting Review (`V3 Delivery awaiting review`):** Stripped manifest sync, logistics unit, turnaround estimates, and auto-poll claims; focuses cleanly on submission summary awaiting validation.\n   - **Policies Consent (`V3 Policies consent`):** Replaced telemetry and dispatch claims with exact Terms of Service and Privacy Policy synthetic previews; unchecked checkboxes with disabled `Accept policies` button."
+      },
+      {
+        "suggestion": "Inspect interactive states for the primary buttons"
+      },
+      {
+        "suggestion": "Adjust spacing or card padding for smaller viewports"
+      },
+      {
+        "suggestion": "Add dark mode variants for the courier theme"
+      }
+    ]
+  },
+  "finalGeneration": {
+    "prompt": "Create SIX NEW separate mobile portrait design resources in AISLEY Rider V2. Do NOT copy old screen HTML/content. Every visible sentence MUST come from the exact copy specified below. No auto-invented metadata, policy sentences, feature or data. Native Flutter Material3 390x844 logical viewport. Use one system sans-serif font on every element: Arial/Roboto sans-serif with working fallback (no serif fonts ever). White/#F7F7F8 surfaces, ink #202024, secondary #55555D, primary #C00065, flat 12px cards/10px controls, 16px margins, 48px targets. Titles24px body16px metadata14px. No decorative badges/uppercase overlines/icon boxes, menus/bell, versions, logos except AISLEY name, gradients, empty giant hero. Root bottom nav exactly Home/Work/Task messages/Account; pushed screens Back/no bottom nav. No technology/security guarantees, no automated inspection, custody release, telemetry/GPS/privacy claims, manifests, sectors, metrics or fake operational status. All demo data synthetic. Return all SIX separate screens with screenshot IDs.\n\nA. 'Final Work' ROOT Work selected. Exact visible text: Work; Pickup orders; Seller pickups and hub handoff; Delivery work; Photo proof and delivery review; Final-mile batches; Review individual parcel decisions; Linehaul jobs; Assigned hub transfers and company-truck routes; Delivery history; Completed deliveries. Five plain Material list rows with chevrons, title and subtitle. Sans-serif absolutely required, use Arial fallback in design if Roboto unavailable. No other content besides nav.\n\nB. 'Final Delivery awaiting review' PUSHED. Exact visible text only: Delivery work; ORD-DEMO-1042; Final mile; Delivery accepted; Awaiting Logistics validation; Photo submitted; Cash declaration; PHP 115.00 submitted for review; Refresh completion status. One flat task context panel, one calm review status panel, two plain submission rows, one secondary refresh button. No delivered/paid badge, no rider dropoff timestamp, no auto pipeline or cargo release. No other copy.\n\nC. 'Final Policies consent' PUSHED. Exact visible text only: Terms and Privacy; Read both documents before accepting.; Terms of Service; Demo version 1; Current Terms document appears here.; Full current document remains scrollable.; I have read and agree to the Terms of Service.; Privacy Policy; Demo version 1; Current Privacy document appears here.; Full current document remains scrollable.; I have read and agree to the Privacy Policy.; Accept; Sign out. Two document preview regions, two UNCHECKED checkboxes, one DISABLED Accept, secondary Sign out. No actual legal terms/telemetry/geolocation/custody/transport claims. Real full documents supplied by server in future implementation, placeholders are intentional design-only content. No subtitle adds claims.\n\nD. 'V2 Task thread retry' PUSHED. Task messages header, ORD-DEMO-1042 · Final mile · Logistics. Two received/sent plain-text messages 'Please use the entrance shown in the delivery instructions.' and 'I will check the instructions.' Timestamp09:41. Demonstrate uncertain send: local frozen bubble 'I am at the destination.' with label 'Send not confirmed.' Calm helper 'Check the conversation before retrying.' One explicit 'Retry same message' and secondary 'Refresh'. Composer disabled during unresolved request; no second Send competing, no Edit draft changing frozen message, no active/presence/typing/location/call/SOS icons. No claim text changes destination or task status. Back retains existing leave decision.\n\nE. 'V2 Support ticket' PUSHED. Title Support tickets. Safe synthetic ticket SUP-DEMO-01; 'Unable to open my assigned task'; Delivery; Open. Timeline 'You ·09:30' / 'The task detail is unavailable after refreshing.' and 'Admin support ·09:40' / 'Please try again and tell us whether it opens.' Plain text reply field 'Reply' empty. One Send reply, secondary Refresh. No file attachments, assignee dropdown, status editor, Approve, linked order selector, phone or raw IDs. Own private Admin support remains separate from Logistics task chat.\n\nF. 'V2 Appearance dark' ROOT Account selected, dark #141416 canvas/#1C1C1E surfaces/ink #F3F3F5/secondary #C6C6CE/primary #FF85BD. Account underlying grouped settings from existing app, overlaid standard Material dialog. Exact dialog text: Appearance; System; Use device setting; Light; Dark; Cancel. Dark radio SELECTED, others unselected. One selection applies immediately, no Save/Apply button and no backend/session/permission text. Dialog scrollable for large text. Profile/ Security/Vehicle and documents/Appearance/Policies/Support tickets/Sign out rows behind modal. No new capabilities.",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "tool call error: tool call failed for `stitch/generate_screen_from_text`\n\nCaused by:\n    Transport send error: Transport [codex_rmcp_client::tool_list_changes::ToolListChanges<codex_rmcp_client::event_notification_transport::EventNotificationTransport<rmcp::transport::worker::WorkerTransport<rmcp::transport::streamable_http_client::StreamableHttpClientWorker<codex_rmcp_client::http_client_adapter::StreamableHttpClientAdapter>>>>] error: Client error: HTTP request failed: http/request failed: error sending request for url (https://stitch.googleapis.com/mcp)"
+        }
+      ],
+      "isError": true
+    },
+    "status": "transport_error_no_screen_ids_returned_not_retried"
+  },
+  "listedInitialScreenCount": 16,
+  "projectListing": {
+    "initial": 16,
+    "afterRefinement": 16,
+    "limitation": "Project/list views still expose the original 16 screen resources. All 16 separately returned refinement IDs were individually retrieved and exported successfully."
+  }
+}
