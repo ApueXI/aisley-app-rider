@@ -23,17 +23,9 @@ class _NotificationListBody extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
-        const CourierSectionHeader(
-          title: 'Courier inbox',
-          subtitle: 'Updates about your scheduled and offered work.',
-        ),
-        const SizedBox(height: 16),
         _NotificationFilterBar(controller: controller),
         const SizedBox(height: 12),
         _NotificationCategoryBar(controller: controller),
-        const SizedBox(height: 16),
-        if (controller.unreadCount != null)
-          _UnreadCountSummary(count: controller.unreadCount!),
         if (controller.countErrorMessage != null) ...[
           const SizedBox(height: 12),
           _NotificationInlineMessage(
@@ -109,7 +101,13 @@ class _NotificationFilterBar extends StatelessWidget {
         children: [
           for (final filter in NotificationFilter.values)
             ChoiceChip(
-              label: Text(filter.label),
+              key: ValueKey('notification-filter-${filter.apiValue}'),
+              label: Text(
+                filter == NotificationFilter.unread &&
+                        controller.unreadCount != null
+                    ? 'Unread (${controller.unreadCount})'
+                    : filter.label,
+              ),
               selected: controller.filter == filter,
               onSelected: (_) => controller.setFilter(filter),
             ),
@@ -126,71 +124,112 @@ class _NotificationCategoryBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedCategory = controller.categories.firstWhere(
+      (category) => category.key == controller.category,
+      orElse: () => const NotificationCategory(key: 'other', label: 'Other'),
+    );
     return Semantics(
       container: true,
       label: 'Filter notifications by category',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Category', style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              FilterChip(
-                key: const ValueKey('notification-category-all'),
-                label: const Text('All categories'),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: PopupMenuButton<String>(
+          key: const ValueKey('notification-category-filter'),
+          tooltip: 'Choose a notification category',
+          onSelected: controller.setCategory,
+          itemBuilder: (context) => [
+            PopupMenuItem<String>(
+              key: const ValueKey('notification-category-all'),
+              value: 'all',
+              child: _CategoryMenuLabel(
+                label: 'All categories',
                 selected: controller.category == 'all',
-                onSelected: (_) => controller.setCategory('all'),
               ),
-              for (final category in controller.categories)
-                FilterChip(
-                  key: ValueKey('notification-category-${category.key}'),
-                  label: Text(category.label),
+            ),
+            for (final category in controller.categories)
+              PopupMenuItem<String>(
+                key: ValueKey('notification-category-${category.key}'),
+                value: category.key,
+                child: _CategoryMenuLabel(
+                  label: category.label,
                   selected: controller.category == category.key,
-                  onSelected: (_) => controller.setCategory(category.key),
                 ),
-            ],
+              ),
+          ],
+          child: LayoutBuilder(
+            builder: (context, constraints) => SizedBox(
+              width: constraints.maxWidth,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Category filters',
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                              if (controller.category != 'all')
+                                Text(
+                                  selectedCategory.label,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.expand_more),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _UnreadCountSummary extends StatelessWidget {
-  const _UnreadCountSummary({required this.count});
+class _CategoryMenuLabel extends StatelessWidget {
+  const _CategoryMenuLabel({required this.label, required this.selected});
 
-  final int count;
+  final String label;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
-    final label = '$count unread notification${count == 1 ? '' : 's'}';
-    return Semantics(
-      liveRegion: true,
-      label: label,
-      child: CourierSurfaceCard(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(
-          children: [
-            Icon(
-              Icons.mark_email_unread_outlined,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return Row(
+      children: [
+        if (selected) ...[
+          Icon(
+            Icons.check,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+        ],
+        Expanded(child: Text(label, softWrap: true)),
+      ],
     );
   }
 }
@@ -210,51 +249,68 @@ class _NotificationCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              notification.isRead
-                  ? Icons.notifications_none_outlined
-                  : Icons.notifications_active_outlined,
+              _notificationIcon(notification.category),
               color: Theme.of(context).colorScheme.primary,
               size: 22,
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
-                notification.title,
-                style: Theme.of(context).textTheme.titleMedium,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  CourierStatusBadge(
+                    label: notification.categoryLabel,
+                    tone: CourierStatusTone.neutral,
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.chevron_right),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    _formatNotificationDate(context, notification.createdAt),
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  CourierStatusBadge(
+                    label: notification.isRead ? 'Read' : 'Unread',
+                    tone: notification.isRead
+                        ? CourierStatusTone.neutral
+                        : CourierStatusTone.warning,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(notification.summary),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            CourierStatusBadge(
-              label: notification.isRead ? 'Read' : 'Unread',
-              tone: notification.isRead
-                  ? CourierStatusTone.neutral
-                  : CourierStatusTone.warning,
-            ),
-            CourierStatusBadge(
-              label: notification.categoryLabel,
-              tone: CourierStatusTone.neutral,
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Text(
-          _formatNotificationDate(context, notification.createdAt),
-          style: Theme.of(context).textTheme.bodySmall,
+          notification.title,
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w700),
         ),
+        const SizedBox(height: 6),
+        Text(notification.summary),
       ],
     ),
   );
 }
+
+IconData _notificationIcon(String category) => switch (category) {
+  'pickups' => Icons.inventory_2_outlined,
+  'deliveries' => Icons.local_shipping_outlined,
+  'linehaul' => Icons.swap_horiz,
+  'support' => Icons.support_agent_outlined,
+  _ => Icons.notifications_none_outlined,
+};
 
 String _formatNotificationDate(BuildContext context, DateTime value) {
   final local = value.toLocal();

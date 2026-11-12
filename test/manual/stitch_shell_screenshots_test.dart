@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:aisley_app/app/courier_theme.dart';
+import 'package:aisley_app/app/appearance/appearance_controller.dart';
+import 'package:aisley_app/app/appearance/appearance_scope.dart';
 import 'package:aisley_app/features/account/presentation/controllers/account_controller.dart';
 import 'package:aisley_app/features/auth/domain/auth_models.dart';
 import 'package:aisley_app/features/auth/presentation/controllers/auth_controller.dart';
@@ -39,6 +41,10 @@ const _captureEnabled = bool.fromEnvironment(
   defaultValue: false,
 );
 const _fontDirectory = String.fromEnvironment('FLUTTER_FONT_DIR');
+const _captureDirectory = String.fromEnvironment(
+  'STITCH_CAPTURE_DIRECTORY',
+  defaultValue: 'build/stitch-ui/shell',
+);
 
 void main() {
   if (!_captureEnabled) return;
@@ -73,7 +79,7 @@ void main() {
   testWidgets('captures synthetic Home, Work and Account Stitch screens', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(780, 2000);
+    tester.view.physicalSize = const Size(780, 1768);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -90,18 +96,22 @@ void main() {
           ..status = AuthStatus.authenticated
           ..courier = const CourierIdentity(
             id: 'synthetic-courier-2048',
-            email: 'maya.santos@example.test',
+            email: 'mika@example.invalid',
             role: 'courier',
             status: CourierAccountStatus.active,
-            profile: CourierProfile(firstName: 'Maya', lastName: 'Santos'),
+            profile: CourierProfile(firstName: 'Mika', lastName: 'Santos'),
             logistics: LogisticsAffiliation(
               status: CourierAffiliationStatus.approved,
-              organizationName: 'AISLEY Express',
-              hubName: 'Makati Hub',
+              organizationName: 'Example Logistics',
+              hubName: 'Main hub',
             ),
           );
     final account = AccountController(
       accountRepository: FakeAccountRepository(),
+    );
+    final appearance = AppearanceController(
+      store: _ScreenshotAppearanceStore(),
+      defaultMode: ThemeMode.system,
     );
     final batch = FinalMileBatchController(repository: WidgetBatchRepository());
     final history = HistoryController(
@@ -127,22 +137,26 @@ void main() {
         builder: (context, child) => CourierViewport(
           child: RepaintBoundary(key: boundary, child: child!),
         ),
-        home: DashboardScreen(
-          authController: dashboard,
-          accountController: account,
-          batchController: batch,
-          linehaulController: linehaul,
-          policyController: policy,
-          pickupController: pickup,
-          deliveryController: delivery,
-          historyController: history,
-          notificationController: notifications,
-          supportTicketController: support,
-          vehicleController: vehicle,
+        home: AppearanceRoot(
+          controller: appearance,
+          child: DashboardScreen(
+            authController: dashboard,
+            accountController: account,
+            batchController: batch,
+            linehaulController: linehaul,
+            policyController: policy,
+            pickupController: pickup,
+            deliveryController: delivery,
+            historyController: history,
+            notificationController: notifications,
+            supportTicketController: support,
+            vehicleController: vehicle,
+          ),
         ),
       ),
     );
     await tester.pumpAndSettle();
+    expect(tester.getSize(find.byType(NavigationBar)).height, 64);
     await _capture(tester, boundary, 'home');
 
     await tester.tap(find.byType(NavigationDestination).at(1));
@@ -169,6 +183,14 @@ void main() {
   });
 }
 
+class _ScreenshotAppearanceStore implements AppearanceStore {
+  @override
+  Future<String?> read() async => 'system';
+
+  @override
+  Future<void> write(String value) async {}
+}
+
 Future<void> _capture(
   WidgetTester tester,
   GlobalKey boundaryKey,
@@ -178,9 +200,11 @@ Future<void> _capture(
     final boundary =
         boundaryKey.currentContext!.findRenderObject()!
             as RenderRepaintBoundary;
-    final image = await boundary.toImage(pixelRatio: 1);
+    final image = await boundary.toImage(
+      pixelRatio: tester.view.devicePixelRatio,
+    );
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    final folder = Directory('build/stitch-ui/shell');
+    final folder = Directory(_captureDirectory);
     await folder.create(recursive: true);
     await File('${folder.path}/$name.png').writeAsBytes(
       bytes!.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
@@ -194,28 +218,28 @@ class _SyntheticDashboard implements DashboardRepository {
   Future<DashboardSnapshot> fetchDashboard() async => const DashboardSnapshot(
     freshness: DashboardFreshness(
       state: DashboardFreshnessState.partial,
-      generatedAt: '2026-10-28T01:45:00Z',
+      generatedAt: '2026-10-28T01:41:00Z',
     ),
     sections: {
       'active_tasks': DashboardSection(
         state: DashboardSectionState.available,
-        generatedAt: '2026-10-28T01:45:00Z',
+        generatedAt: '2026-10-28T01:41:00Z',
         items: [
           {
-            'leg': 'first_mile',
-            'status': 'accepted',
-            'order_reference': 'ORD-DEMO-2048',
+            'leg': 'final_mile',
+            'status': 'delivery_accepted',
+            'order_reference': 'ORD-DEMO-1042',
           },
         ],
       ),
       'available_tasks': DashboardSection(
-        state: DashboardSectionState.available,
-        generatedAt: '2026-10-28T01:45:00Z',
+        state: DashboardSectionState.stale,
+        generatedAt: '2026-10-28T01:41:00Z',
         items: [
           {
-            'leg': 'final_mile',
-            'status': 'delivery_assigned',
-            'waybill_reference': 'WB-DEMO-2049',
+            'leg': 'first_mile',
+            'status': 'assigned',
+            'order_reference': 'ORD-DEMO-1043',
           },
         ],
       ),

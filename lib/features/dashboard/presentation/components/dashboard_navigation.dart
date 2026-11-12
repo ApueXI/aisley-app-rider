@@ -86,6 +86,7 @@ mixin _DashboardNavigation on State<DashboardScreen> {
           authController: widget.authController,
           batchController: widget.batchController!,
           policyController: widget.policyController,
+          chatController: widget.chatController,
         ),
       );
     }

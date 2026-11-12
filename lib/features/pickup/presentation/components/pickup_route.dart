@@ -93,78 +93,216 @@ class _PickupRouteScreenState extends State<PickupRouteScreen> {
             PickupSectionStatus.idle;
         final manifest = controller.routeManifests[widget.scheduleId];
         final error = controller.routeErrors[widget.scheduleId];
+        final hasNoStops = manifest?.stops.isEmpty == true;
         return RouteSessionBoundary(
           child: Scaffold(
-            appBar: AppBar(title: const Text('Pickup route order')),
-            body: RefreshIndicator(
-              onRefresh: _refresh,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                children: [
-                  _RouteSummary(schedule: widget.schedule, manifest: manifest),
-                  const SizedBox(height: 16),
-                  if (status == PickupSectionStatus.loading && manifest == null)
-                    const _PickupLoadingState()
-                  else if (manifest == null && error != null)
-                    _PickupErrorState(
-                      message: error,
-                      status: status,
-                      onRetry: () =>
-                          controller.loadRouteManifest(widget.scheduleId),
-                      onOpenPolicies: widget.onOpenPolicies ?? () {},
-                      showPolicyAction: widget.onOpenPolicies != null,
-                    )
-                  else if (manifest != null) ...[
-                    if (status == PickupSectionStatus.loading)
-                      const LinearProgressIndicator(),
-                    _RouteStatusBanner(manifest: manifest),
-                    if (_mapFailed)
-                      const Text('Map could not be loaded.')
-                    else if (manifest.stops.isNotEmpty &&
-                        (manifest.status == RouteManifestStatus.ready ||
-                            manifest.status == RouteManifestStatus.unavailable))
-                      RouteMapView(
-                        key: ValueKey(_mapVersion),
-                        data: _pickupMapData(manifest),
-                        onFailure: _mapFailure,
+            appBar: AppBar(title: const Text('Pickup route')),
+            body: hasNoStops
+                ? RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) => ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 24,
+                                ),
+                                child: _RouteEmptyState(message: error),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    const SizedBox(height: 16),
-                    if (manifest.stops.isEmpty)
-                      FilledButton.icon(
-                        onPressed: () => Navigator.of(context).maybePop(),
-                        icon: const Icon(Icons.arrow_back),
-                        label: const Text('Back to pickup tasks'),
-                      )
-                    else ...[
-                      const CourierSectionHeader(title: 'Ordered stops'),
-                      const SizedBox(height: 8),
-                      ..._routeStopWidgets(context, manifest.stops),
-                    ],
-                    if (error != null) ...[
-                      const SizedBox(height: 8),
-                      Text(error),
-                    ],
-                  ],
-                  OutlinedButton.icon(
-                    onPressed:
-                        status == PickupSectionStatus.loading ||
-                            !controller.canRetryRateLimit
-                        ? null
-                        : _refresh,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Refresh route'),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                      children: [
+                        _RouteSummary(
+                          schedule: widget.schedule,
+                          manifest: manifest,
+                        ),
+                        const SizedBox(height: 16),
+                        if (status == PickupSectionStatus.loading &&
+                            manifest == null)
+                          const _PickupLoadingState()
+                        else if (manifest == null && error != null)
+                          _PickupErrorState(
+                            message: error,
+                            status: status,
+                            onRetry: () =>
+                                controller.loadRouteManifest(widget.scheduleId),
+                            onOpenPolicies: widget.onOpenPolicies ?? () {},
+                            showPolicyAction: widget.onOpenPolicies != null,
+                          )
+                        else if (manifest != null) ...[
+                          if (status == PickupSectionStatus.loading)
+                            const LinearProgressIndicator(),
+                          _RouteStatusBanner(manifest: manifest),
+                          if (_mapFailed)
+                            const Text('Map could not be loaded.')
+                          else if (manifest.stops.isNotEmpty &&
+                              (manifest.status == RouteManifestStatus.ready ||
+                                  manifest.status ==
+                                      RouteManifestStatus.unavailable))
+                            RouteMapView(
+                              key: ValueKey(_mapVersion),
+                              data: _pickupMapData(manifest),
+                              onFailure: _mapFailure,
+                            ),
+                          const SizedBox(height: 16),
+                          const CourierSectionHeader(title: 'Ordered stops'),
+                          const SizedBox(height: 8),
+                          ..._routeStopWidgets(context, manifest.stops),
+                          if (error != null) ...[
+                            const SizedBox(height: 8),
+                            Text(error),
+                          ],
+                        ],
+                        OutlinedButton.icon(
+                          onPressed:
+                              status == PickupSectionStatus.loading ||
+                                  !controller.canRetryRateLimit
+                              ? null
+                              : _refresh,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Refresh route'),
+                        ),
+                        if (!controller.canRetryRateLimit)
+                          const Text('Wait before retrying the route.'),
+                      ],
+                    ),
                   ),
-                  if (!controller.canRetryRateLimit)
-                    const Text('Wait before retrying the route.'),
-                ],
-              ),
-            ),
+            bottomNavigationBar: hasNoStops
+                ? _RouteEmptyActions(
+                    onBack: () => Navigator.of(context).maybePop(),
+                    onRefresh: _refresh,
+                    refreshEnabled:
+                        status != PickupSectionStatus.loading &&
+                        controller.canRetryRateLimit,
+                    waitMessage: controller.canRetryRateLimit
+                        ? null
+                        : 'Wait before retrying the route.',
+                  )
+                : null,
           ),
         );
       },
     );
   }
+}
+
+class _RouteEmptyState extends StatelessWidget {
+  const _RouteEmptyState({this.message});
+
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: scheme.surfaceContainerHighest,
+            border: Border.all(color: scheme.outlineVariant),
+          ),
+          child: Icon(
+            Icons.alt_route,
+            color: scheme.onSurfaceVariant,
+            size: 30,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'No route stops available',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'No route stops are available. Return to pickup tasks to review your work.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyLarge
+              ?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+        if (message != null) ...[
+          const SizedBox(height: 12),
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              message!,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: scheme.error),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _RouteEmptyActions extends StatelessWidget {
+  const _RouteEmptyActions({
+    required this.onBack,
+    required this.onRefresh,
+    required this.refreshEnabled,
+    this.waitMessage,
+  });
+
+  final VoidCallback onBack;
+  final VoidCallback onRefresh;
+  final bool refreshEnabled;
+  final String? waitMessage;
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    top: false,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: 48,
+            child: FilledButton(
+              onPressed: onBack,
+              child: const Text('Back to pickup tasks'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 48,
+            child: OutlinedButton(
+              onPressed: refreshEnabled ? onRefresh : null,
+              child: const Text('Refresh route'),
+            ),
+          ),
+          if (waitMessage != null) ...[
+            const SizedBox(height: 4),
+            Text(waitMessage!, textAlign: TextAlign.center),
+          ],
+        ],
+      ),
+    ),
+  );
 }
 
 class _RouteSummary extends StatelessWidget {

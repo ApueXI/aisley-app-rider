@@ -62,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final errorMessage = widget.authController.errorMessage;
 
         return Scaffold(
+          appBar: AppBar(title: const _BrandMark()),
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -71,160 +72,145 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: AutofillGroup(
                     child: Form(
                       key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const _BrandMark(),
-                          const SizedBox(height: 20),
-                          Text(
-                            'Sign in',
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Sign in to your Courier account',
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                ),
-                          ),
-                          const SizedBox(height: 24),
-                          if (errorMessage != null) ...[
-                            _ErrorBanner(message: errorMessage),
-                            const SizedBox(height: 16),
-                          ],
-                          CourierSurfaceCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                TextFormField(
-                                  controller: _emailController,
-                                  enabled: !isSubmitting,
-                                  keyboardType: TextInputType.emailAddress,
-                                  textInputAction: TextInputAction.next,
-                                  autofillHints: const <String>[
-                                    AutofillHints.username,
-                                  ],
-                                  decoration: const InputDecoration(
-                                    labelText: 'Email',
-                                    hintText: 'courier@example.com',
-                                    prefixIcon: Icon(Icons.mail_outline),
-                                  ),
-                                  validator: _validateEmail,
-                                ),
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _passwordController,
-                                  enabled: !isSubmitting,
-                                  obscureText: _obscurePassword,
-                                  textInputAction: TextInputAction.done,
-                                  autofillHints: const <String>[
-                                    AutofillHints.password,
-                                  ],
-                                  onFieldSubmitted: (_) => _submit(),
-                                  decoration: InputDecoration(
-                                    labelText: 'Password',
-                                    prefixIcon: const Icon(Icons.lock_outline),
-                                    suffixIcon: IconButton(
-                                      tooltip: _obscurePassword
-                                          ? 'Show password'
-                                          : 'Hide password',
-                                      onPressed: () {
-                                        setState(() {
-                                          _obscurePassword = !_obscurePassword;
-                                        });
-                                      },
-                                      icon: Icon(
-                                        _obscurePassword
-                                            ? Icons.visibility_outlined
-                                            : Icons.visibility_off_outlined,
-                                      ),
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Enter your password.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Enter your Courier account password',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                      ),
-                                ),
-                                const SizedBox(height: 20),
-                                if (!widget.authController.canSignIn) ...[
-                                  Semantics(
-                                    liveRegion: true,
-                                    child: const Text(
-                                      'Please wait before trying to sign in again.',
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                ],
-                                Semantics(
-                                  button: true,
-                                  enabled:
-                                      !isSubmitting &&
-                                      widget.authController.canSignIn,
-                                  label: isSubmitting
-                                      ? 'Signing in'
-                                      : 'Sign in',
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: FilledButton(
-                                      onPressed:
-                                          isSubmitting ||
-                                              !widget.authController.canSignIn
-                                          ? null
-                                          : _submit,
-                                      child: isSubmitting
-                                          ? const SizedBox(
-                                              height: 22,
-                                              width: 22,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2.5,
-                                                color: Colors.white,
-                                              ),
-                                            )
-                                          : const Text('Sign in'),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton(
-                                    onPressed: isSubmitting
-                                        ? null
-                                        : widget.onRegister,
-                                    child: const Text('Create account'),
-                                  ),
-                                ),
-                              ],
+                      child: CourierSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'Sign in to your rider account',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.w800),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'New accounts need Logistics approval before sign in.',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                            const SizedBox(height: 8),
+                            Text(
+                              'Use your Courier account credentials.',
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 20),
+                            if (errorMessage != null) ...[
+                              _ErrorBanner(message: errorMessage),
+                              const SizedBox(height: 16),
+                            ],
+                            TextFormField(
+                              controller: _emailController,
+                              enabled: !isSubmitting,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const <String>[
+                                AutofillHints.username,
+                              ],
+                              decoration: const InputDecoration(
+                                labelText: 'Email',
+                                hintText: 'courier@example.com',
+                              ),
+                              validator: _validateEmail,
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _passwordController,
+                              enabled: !isSubmitting,
+                              obscureText: _obscurePassword,
+                              textInputAction: TextInputAction.done,
+                              autofillHints: const <String>[
+                                AutofillHints.password,
+                              ],
+                              onFieldSubmitted: (_) => _submit(),
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                suffixIcon: IconButton(
+                                  tooltip: _obscurePassword
+                                      ? 'Show password'
+                                      : 'Hide password',
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                  ),
                                 ),
-                          ),
-                        ],
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Enter your password.';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            if (!widget.authController.canSignIn) ...[
+                              Semantics(
+                                liveRegion: true,
+                                child: const Text(
+                                  'Please wait before trying to sign in again.',
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                            Semantics(
+                              button: true,
+                              enabled:
+                                  !isSubmitting &&
+                                  widget.authController.canSignIn,
+                              label: isSubmitting ? 'Signing in' : 'Sign in',
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: FilledButton(
+                                  style: FilledButton.styleFrom(
+                                    minimumSize: const Size.fromHeight(48),
+                                  ),
+                                  onPressed:
+                                      isSubmitting ||
+                                          !widget.authController.canSignIn
+                                      ? null
+                                      : _submit,
+                                  child: isSubmitting
+                                      ? const SizedBox(
+                                          height: 22,
+                                          width: 22,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text('Sign in'),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(48),
+                                ),
+                                onPressed: isSubmitting
+                                    ? null
+                                    : widget.onRegister,
+                                child: const Text('Create account'),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'New Courier accounts can sign in after their affiliated Logistics organization approves them.',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

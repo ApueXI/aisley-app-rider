@@ -16,6 +16,8 @@ class AppearanceTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ListTile(
+          minTileHeight: 64,
+          minVerticalPadding: 10,
           leading: const Icon(Icons.brightness_6_outlined),
           title: const Text('Appearance'),
           subtitle: Text(

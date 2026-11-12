@@ -1,243 +1,286 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/presentation/courier_section_header.dart';
 import '../../../shared/presentation/courier_status_badge.dart';
 import '../../../shared/presentation/courier_surface_card.dart';
-import '../../../shared/route_map/route_map_view.dart';
+import '../../auth/presentation/controllers/auth_controller.dart';
+import '../../policy/presentation/controllers/policy_controller.dart';
+import '../../policy/presentation/policy_screen.dart';
 import '../domain/linehaul_trip.dart';
 import 'linehaul_controller.dart';
+import 'linehaul_route_screen.dart';
 
-class LinehaulTripDetail extends StatelessWidget {
-  const LinehaulTripDetail({
-    required this.trip,
+part 'linehaul_trip_detail_cards.dart';
+
+class LinehaulTripDetailScreen extends StatefulWidget {
+  const LinehaulTripDetailScreen({
+    required this.tripId,
     required this.controller,
-    required this.onConfirm,
+    required this.authController,
+    this.policyController,
     super.key,
   });
 
-  final LinehaulTrip trip;
+  final String tripId;
   final LinehaulController controller;
-  final void Function(String) onConfirm;
+  final AuthController authController;
+  final PolicyController? policyController;
 
   @override
+  State<LinehaulTripDetailScreen> createState() =>
+      _LinehaulTripDetailScreenState();
+}
+
+class _LinehaulTripDetailScreenState extends State<LinehaulTripDetailScreen> {
+  @override
   Widget build(BuildContext context) {
-    final route = controller.route;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CourierSurfaceCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CourierSectionHeader(
-                title: trip.direction == 'return'
-                    ? 'Return hub transfer'
-                    : 'Outbound hub transfer',
-                subtitle: '${trip.fromHub} → ${trip.toHub}',
-                trailing: CourierStatusBadge(
-                  label: _tripStatusLabel(trip),
-                  tone: _tripStatusTone(trip),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(trip.guidance),
-              if (trip.rejectionReason case final reason?) ...[
-                const SizedBox(height: 8),
-                Text('Rejection reason: $reason'),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        CourierSurfaceCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const CourierSectionHeader(title: 'Trip details'),
-              const SizedBox(height: 8),
-              _TripDetailRow(label: 'Origin', value: trip.fromHub),
-              _TripDetailRow(label: 'Destination', value: trip.toHub),
-              _TripDetailRow(
-                label: 'Company truck',
-                value: trip.truckLabel.isEmpty
-                    ? 'Truck details unavailable'
-                    : trip.truckLabel,
-              ),
-              _TripDetailRow(
-                label: 'Scheduled departure',
-                value: formatTripDate(trip.scheduledFor),
-              ),
-              const Text(
-                'The scheduled time is a plan. Departure is reported after the released load physically leaves the origin hub.',
-              ),
-              if (trip.releasedAt != null)
-                _TripDetailRow(
-                  label: 'Released for departure',
-                  value: formatTripDate(trip.releasedAt),
-                ),
-              if (trip.emptyReturn)
-                const _TripDetailRow(label: 'Load', value: 'Empty return'),
-              if (trip.laneBlocked)
-                const Text(
-                  'Sorting lane blocked. Origin Logistics must resolve this before departure.',
-                ),
-              if (trip.departedAt != null)
-                _TripDetailRow(
-                  label: 'Departed',
-                  value: formatTripDate(trip.departedAt),
-                ),
-              if (trip.courierArrivedAt != null)
-                _TripDetailRow(
-                  label: 'Arrival reported',
-                  value: formatTripDate(trip.courierArrivedAt),
-                ),
-              if (trip.arrivedAt != null)
-                _TripDetailRow(
-                  label: 'Logistics arrival confirmed',
-                  value: formatTripDate(trip.arrivedAt),
-                ),
-              if (trip.unloadingClosedAt != null)
-                _TripDetailRow(
-                  label: 'Unloading closed',
-                  value:
-                      '${formatTripDate(trip.unloadingClosedAt)} · ${trip.unloadingOutcome ?? 'Outcome unavailable'}',
-                ),
-            ],
-          ),
-        ),
-        if (trip.canDepart || trip.canReportArrival) ...[
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed:
-                controller.locked ||
-                    controller.loading ||
-                    controller.coolingDown
-                ? null
-                : () => onConfirm(trip.canDepart ? 'depart' : 'arrival'),
-            icon: Icon(
-              trip.canDepart
-                  ? Icons.local_shipping_outlined
-                  : Icons.flag_outlined,
-            ),
-            label: Text(trip.canDepart ? 'Depart' : 'Report arrival at hub'),
-          ),
-        ],
-        const SizedBox(height: 12),
-        CourierSurfaceCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const CourierSectionHeader(title: 'Hub route'),
-              const SizedBox(height: 8),
-              if (controller.routeLoading) const LinearProgressIndicator(),
-              if (controller.routeError case final message?)
-                Semantics(liveRegion: true, child: Text(message)),
-              if (route != null) ...[
-                for (var i = 0; i < route.hubs.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      '${i + 1}. ${route.hubs[i].name} — ${route.hubs[i].address.isEmpty ? 'Address unavailable' : route.hubs[i].address}',
+    return AnimatedBuilder(
+      animation: widget.controller,
+      builder: (context, _) {
+        final controller = widget.controller;
+        final trip = controller.trips
+            .where((candidate) => candidate.id == widget.tripId)
+            .firstOrNull;
+        if (trip == null) return _unavailableScreen(controller);
+
+        return PopScope(
+          canPop: !controller.saving,
+          child: Scaffold(
+            appBar: AppBar(title: const Text('Linehaul job')),
+            body: RefreshIndicator(
+              onRefresh: controller.load,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                children: [
+                  _LinehaulJobSummary(trip: trip),
+                  if (controller.error case final error?) ...[
+                    const SizedBox(height: 12),
+                    _LinehaulErrorCard(
+                      message: error,
+                      onRetry: controller.uncertain
+                          ? controller.retry
+                          : controller.load,
+                      onOpenPolicies: widget.policyController == null
+                          ? null
+                          : _openPolicies,
                     ),
-                  ),
-                if (route.distanceMetres != null &&
-                    route.durationSeconds != null)
-                  Text(
-                    'Drive ${(route.distanceMetres! / 1000).toStringAsFixed(1)} km · ${(route.durationSeconds! / 60).ceil()} min advisory',
-                  ),
-                if (route.reason != null)
-                  const Text(
-                    'Road route unavailable. Known hub pins are shown; no road distance or travel time is available.',
-                  ),
-                RouteMapView(
-                  key: ValueKey('${trip.id}:${controller.routeVersion}'),
-                  data: route.map,
-                  semanticLabel: 'Hub route map. 1 marks the origin hub; 2 marks the destination hub.',
-                  legend: '1: Origin hub • 2: Destination hub',
-                  onFailure: (_) {},
+                  ],
+                  const SizedBox(height: 16),
+                  if (trip.courierArrivedAt case final arrivedAt?) ...[
+                    _ArrivalReportedCard(arrivedAt: arrivedAt),
+                    const SizedBox(height: 16),
+                    const _WaitForLogisticsCard(),
+                  ] else if (trip.status == 'in_transfer') ...[
+                    const _ArrivalNeededCard(),
+                  ] else if (trip.status == 'receiving') ...[
+                    const _LogisticsReceivingCard(),
+                  ] else if (trip.status == 'received') ...[
+                    const _LogisticsReceivedCard(),
+                  ] else ...[
+                    CourierSurfaceCard(child: Text(trip.guidance)),
+                  ],
+                ],
+              ),
+            ),
+            bottomNavigationBar: _actions(trip, controller),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _unavailableScreen(LinehaulController controller) => Scaffold(
+    appBar: AppBar(title: const Text('Linehaul job')),
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              controller.error ?? 'This linehaul job is no longer available.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: controller.loading || controller.coolingDown
+                  ? null
+                  : controller.load,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh linehaul jobs'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _actions(LinehaulTrip trip, LinehaulController controller) {
+    final action = trip.canDepart
+        ? 'depart'
+        : trip.canReportArrival
+        ? 'arrival'
+        : null;
+    final actionLabel = switch (action) {
+      'depart' => 'Depart',
+      'arrival' => 'Report arrival at hub',
+      _ => null,
+    };
+    final refreshLabel = trip.courierArrivedAt == null
+        ? 'Refresh trip status'
+        : 'Refresh arrival status';
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (controller.uncertain) ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: controller.saving || controller.coolingDown
+                      ? null
+                      : controller.retry,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry same confirmation'),
                 ),
-              ],
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
+              ),
+              const SizedBox(height: 8),
+            ] else if (action != null) ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
                   onPressed:
-                      controller.saving ||
-                          controller.routeLoading ||
-                          controller.routeCoolingDown ||
+                      controller.loading ||
+                          controller.saving ||
                           controller.coolingDown
                       ? null
-                      : controller.loadRoute,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh route'),
+                      : () => _confirm(action, trip),
+                  icon: Icon(
+                    action == 'depart'
+                        ? Icons.local_shipping_outlined
+                        : Icons.flag_outlined,
+                  ),
+                  label: Text(actionLabel!),
                 ),
               ),
+              const SizedBox(height: 8),
             ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        CourierSurfaceCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CourierSectionHeader(title: 'Parcels (${trip.parcelCount})'),
-              if (trip.references.isEmpty && !trip.emptyReturn) ...[
-                const SizedBox(height: 8),
-                const Text('Parcel references unavailable.'),
-              ],
-              for (final reference in trip.references)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(reference),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed:
+                        controller.loading ||
+                            controller.saving ||
+                            controller.coolingDown
+                        ? null
+                        : controller.load,
+                    icon: const Icon(Icons.refresh),
+                    label: Text(refreshLabel, textAlign: TextAlign.center),
+                  ),
                 ),
-            ],
-          ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed:
+                        controller.saving ||
+                            controller.routeLoading ||
+                            controller.routeCoolingDown ||
+                            controller.coolingDown
+                        ? null
+                        : _openRoute,
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('View route'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-      ],
+      ),
     );
+  }
+
+  Future<void> _confirm(String action, LinehaulTrip trip) async {
+    final controller = widget.controller;
+    final revision = trip.revision;
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        scrollable: true,
+        title: Text(
+          action == 'depart' ? 'Confirm departure?' : 'Confirm arrival?',
+        ),
+        content: Text(
+          action == 'depart'
+              ? 'Confirm you have physically left ${trip.fromHub} after origin Logistics released the trip.'
+              : 'Confirm you have reached ${trip.toHub}. This reports your arrival but does not confirm cargo receipt.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(action == 'depart' ? 'Depart' : 'Report arrival'),
+          ),
+        ],
+      ),
+    );
+    if (accepted == true &&
+        mounted &&
+        controller.selected?.id == trip.id &&
+        controller.selected?.revision == revision) {
+      await controller.confirm(action);
+    }
+  }
+
+  Future<void> _openRoute() async {
+    final controller = widget.controller;
+    if (controller.route == null && !controller.routeLoading) {
+      await controller.loadRoute();
+    }
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LinehaulRouteScreen(controller: controller),
+      ),
+    );
+  }
+
+  Future<void> _openPolicies() async {
+    final policy = widget.policyController;
+    if (policy == null || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PolicyScreen(
+          authController: widget.authController,
+          policyController: policy,
+        ),
+      ),
+    );
+    if (mounted) await widget.controller.load();
   }
 }
 
-class _TripDetailRow extends StatelessWidget {
-  const _TripDetailRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 2),
-        Text(value),
-      ],
-    ),
-  );
-}
-
-String _tripStatusLabel(LinehaulTrip trip) => switch (trip.status) {
+String _linehaulStatusLabel(String status) => switch (status) {
   'pending_acceptance' => 'Awaiting approval',
   'scheduled' => 'Scheduled',
   'rejected' => 'Rejected',
   'cancelled' => 'Cancelled',
-  'in_transfer' =>
-    trip.courierArrivedAt == null ? 'In transfer' : 'Arrival reported',
   'receiving' => 'Receiving',
   'received' => 'Received',
   _ => 'Status unavailable',
-};
-
-CourierStatusTone _tripStatusTone(LinehaulTrip trip) => switch (trip.status) {
-  'received' => CourierStatusTone.success,
-  'rejected' || 'cancelled' => CourierStatusTone.critical,
-  'in_transfer' || 'receiving' => CourierStatusTone.info,
-  _ => CourierStatusTone.neutral,
 };
 
 String formatTripDate(DateTime? value) {

@@ -183,7 +183,7 @@ void main() {
     await unmount(tester, [c, auth]);
   });
 
-  testWidgets('pending completion disables reporting on the task', (
+  testWidgets('pending completion shows review and refresh, not new actions', (
     tester,
   ) async {
     final repo = FailedAttemptRepository()..pendingCompletion = true;
@@ -199,21 +199,28 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await reveal(tester, find.text('Report failed attempt'));
-    expect(
-      tester
-          .widget<OutlinedButton>(
-            find.widgetWithText(OutlinedButton, 'Report failed attempt'),
-          )
-          .onPressed,
-      isNull,
-    );
+    expect(find.text('Awaiting Logistics validation'), findsWidgets);
     expect(
       find.text(
-        'Reporting is unavailable while Logistics reviews this delivery.',
+        'The photo proof and Delivered intent were submitted. The order is not marked delivered until Logistics validates the completion intent.',
       ),
       findsOneWidget,
     );
+    expect(find.text('Report failed attempt'), findsNothing);
+    expect(find.text('Review unconfirmed report'), findsNothing);
+    expect(find.text('Delivered'), findsNothing);
+    final refreshCompletion = find.widgetWithText(
+      FilledButton,
+      'Refresh completion status',
+    );
+    expect(refreshCompletion, findsOneWidget);
+    expect(tester.widget<FilledButton>(refreshCompletion).onPressed, isNotNull);
+    await tester.tap(refreshCompletion);
+    await tester.pumpAndSettle();
+    expect(find.text('Awaiting Logistics validation'), findsWidgets);
+    expect(find.text('Report failed attempt'), findsNothing);
+    expect(repo.requests, isEmpty);
+    expect(repo.completionWrites, 0);
     await unmount(tester, [c, auth]);
   });
   testWidgets(

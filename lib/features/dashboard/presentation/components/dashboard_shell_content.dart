@@ -3,36 +3,28 @@ part of '../dashboard_screen.dart';
 extension _DashboardShellContent on _DashboardScreenState {
   Widget _home() => Scaffold(
     appBar: AppBar(
-      title: Row(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Icon(
-            Icons.local_shipping_outlined,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(width: 8),
-          const Flexible(
-            child: Text(
-              'AISLEY Rider',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+      title: Text(
+        'AISLEY Rider',
+        style: Theme.of(context).textTheme.titleLarge
+            ?.copyWith(fontWeight: FontWeight.w700),
       ),
       actions: [
         if (widget.notificationController case final notifications?)
           AnimatedBuilder(
             animation: notifications,
-            builder: (context, _) => IconButton(
-              tooltip: 'Notifications',
-              onPressed: _openNotifications,
-              icon: Badge(
-                isLabelVisible: (notifications.unreadCount ?? 0) > 0,
-                label: Text('${notifications.unreadCount ?? 0}'),
-                child: const Icon(Icons.notifications_none_outlined),
-              ),
-            ),
+            builder: (context, _) {
+              final unreadCount = notifications.unreadCount;
+              return IconButton(
+                tooltip: unreadCount == null
+                    ? 'Notifications'
+                    : 'Notifications, $unreadCount unread',
+                onPressed: _openNotifications,
+                icon: Badge(
+                  isLabelVisible: unreadCount != null && unreadCount > 0,
+                  child: const Icon(Icons.notifications_none_outlined),
+                ),
+              );
+            },
           ),
       ],
     ),
@@ -51,12 +43,12 @@ extension _DashboardShellContent on _DashboardScreenState {
           historyController: widget.historyController,
           onOpenDeliveries: _openDeliveries,
           onOpenHistory: _openHistory,
+          onOpenWork: () => _selectWork(1),
           onOpenBatches: widget.batchController == null ? null : _openBatches,
           onOpenNotifications: widget.notificationController == null
               ? null
               : _openNotifications,
           previewController: widget.dashboardPreviewController,
-          profilePhoto: widget.accountController?.profilePhoto,
         ),
       ),
     ),
@@ -98,6 +90,7 @@ extension _DashboardShellContent on _DashboardScreenState {
       authController: widget.authController,
       batchController: widget.batchController!,
       policyController: widget.policyController,
+      chatController: widget.chatController,
     ),
     5 => HistoryScreen(
       authController: widget.authController,

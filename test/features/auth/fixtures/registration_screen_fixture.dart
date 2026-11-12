@@ -22,15 +22,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class RegistrationScreenFixture {
+  RegistrationScreenFixture({DashboardRepository? dashboardRepository})
+    : _dashboardRepository =
+          dashboardRepository ?? _UnusedDashboardRepository();
+
+  final DashboardRepository _dashboardRepository;
   final repository = RegistrationTestRepository();
   DateTime Function()? verificationClock;
   late final auth = AuthController(
     authRepository: repository,
-    dashboardRepository: _UnusedDashboardRepository(),
+    dashboardRepository: _dashboardRepository,
   );
 
   Future<void> open(
     WidgetTester tester, {
+    GlobalKey? boundary,
     double textScale = 1,
     AccessibilityScenario? scenario,
     bool settle = true,
@@ -82,13 +88,19 @@ class RegistrationScreenFixture {
           child: child!,
         ),
         home: StatefulBuilder(
-          builder: (context, update) => editing
-              ? RegistrationScreen(
-                  authController: auth,
-                  verificationClock: verificationClock,
-                  onSignIn: () => update(() => editing = false),
-                )
-              : const Scaffold(body: Text('Sign in destination')),
+          builder: (context, update) {
+            if (!editing) {
+              return const Scaffold(body: Text('Sign in destination'));
+            }
+            return RepaintBoundary(
+              key: boundary,
+              child: RegistrationScreen(
+                authController: auth,
+                verificationClock: verificationClock,
+                onSignIn: () => update(() => editing = false),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -167,15 +179,19 @@ class RegistrationScreenFixture {
     }
     if (find.text('Verification code').evaluate().isNotEmpty) {
       await enter(tester, 'Verification code', '012345');
-      await tester.ensureVisible(find.text('Verify email'));
-      await tester.tap(find.text('Verify email'));
+      await tester.ensureVisible(find.text('Verify and submit'));
+      await tester.tap(find.text('Verify and submit'));
       await tester.pumpAndSettle();
     }
   }
 }
 
 Finder field(String label) => find.byWidgetPredicate(
-  (widget) => widget is TextField && widget.decoration?.labelText == label,
+  (widget) =>
+      widget is TextField &&
+      (label == 'Verification code'
+          ? widget.decoration?.hintText == 'Enter 6-digit code'
+          : widget.decoration?.labelText == label),
   skipOffstage: false,
 );
 
@@ -217,6 +233,7 @@ Future<void> select(WidgetTester tester, String label, String choice) async {
 }
 
 int registrationStep(WidgetTester tester) {
+  if (find.text('Verify your email').evaluate().isNotEmpty) return 0;
   final progress = tester
       .widgetList<Text>(find.byType(Text))
       .firstWhere((text) => text.data?.startsWith('Step ') == true);
@@ -286,6 +303,7 @@ class RegistrationTestRepository
         RegistrationEmailRepository,
         RegistrationConfigurationRepository {
   bool otpRequired = true;
+  Duration resendDelay = Duration.zero;
   @override
   Future<bool> registrationEmailRequired() async => otpRequired;
   DateTime Function() clock = DateTime.now;
@@ -295,7 +313,7 @@ class RegistrationTestRepository
   ) async => RegistrationEmailChallenge(
     id: 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',
     expiresAt: clock().add(const Duration(minutes: 10)),
-    resendAt: clock(),
+    resendAt: clock().add(resendDelay),
   );
   @override
   Future<RegistrationEmailProof> verifyRegistrationEmail(

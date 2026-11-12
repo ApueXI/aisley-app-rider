@@ -7,6 +7,93 @@ class _TaskIdentity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (task.isFirstMile && task.status == PickupTaskStatus.accepted) {
+      final scheme = Theme.of(context).colorScheme;
+      final pickupName = task.pickup?.name?.trim();
+      final pickupCity = task.pickup?.cityMunicipality?.trim();
+      final location = [
+        if (pickupName != null && pickupName.isNotEmpty) pickupName,
+        if (pickupCity != null && pickupCity.isNotEmpty) pickupCity,
+      ].join(' · ');
+
+      return CourierSurfaceCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final stack =
+                    constraints.maxWidth < 330 ||
+                    MediaQuery.textScalerOf(context).scale(1) > 1.25;
+                final heading = Row(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Order reference',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+                const status = CourierStatusBadge(
+                  label: 'First mile · Pickup accepted',
+                  tone: CourierStatusTone.neutral,
+                );
+                return stack
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [heading, const SizedBox(height: 8), status],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: heading),
+                          const SizedBox(width: 8),
+                          const Flexible(child: status),
+                        ],
+                      );
+              },
+            ),
+            const SizedBox(height: 8),
+            Text(
+              task.order?.displayReference ?? 'Order reference unavailable',
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'First-mile seller collection',
+              style: Theme.of(context).textTheme.bodyLarge
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            if (location.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Divider(height: 1, color: scheme.outlineVariant),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.storefront_outlined,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(location)),
+                ],
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
     return CourierSurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

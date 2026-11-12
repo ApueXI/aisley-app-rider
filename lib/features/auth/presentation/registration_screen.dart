@@ -57,6 +57,7 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   late final RegistrationEmailController _verification;
   final _emailVerificationFocus = FocusNode(debugLabel: 'registration_email');
+  final _registrationEmailFieldsKey = GlobalKey<RegistrationEmailFieldsState>();
   int _step = 1;
   bool _wasVerified = false;
   final _stepScrolls = List.generate(6, (_) => ScrollController());

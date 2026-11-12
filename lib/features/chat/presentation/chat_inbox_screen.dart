@@ -142,56 +142,7 @@ class _ChatInboxScreenState extends State<ChatInboxScreen>
                     message: 'No task conversations yet. Open an eligible task to message Logistics.',
                   ),
                 for (final thread in controller.threads) ...[
-                  CourierSurfaceCard(
-                    onTap: () => _open(thread),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          thread.counterpartyLabel ??
-                              _label(thread.counterpartyRole),
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          thread.taskReference ??
-                              thread.orderReference ??
-                              'Task reference unavailable',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            CourierStatusBadge(
-                              label: thread.leg == 'first_mile'
-                                  ? 'First mile'
-                                  : 'Final mile',
-                              tone: CourierStatusTone.info,
-                            ),
-                            if (thread.unreadCount > 0)
-                              CourierStatusBadge(
-                                label: '${thread.unreadCount} unread',
-                                tone: CourierStatusTone.warning,
-                              )
-                            else
-                              const CourierStatusBadge(label: 'Read'),
-                            if (thread.sendAllowed == false)
-                              const CourierStatusBadge(label: 'Read-only'),
-                          ],
-                        ),
-                        if (thread.lastMessagePreview case final preview?) ...[
-                          const SizedBox(height: 10),
-                          Text(
-                            preview,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                  _ChatInboxRow(thread: thread, onTap: () => _open(thread)),
                   const SizedBox(height: 10),
                 ],
                 if (controller.canLoadMoreInbox)
@@ -214,11 +165,116 @@ class _ChatInboxScreenState extends State<ChatInboxScreen>
   }
 }
 
+class _ChatInboxRow extends StatelessWidget {
+  const _ChatInboxRow({required this.thread, required this.onTap});
+
+  final ChatThread thread;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final title = thread.counterpartyLabel ?? _label(thread.counterpartyRole);
+    final reference =
+        thread.taskReference ??
+        thread.orderReference ??
+        'Task reference unavailable';
+    final unreadLabel = thread.unreadCount == 0
+        ? 'Read'
+        : '${thread.unreadCount} unread';
+
+    return Semantics(
+      button: true,
+      label: '$title, $reference, $unreadLabel. Open task conversation.',
+      child: CourierSurfaceCard(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    _counterpartyIcon(thread.counterpartyRole),
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (thread.lastMessageAt case final sentAt?) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    _chatTime(context, sentAt),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(reference, style: theme.textTheme.titleSmall),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                CourierStatusBadge(
+                  label: thread.leg == 'first_mile'
+                      ? 'First mile'
+                      : 'Final mile',
+                  tone: CourierStatusTone.info,
+                ),
+                CourierStatusBadge(
+                  label: unreadLabel,
+                  tone: thread.unreadCount == 0
+                      ? CourierStatusTone.neutral
+                      : CourierStatusTone.warning,
+                ),
+                if (thread.sendAllowed == false)
+                  const CourierStatusBadge(label: 'Read-only'),
+              ],
+            ),
+            if (thread.lastMessagePreview case final preview?) ...[
+              const SizedBox(height: 10),
+              Text(preview, maxLines: 2, overflow: TextOverflow.ellipsis),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 String _label(String role) => switch (role) {
   'customer' => 'Buyer',
   'seller' => 'Seller',
   _ => 'Logistics',
 };
+
+IconData _counterpartyIcon(String role) => switch (role) {
+  'logistics' => Icons.hub_outlined,
+  'seller' => Icons.storefront_outlined,
+  'customer' => Icons.person_outline,
+  _ => Icons.chat_bubble_outline,
+};
+
+String _chatTime(BuildContext context, DateTime value) {
+  return MaterialLocalizations.of(context)
+      .formatTimeOfDay(TimeOfDay.fromDateTime(value.toLocal()));
+}
 
 class _ChatInboxNotice extends StatelessWidget {
   const _ChatInboxNotice({required this.message, this.onRetry});

@@ -6,6 +6,7 @@ class FinalMileBatchDetailScreen extends StatefulWidget {
     required this.batchController,
     required this.scheduleId,
     this.policyController,
+    this.chatController,
     super.key,
   });
 
@@ -13,6 +14,7 @@ class FinalMileBatchDetailScreen extends StatefulWidget {
   final FinalMileBatchController batchController;
   final String scheduleId;
   final PolicyController? policyController;
+  final ChatController? chatController;
 
   @override
   State<FinalMileBatchDetailScreen> createState() =>
@@ -41,7 +43,7 @@ class _FinalMileBatchDetailScreenState
             (detailStatus == FinalMileBatchLoadStatus.idle ||
                 detailStatus == FinalMileBatchLoadStatus.loading)) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Dispatch batch')),
+            appBar: AppBar(title: const Text('Final-mile batches')),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
@@ -50,7 +52,7 @@ class _FinalMileBatchDetailScreenState
             detailStatus == FinalMileBatchLoadStatus.forbidden ||
             detailStatus == FinalMileBatchLoadStatus.unauthorized) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Dispatch batch')),
+            appBar: AppBar(title: const Text('Final-mile batches')),
             body: _BatchErrorState(
               message:
                   controller.detailError(widget.scheduleId) ??
@@ -68,7 +70,7 @@ class _FinalMileBatchDetailScreenState
               controller.decidingTask == null &&
               !controller.hasUncertainDecision,
           child: Scaffold(
-            appBar: AppBar(title: const Text('Dispatch batch')),
+            appBar: AppBar(title: const Text('Final-mile batches')),
             body: RefreshIndicator(
               onRefresh: () => controller.loadDetail(widget.scheduleId),
               child: ListView(
@@ -76,23 +78,6 @@ class _FinalMileBatchDetailScreenState
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 children: [
                   _BatchSummary(batch: batch),
-                  if (batch.hasAcceptedTasks &&
-                      controller.routeController != null)
-                    TextButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => DeliveryRouteScreen(
-                            batch: batch,
-                            controller: controller.routeController!,
-                            onOpenPolicies: widget.policyController == null
-                                ? null
-                                : _openPolicies,
-                          ),
-                        ),
-                      ),
-                      icon: const Icon(Icons.map_outlined),
-                      label: const Text('View delivery route'),
-                    ),
                   if (_isBatchBlocking(detailStatus) &&
                       controller.detailError(widget.scheduleId) != null) ...[
                     const SizedBox(height: 12),
@@ -103,26 +88,96 @@ class _FinalMileBatchDetailScreenState
                   ],
                   const SizedBox(height: 16),
                   Text(
-                    'Parcels',
+                    'Parcels in batch',
                     style: Theme.of(context).textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_acceptedParcelCount(batch)} accepted · ${_offeredParcelCount(batch)} offered',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   for (var index = 0; index < batch.tasks.length; index++) ...[
                     _ParcelDecisionCard(
-                      position: index + 1,
                       task: batch.tasks[index],
                       batch: batch,
                       controller: controller,
+                      onOpenParcel: () => _openParcel(batch.tasks[index]),
                     ),
                     const SizedBox(height: 10),
                   ],
                 ],
               ),
             ),
+            bottomNavigationBar: _routeFooter(batch, controller),
           ),
         );
       },
+    );
+  }
+
+  Widget? _routeFooter(
+    FinalMileBatch batch,
+    FinalMileBatchController controller,
+  ) {
+    final routeController = controller.routeController;
+    if (!batch.hasAcceptedTasks || routeController == null) return null;
+    final acceptedCount = _routeParcelCount(batch);
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => DeliveryRouteScreen(
+                      batch: batch,
+                      controller: routeController,
+                      onOpenPolicies: widget.policyController == null
+                          ? null
+                          : _openPolicies,
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.alt_route_outlined),
+                label: const Text('View delivery route'),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Route includes accepted deliveries only '
+              '($acceptedCount ${acceptedCount == 1 ? 'parcel' : 'parcels'}).',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openParcel(FinalMileBatchTask task) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => FinalMileOfferedTaskScreen(
+          authController: widget.authController,
+          batchController: widget.batchController,
+          scheduleId: widget.scheduleId,
+          taskId: task.id,
+          policyController: widget.policyController,
+          chatController: widget.chatController,
+        ),
+      ),
     );
   }
 
@@ -150,22 +205,55 @@ class _BatchSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final areas = batch.tasks
+        .map((task) => task.destination.summary)
+        .where((area) => area != 'Destination area unavailable')
+        .toSet()
+        .toList(growable: false);
+    final areaSummary = areas.isEmpty
+        ? 'Destination area unavailable'
+        : areas.take(2).join(' · ');
     return CourierSurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CourierSectionHeader(
-            title: batch.reference,
-            subtitle: 'Final-mile batch',
-          ),
-          const SizedBox(height: 8),
-          _BatchStatusChip(status: batch.status),
-          const SizedBox(height: 12),
           Text(
-            '${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'}',
-            style: Theme.of(context).textTheme.titleMedium,
+            'Schedule reference',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 4),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                batch.reference,
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              _BatchStatusChip(status: batch.status),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${batch.parcelCount} ${batch.parcelCount == 1 ? 'parcel' : 'parcels'} assigned',
+          ),
+          const Divider(height: 28),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.location_on_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(areaSummary)),
+            ],
+          ),
+          const SizedBox(height: 8),
           Text('Scheduled ${_formatBatchSchedule(batch.scheduledFor)}'),
         ],
       ),
@@ -174,9 +262,8 @@ class _BatchSummary extends StatelessWidget {
 }
 
 class _BatchParcelCard extends StatelessWidget {
-  const _BatchParcelCard({required this.position, required this.task});
+  const _BatchParcelCard({required this.task});
 
-  final int position;
   final FinalMileBatchTask task;
 
   @override
@@ -184,51 +271,42 @@ class _BatchParcelCard extends StatelessWidget {
     final reference =
         task.orderReference ?? task.parcel.reference ?? 'Reference unavailable';
     return CourierSurfaceCard(
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(radius: 18, child: Text('$position')),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  reference,
-                  style: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 6),
-                CourierStatusBadge(
-                  label: _parcelStatusLabel(task.status),
-                  tone: _parcelStatusTone(task.status),
-                ),
-                const SizedBox(height: 5),
-                Text(task.destination.summary),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: [
-                    _BatchParcelFact(
-                      icon: Icons.shopping_bag_outlined,
-                      label: task.parcel.itemSummary,
-                    ),
-                    _BatchParcelFact(
-                      icon: Icons.sell_outlined,
-                      label: 'Parcel price: ${task.parcel.priceSummary}',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Parcel price is the merchandise subtotal, not cash due on delivery.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                reference,
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              CourierStatusBadge(
+                label: _parcelStatusLabel(task.status),
+                tone: _parcelStatusTone(task.status),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  'Area',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(task.destination.summary, textAlign: TextAlign.end),
+              ),
+            ],
           ),
         ],
       ),
@@ -237,8 +315,8 @@ class _BatchParcelCard extends StatelessWidget {
 }
 
 String _parcelStatusLabel(String status) => switch (status) {
-  'delivery_assigned' => 'Offered',
-  'delivery_accepted' => 'Accepted',
+  'delivery_assigned' => 'Delivery offered',
+  'delivery_accepted' => 'Delivery accepted',
   'picked_up_from_hub' => 'Picked up from hub',
   'in_transit' => 'In transit',
   'out_for_delivery' => 'Out for delivery',
@@ -249,27 +327,27 @@ String _parcelStatusLabel(String status) => switch (status) {
 };
 
 CourierStatusTone _parcelStatusTone(String status) => switch (status) {
-  'delivered' || 'picked_up_from_hub' => CourierStatusTone.success,
+  'delivered' ||
+  'delivery_accepted' ||
+  'picked_up_from_hub' => CourierStatusTone.success,
   'rejected' || 'cancelled' => CourierStatusTone.critical,
   'in_transit' || 'out_for_delivery' => CourierStatusTone.info,
   _ => CourierStatusTone.neutral,
 };
 
-class _BatchParcelFact extends StatelessWidget {
-  const _BatchParcelFact({required this.icon, required this.label});
+int _acceptedParcelCount(FinalMileBatch batch) =>
+    batch.tasks.where((task) => task.status != 'delivery_assigned').length;
 
-  final IconData icon;
-  final String label;
+int _offeredParcelCount(FinalMileBatch batch) =>
+    batch.tasks.where((task) => task.status == 'delivery_assigned').length;
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 5),
-        Flexible(child: Text(label)),
-      ],
-    );
-  }
-}
+int _routeParcelCount(FinalMileBatch batch) => batch.tasks
+    .where(
+      (task) => const {
+        'delivery_accepted',
+        'picked_up_from_hub',
+        'in_transit',
+        'out_for_delivery',
+      }.contains(task.status),
+    )
+    .length;

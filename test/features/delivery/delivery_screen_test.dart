@@ -59,7 +59,11 @@ void main() {
       250,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.ensureVisible(find.text('Open camera for POD'));
+    await tester.scrollUntilVisible(
+      find.text('Open camera for POD'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Open camera for POD'));
     await tester.pumpAndSettle();
@@ -110,6 +114,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(find.textContaining('42 Willow Street'), findsOneWidget);
+      expect(find.text('Alex Reyes'), findsOneWidget);
+      expect(find.text('0917-555-0143'), findsOneWidget);
+      expect(
+        find.text('Leave with the recipient at the door.'),
+        findsOneWidget,
+      );
+
       final openCamera = find.widgetWithText(
         FilledButton,
         'Open camera for POD',
@@ -133,10 +145,18 @@ void main() {
       expect(repository.uploadedPhoto, isNull);
       expect(find.byType(AlertDialog), findsNothing);
       expect(tester.widget<FilledButton>(submitPhoto).onPressed, isNull);
-      await tester.drag(find.byType(ListView), const Offset(0, 800));
+      await tester.scrollUntilVisible(
+        find.text('Cash collection'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
-      expect(find.text('Cash due'), findsOneWidget);
-      await tester.ensureVisible(find.byType(CheckboxListTile));
+      expect(find.text('Cash collection'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byType(Checkbox),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('I collected PHP 115.00 in full.'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
@@ -262,7 +282,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('ORD-100'), findsOneWidget);
-      expect(find.text('Waybill WB-100'), findsOneWidget);
+      expect(find.text('Waybill'), findsOneWidget);
+      expect(find.text('WB-100'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.textContaining('Photo proof received.'),
         250,
@@ -279,15 +300,16 @@ void main() {
       expect(submitIntent, findsOneWidget);
       expect(find.text('Delivery completed by the server.'), findsNothing);
 
-      await tester.drag(find.byType(ListView), const Offset(0, 700));
+      await tester.scrollUntilVisible(
+        find.text('Cash collection'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
-      expect(find.text('Cash due'), findsOneWidget);
+      expect(find.text('Cash collection'), findsOneWidget);
       expect(find.text('PHP 115.00'), findsOneWidget);
       expect(find.text('I collected PHP 115.00 in full.'), findsOneWidget);
-      expect(
-        tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
-        isFalse,
-      );
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
       expect(
         tester
             .widget<FilledButton>(
@@ -302,8 +324,12 @@ void main() {
         isNull,
       );
 
-      await tester.ensureVisible(find.byType(CheckboxListTile));
-      await tester.tap(find.byType(CheckboxListTile));
+      await tester.scrollUntilVisible(
+        find.byType(Checkbox),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byType(Checkbox));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         submitIntent,
@@ -345,7 +371,7 @@ void main() {
         findsWidgets,
       );
       expect(find.text('Delivery completed by the server.'), findsNothing);
-      expect(find.text('Back to delivery work'), findsOneWidget);
+      expect(find.text('Refresh completion status'), findsOneWidget);
     },
   );
 
@@ -377,11 +403,23 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byType(CheckboxListTile));
-    await tester.tap(find.byType(CheckboxListTile));
-    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Open camera for POD'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(find.text('Open camera for POD'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Open camera for POD'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byType(Checkbox),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
 
     final delivered = find.widgetWithText(FilledButton, 'Delivered');
@@ -405,13 +443,14 @@ void main() {
     await controller.loadDetails(outForDeliveryTask);
     await tester.pumpAndSettle();
 
-    await tester.drag(find.byType(ListView), const Offset(0, 800));
+    await tester.scrollUntilVisible(
+      find.text('PHP 116.00'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     expect(find.text('PHP 116.00'), findsOneWidget);
-    expect(
-      tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
-      isFalse,
-    );
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
     expect(repository.uploadedPhoto, isNull);
     await tester.scrollUntilVisible(
       delivered,
@@ -453,8 +492,14 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byType(CheckboxListTile));
-    await tester.tap(find.byType(CheckboxListTile));
+    await tester.scrollUntilVisible(
+      find.byType(Checkbox),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
     final delivered = find.widgetWithText(FilledButton, 'Delivered');
     expect(tester.widget<FilledButton>(delivered).onPressed, isNotNull);
@@ -478,17 +523,17 @@ void main() {
 
     expect(repository.completionKeys, hasLength(1));
     await tester.scrollUntilVisible(
-      find.text('Retry Delivered'),
+      find.text('Retry same Delivered request'),
       250,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Retry Delivered'), findsOneWidget);
+    expect(find.text('Retry same Delivered request'), findsOneWidget);
     repository.completionError = null;
 
     await tester.drag(find.byType(ListView), const Offset(0, 180));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Retry Delivered'));
-    await tester.tap(find.text('Retry Delivered'));
+    await tester.ensureVisible(find.text('Retry same Delivered request'));
+    await tester.tap(find.text('Retry same Delivered request'));
     await tester.pumpAndSettle();
     expect(find.text('Confirm delivery'), findsOneWidget);
     await tester.tap(
@@ -501,7 +546,7 @@ void main() {
 
     expect(repository.completionKeys, hasLength(2));
     expect(repository.completionKeys.toSet(), hasLength(1));
-    expect(find.text('Back to delivery work'), findsOneWidget);
+    expect(find.text('Refresh completion status'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     controller.dispose();
@@ -552,7 +597,9 @@ void main() {
     expect(find.textContaining('Choose a JPEG, PNG, or WebP'), findsOneWidget);
     expect(find.text('Refresh task'), findsOneWidget);
     expect(find.textContaining('Photo proof received.'), findsNothing);
-    expect(find.text('Delivered'), findsNothing);
+    final delivered = find.widgetWithText(FilledButton, 'Delivered');
+    expect(delivered, findsOneWidget);
+    expect(tester.widget<FilledButton>(delivered).onPressed, isNull);
     await tester.ensureVisible(find.text('Refresh task'));
     await tester.pumpAndSettle();
     final readsBeforeRefresh = repository.deliveryReads;
@@ -621,7 +668,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Confirm COD collection'), findsNothing);
-      await tester.drag(find.byType(ListView), const Offset(0, 700));
+      await tester.scrollUntilVisible(
+        find.text('Cash collection'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       expect(find.textContaining('cash amount'), findsWidgets);
       expect(repository.completionEvidenceId, isNull);

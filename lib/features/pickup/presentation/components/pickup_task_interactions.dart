@@ -13,11 +13,7 @@ extension _PickupTaskInteractions on _PickupTaskDetailScreenState {
     }
     _pickupSetState(() {
       _scanCandidate = candidate;
-      _resolvedForThisTask = null;
-      _resolutionMessage =
-          'Captured ${candidate.typeLabel}. Review the value, then confirm the pickup action.';
     });
-    _pickupController.clearResolution();
   }
 
   Future<void> _confirmAcceptTask(PickupTask task) async {
@@ -98,58 +94,12 @@ extension _PickupTaskInteractions on _PickupTaskDetailScreenState {
     }
   }
 
-  Future<void> _resolveQr() async {
-    final payload = _scanCandidate?.value.trim() ?? '';
-    if (payload.isEmpty) {
-      _pickupSetState(() {
-        _resolvedForThisTask = false;
-        _resolutionMessage = 'Scan a QR code first.';
-      });
-      return;
-    }
-    final resolution = await _pickupController.resolveWaybill(payload);
-    if (!_pickupMounted) {
-      return;
-    }
-    if (resolution == null) {
-      _pickupSetState(() {
-        _resolvedForThisTask = false;
-        _resolutionMessage = _pickupController.waybillResolutionError ?? 'The QR could not be matched. Try scanning the QR code or tracking barcode again.';
-      });
-      await _closeIfSessionEnded();
-      return;
-    }
-
-    final task = _pickupController.taskWithId(widget.task);
-    final matches = _resolutionMatchesTask(resolution, task);
-    _pickupSetState(() {
-      _resolvedForThisTask = matches;
-      _resolutionMessage = matches
-          ? 'The server matched this QR candidate to this task. Confirm pickup only when you have the parcel.'
-          : 'This QR belongs to a different or unavailable task. No pickup was changed.';
-    });
-  }
-
-  bool _resolutionMatchesTask(WaybillResolution resolution, PickupTask task) {
-    if (resolution.taskId != null) {
-      return resolution.taskId == task.id;
-    }
-    final taskOrderReference = task.order?.reference;
-    return taskOrderReference != null &&
-        taskOrderReference == resolution.orderReference;
-  }
-
   Future<void> _submitPickup(PickupTask task) async {
     if (!task.isFirstMile) {
       return;
     }
     final identifier = _scanCandidate?.value.trim() ?? '';
     if (identifier.isEmpty || identifier.length > 128) {
-      _pickupSetState(() {
-        _resolvedForThisTask = false;
-        _resolutionMessage =
-            'Scan a QR code or tracking ID up to 128 characters.';
-      });
       return;
     }
 

@@ -8,12 +8,10 @@ class _ProofAndCompletionCard extends StatelessWidget {
     required this.selectionError,
     required this.isPicking,
     required this.canCancelUpload,
-    required this.paymentReady,
     required this.onChoosePhoto,
     required this.cameraSupported,
     required this.onCapturePhoto,
     required this.onDiscardPhoto,
-    required this.onSubmitPhoto,
     required this.onCancelUpload,
     required this.onOpenPolicies,
     required this.showPolicyAction,
@@ -25,12 +23,10 @@ class _ProofAndCompletionCard extends StatelessWidget {
   final String? selectionError;
   final bool isPicking;
   final bool canCancelUpload;
-  final bool paymentReady;
   final VoidCallback onChoosePhoto;
   final bool cameraSupported;
   final VoidCallback onCapturePhoto;
   final VoidCallback onDiscardPhoto;
-  final VoidCallback onSubmitPhoto;
   final VoidCallback onCancelUpload;
   final VoidCallback onOpenPolicies;
   final bool showPolicyAction;
@@ -66,11 +62,17 @@ class _ProofAndCompletionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CourierSectionHeader(title: 'Photo proof of delivery'),
+          const CourierSectionHeader(title: 'Proof of delivery'),
           const SizedBox(height: 8),
           const Text(
-            'Choose a JPEG, PNG, or WebP photo under 10 MiB. '
-            'The server checks this photo for the current delivery task.',
+            'Capture package placement clearly at the customer doorstep or designated handoff spot.',
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Choose a JPEG, PNG, or WebP photo under 10 MiB. The server checks it for this delivery task.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           if (proofRejected) ...[
             const SizedBox(height: 12),
@@ -142,19 +144,24 @@ class _ProofAndCompletionCard extends StatelessWidget {
                   icon: const Icon(Icons.photo_library_outlined),
                   label: const Text('Replace from files'),
                 ),
-                TextButton.icon(
-                  onPressed: onDiscardPhoto,
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('Remove photo'),
+                Semantics(
+                  button: true,
+                  label: 'Remove photo',
+                  onTap: onDiscardPhoto,
+                  child: SizedBox(
+                    height: 48,
+                    child: ExcludeSemantics(
+                      child: TextButton.icon(
+                        onPressed: onDiscardPhoto,
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Remove photo'),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: paymentReady ? onSubmitPhoto : null,
-              icon: const Icon(Icons.cloud_upload_outlined),
-              label: const Text('Delivered'),
-            ),
           ],
           if (actionStatus == DeliveryActionStatus.proofSubmitting) ...[
             const SizedBox(height: 12),
@@ -187,17 +194,6 @@ class _ProofAndCompletionCard extends StatelessWidget {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Refresh task'),
               ),
-            if (_canRetry(actionStatus) &&
-                actionStatus != DeliveryActionStatus.conflict &&
-                (controller.hasPendingProof(task) ||
-                    controller.hasPendingCompletion(task)))
-              TextButton(
-                onPressed:
-                    !paymentReady || busy || !controller.canRetryRateLimit
-                    ? null
-                    : onSubmitPhoto,
-                child: const Text('Retry Delivered'),
-              ),
           ],
           if (evidenceId != null && !proofRejected) ...[
             const SizedBox(height: 12),
@@ -227,12 +223,6 @@ class _ProofAndCompletionCard extends StatelessWidget {
                   : 'Submitted proof of delivery photo',
             ),
           ],
-          const Divider(height: 32),
-          Text(
-            'Delivered intent',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
           if (controller.completionErrors[task.id] != null) ...[
             Text(
               controller.completionErrors[task.id]!,
@@ -242,46 +232,18 @@ class _ProofAndCompletionCard extends StatelessWidget {
           ],
           if (completion?.isDelivered == true)
             const _DeliveredStatusText()
-          else if (completionPending)
-            const _AwaitingCompletionText()
-          else if (evidenceId == null)
-            const Text('Submit photo proof before sending Delivered intent.')
           else if (proofRejected)
             const Text('Submit a new photo proof after Logistics rejection.')
           else if (proofStale)
             const Text(
-              'Refresh or submit a fresh photo before Delivered intent.',
+              'Refresh or submit a fresh photo before sending Delivered for review.',
             )
-          else ...[
+          else if (evidenceId != null ||
+              selectedPhoto != null ||
+              completionPending)
             const Text(
-              'Submit Delivered using the saved photo. '
-              'Logistics will decide when the delivery is complete.',
+              'Submitting Delivered sends the photo proof and completion intent for Logistics validation.',
             ),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed:
-                  !paymentReady ||
-                      busy ||
-                      actionBlocked ||
-                      controller.hasPendingCompletion(task)
-                  ? null
-                  : onSubmitPhoto,
-              icon: const Icon(Icons.done_all),
-              label: const Text('Delivered'),
-            ),
-          ],
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed:
-                busy ||
-                    !controller.canRetryRateLimit ||
-                    controller.completionStatuses[task.id] ==
-                        DeliveryLoadStatus.loading
-                ? null
-                : () => controller.loadCompletion(task),
-            icon: const Icon(Icons.refresh),
-            label: const Text('Refresh completion status'),
-          ),
         ],
       ),
     );

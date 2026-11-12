@@ -6,12 +6,12 @@ import 'package:aisley_app/app/courier_theme.dart';
 import 'package:aisley_app/features/auth/domain/auth_models.dart';
 import 'package:aisley_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:aisley_app/features/auth/presentation/login_screen.dart';
-import 'package:aisley_app/features/auth/presentation/registration_screen.dart';
 import 'package:aisley_app/features/chat/data/chat_repository.dart';
 import 'package:aisley_app/features/chat/domain/chat_models.dart';
-import 'package:aisley_app/features/chat/presentation/chat_inbox_screen.dart';
-import 'package:aisley_app/features/chat/presentation/chat_thread_screen.dart';
 import 'package:aisley_app/features/chat/presentation/controllers/chat_controller.dart';
+import 'package:aisley_app/features/dashboard/data/dashboard_repository.dart';
+import 'package:aisley_app/features/dashboard/domain/dashboard_models.dart';
+import 'package:aisley_app/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:aisley_app/features/history/domain/history_models.dart';
 import 'package:aisley_app/features/history/presentation/controllers/history_controller.dart';
 import 'package:aisley_app/features/history/presentation/history_screen.dart';
@@ -19,6 +19,8 @@ import 'package:aisley_app/features/notification/data/notification_repository.da
 import 'package:aisley_app/features/notification/domain/notification_models.dart';
 import 'package:aisley_app/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:aisley_app/features/notification/presentation/notification_screen.dart';
+// ignore: depend_on_referenced_packages
+import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +38,10 @@ const _captureEnabled = bool.fromEnvironment(
 const _sdkFonts = String.fromEnvironment(
   'FLUTTER_FONT_DIR',
   defaultValue: '/home/cred/develop/flutter/bin/cache/artifacts/material_fonts',
+);
+const _captureDirectory = String.fromEnvironment(
+  'STITCH_CAPTURE_DIRECTORY',
+  defaultValue: 'build/stitch-ui/identity',
 );
 
 void main() {
@@ -65,9 +71,8 @@ void main() {
 
   for (final screen in [
     'sign-in',
-    'registration-email',
+    'registration-otp',
     'messages',
-    'thread-unresolved',
     'history',
     'notifications',
   ]) {
@@ -81,56 +86,39 @@ void main() {
           boundary,
           LoginScreen(authController: authFixture.auth, onRegister: () {}),
         );
+        expect(find.text('Sign in to your rider account'), findsOneWidget);
+        expect(find.text('Email'), findsOneWidget);
+        expect(find.text('Password'), findsOneWidget);
+        expect(find.byTooltip('Show password'), findsOneWidget);
+        expect(find.text('Create account'), findsOneWidget);
+        expect(find.text('Forgot password'), findsNothing);
         await _capture(tester, boundary, screen);
         await tester.pumpWidget(const SizedBox.shrink());
         authFixture.auth.dispose();
-      } else if (screen == 'registration-email') {
-        await _captureRegistrationEmail(tester, boundary);
+      } else if (screen == 'registration-otp') {
+        await _captureRegistrationOtp(tester, boundary);
       } else if (screen == 'messages') {
-        final authFixture = RegistrationScreenFixture();
+        final authFixture = RegistrationScreenFixture(
+          dashboardRepository: _ScreenshotDashboardRepository(),
+        );
         final auth = _activate(authFixture.auth);
         final chat = ChatController(repository: _ScreenshotChatRepository());
         await _pumpCaptureApp(
           tester,
           boundary,
-          ChatInboxScreen(controller: chat, authController: auth),
+          DashboardScreen(authController: auth, chatController: chat),
         );
+        await tester.tap(find.byType(NavigationDestination).at(2));
         await tester.pumpAndSettle();
-        await _capture(tester, boundary, screen);
-        await tester.pumpWidget(const SizedBox.shrink());
-        chat.dispose();
-        auth.dispose();
-      } else if (screen == 'thread-unresolved') {
-        final authFixture = RegistrationScreenFixture();
-        final auth = _activate(authFixture.auth);
-        final chat =
-            ChatController(
-                repository: _ScreenshotChatRepository(
-                  includeCourierReply: false,
-                ),
-              )
-              ..pendingAttempt = const ChatSendAttempt(
-                body: 'I am at the hub entrance.',
-                key: '00000000-0000-4000-8000-000000000001',
-                leg: 'first_mile',
-                taskId: 'task-demo-2048',
-                counterpartyRole: 'logistics',
-                threadId: 'conversation-demo-2048',
-              )
-              ..unresolvedSend = true
-              ..sendStatus = ChatSendStatus.uncertain
-              ..sendError =
-                  'The message may not have been saved. Retry this exact message.';
-        await _pumpCaptureApp(
-          tester,
-          boundary,
-          ChatThreadScreen(
-            controller: chat,
-            authController: auth,
-            thread: _demoThread,
-          ),
-        );
-        await tester.pumpAndSettle();
+        expect(find.byType(NavigationDestination), findsNWidgets(4));
+        expect(find.text('Logistics team'), findsOneWidget);
+        expect(find.text('ORD-DEMO-2048'), findsOneWidget);
+        expect(find.text('1 unread'), findsOneWidget);
+        expect(find.text('Example shop'), findsOneWidget);
+        expect(find.text('ORD-DEMO-2049'), findsOneWidget);
+        expect(find.text('ETA'), findsNothing);
+        expect(find.textContaining('online'), findsNothing);
+        expect(find.textContaining('directory'), findsNothing);
         await _capture(tester, boundary, screen);
         await tester.pumpWidget(const SizedBox.shrink());
         chat.dispose();
@@ -139,13 +127,20 @@ void main() {
         final repository = history.HistorySearchRepository()
           ..page = DeliveryHistoryPage(items: [_demoHistoryItem]);
         final controller = HistoryController(historyRepository: repository);
+        await controller.search('ORD-DEMO-2048');
         final auth = history.historyAuth();
-        await _pumpCaptureApp(
+        await _pumpPushedCaptureApp(
           tester,
           boundary,
           HistoryScreen(authController: auth, historyController: controller),
         );
         await tester.pumpAndSettle();
+        expect(find.byTooltip('Back'), findsOneWidget);
+        expect(find.text('Exact Order reference'), findsOneWidget);
+        expect(find.text('ORD-DEMO-2048'), findsNWidgets(2));
+        expect(find.text('Read-only view'), findsOneWidget);
+        expect(find.text('Search'), findsOneWidget);
+        expect(find.text('Clear'), findsOneWidget);
         await _capture(tester, boundary, screen);
         await tester.pumpWidget(const SizedBox.shrink());
         controller.dispose();
@@ -155,12 +150,20 @@ void main() {
         final controller = NotificationController(
           notificationRepository: repository,
         );
-        await _pumpCaptureApp(
+        await _pumpPushedCaptureApp(
           tester,
           boundary,
           NotificationScreen(controller: controller, managePolling: false),
         );
         await tester.pumpAndSettle();
+        expect(find.byTooltip('Back'), findsOneWidget);
+        expect(find.text('Pickup schedule updated'), findsOneWidget);
+        expect(find.text('Support ticket reply'), findsOneWidget);
+        expect(find.text('Linehaul trip scheduled'), findsOneWidget);
+        expect(find.text('Unread'), findsNWidgets(2));
+        expect(find.text('Read'), findsNWidgets(2));
+        expect(find.text('Mark all as read'), findsNothing);
+        expect(find.text('Open related work'), findsNothing);
         await _capture(tester, boundary, screen);
         await tester.pumpWidget(const SizedBox.shrink());
         controller.dispose();
@@ -191,7 +194,54 @@ Future<void> _pumpCaptureApp(
   await tester.pumpAndSettle();
 }
 
-Future<void> _captureRegistrationEmail(
+Future<void> _pumpPushedCaptureApp(
+  WidgetTester tester,
+  GlobalKey boundary,
+  Widget screen,
+) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: buildCourierTheme(Brightness.light),
+      home: _CaptureRouteLauncher(boundary: boundary, screen: screen),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+class _CaptureRouteLauncher extends StatefulWidget {
+  const _CaptureRouteLauncher({required this.boundary, required this.screen});
+
+  final GlobalKey boundary;
+  final Widget screen;
+
+  @override
+  State<_CaptureRouteLauncher> createState() => _CaptureRouteLauncherState();
+}
+
+class _CaptureRouteLauncherState extends State<_CaptureRouteLauncher> {
+  bool _pushed = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_pushed) return;
+    _pushed = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              RepaintBoundary(key: widget.boundary, child: widget.screen),
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+Future<void> _captureRegistrationOtp(
   WidgetTester tester,
   GlobalKey boundary,
 ) async {
@@ -222,25 +272,29 @@ Future<void> _captureRegistrationEmail(
     rootBundle.clear();
   });
 
+  final originalPicker = FileSelectorPlatform.instance;
+  FileSelectorPlatform.instance = registration.TestImagePicker();
+  addTearDown(() => FileSelectorPlatform.instance = originalPicker);
+
   final fixture = RegistrationScreenFixture();
-  await tester.pumpWidget(
-    MaterialApp(
-      theme: buildCourierTheme(Brightness.light),
-      home: RepaintBoundary(
-        key: boundary,
-        child: RegistrationScreen(
-          authController: fixture.auth,
-          onSignIn: () {},
-        ),
-      ),
-    ),
-  );
+  await fixture.open(tester, boundary: boundary);
+  await fixture.fill(tester);
+  await registration.navigateRegistrationStep(tester, 1);
+  await registration.enter(tester, 'Email', 'mika@example.invalid');
+  await registration.enter(tester, 'First name', 'Mika');
+  await registration.navigateRegistrationStep(tester, 5);
+  fixture.repository.resendDelay = const Duration(seconds: 45);
+  await registration.nextRegistrationStep(tester);
   await tester.pumpAndSettle();
-  await registration.enter(tester, 'Email address', 'courier@example.test');
-  await tester.ensureVisible(find.text('Send verification code'));
-  await tester.tap(find.text('Send verification code'));
-  await tester.pumpAndSettle();
-  await _capture(tester, boundary, 'registration-email');
+  expect(find.text('Verify your email'), findsOneWidget);
+  expect(find.text('mika@example.invalid'), findsOneWidget);
+  expect(find.text('Verification code'), findsOneWidget);
+  expect(find.byType(TextField), findsOneWidget);
+  expect(find.text('Verify and submit'), findsOneWidget);
+  expect(find.textContaining('Resend code ('), findsOneWidget);
+  expect(find.text('Back to review'), findsOneWidget);
+  expect(find.textContaining('Step '), findsNothing);
+  await _capture(tester, boundary, 'registration-otp');
   await tester.pumpWidget(const SizedBox.shrink());
   fixture.auth.dispose();
 }
@@ -268,7 +322,7 @@ Future<void> _capture(
             as RenderRepaintBoundary;
     final image = await boundary.toImage(pixelRatio: 1);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    final folder = Directory('build/stitch-ui/identity');
+    final folder = Directory(_captureDirectory);
     await folder.create(recursive: true);
     await File('${folder.path}/$name.png').writeAsBytes(
       bytes!.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
@@ -277,7 +331,7 @@ Future<void> _capture(
   });
 }
 
-const _demoThread = ChatThread(
+final _demoThread = ChatThread(
   id: 'conversation-demo-2048',
   kind: 'logistics_courier',
   leg: 'first_mile',
@@ -290,6 +344,23 @@ const _demoThread = ChatThread(
   lastReadSequence: 1,
   sendAllowed: true,
   lastMessagePreview: 'Please confirm when you arrive at the hub.',
+  lastMessageAt: DateTime.utc(2026, 9, 20, 1, 38),
+);
+
+final _demoSellerThread = ChatThread(
+  id: 'conversation-demo-2049',
+  kind: 'courier_seller',
+  leg: 'first_mile',
+  taskId: 'task-demo-2049',
+  taskReference: 'ORD-DEMO-2049',
+  counterpartyRole: 'seller',
+  counterpartyLabel: 'Example shop',
+  unreadCount: 0,
+  lastSequence: 1,
+  lastReadSequence: 1,
+  sendAllowed: true,
+  lastMessagePreview: 'Please confirm the pickup window for this task.',
+  lastMessageAt: DateTime.utc(2026, 9, 20, 1, 15),
 );
 
 final _demoHistoryItem = DeliveryHistoryItem.fromJson({
@@ -314,29 +385,54 @@ final _demoHistoryItem = DeliveryHistoryItem.fromJson({
   'evidence_id': 'evidence-demo-2048',
 });
 
-final _demoNotification = CourierNotification(
-  id: 'notification-demo-2048',
-  type: 'courier-task.final-mile-offered',
-  title: 'Delivery offered',
-  summary: 'A delivery request is available.',
-  createdAt: DateTime.utc(2026, 9, 20, 2),
-  resourceType: 'delivery_task',
-  resourceId: 'task-demo-2048',
-  destination: '/delivery-tasks/task-demo-2048',
-);
+final _demoNotifications = <CourierNotification>[
+  CourierNotification(
+    id: 'notification-pickup-demo',
+    type: 'pickup-schedule.revised',
+    title: 'Pickup schedule updated',
+    summary: 'A schedule update is available for ORD-DEMO-2047.',
+    createdAt: DateTime.utc(2026, 11, 12, 2, 5),
+    resourceType: 'pickup_schedule',
+    resourceId: 'schedule-demo-2047',
+    destination: '/pickup-schedules/schedule-demo-2047',
+    category: 'pickups',
+    categoryLabel: 'Pickups',
+  ),
+  CourierNotification(
+    id: 'notification-support-demo',
+    type: 'support-ticket.admin-replied',
+    title: 'Support ticket reply',
+    summary: 'An administrator replied to your support ticket.',
+    createdAt: DateTime.utc(2026, 11, 12, 1, 20),
+    resourceType: 'support_ticket',
+    resourceId: '00000000-0000-4000-8000-000000000042',
+    destination: '/support-tickets/00000000-0000-4000-8000-000000000042',
+    category: 'support',
+    categoryLabel: 'Support tickets',
+  ),
+  CourierNotification(
+    id: 'notification-linehaul-demo',
+    type: 'courier-linehaul.trip-scheduled',
+    title: 'Linehaul trip scheduled',
+    summary: 'Your assigned trip was scheduled.',
+    createdAt: DateTime.utc(2026, 11, 11, 8, 30),
+    readAt: DateTime.utc(2026, 11, 11, 8, 40),
+    resourceType: 'linehaul_trip',
+    resourceId: 'trip-demo-2046',
+    destination: '/linehaul-trips/trip-demo-2046',
+    category: 'linehaul',
+    categoryLabel: 'Linehaul',
+  ),
+];
 
 class _ScreenshotChatRepository implements ChatRepository {
-  _ScreenshotChatRepository({this.includeCourierReply = true});
-
-  final bool includeCourierReply;
-
   @override
   Future<ChatPage<ChatThread>> list({
     String? leg,
     String? cursor,
     int limit = 20,
   }) async => ChatPage<ChatThread>(
-    items: const [_demoThread],
+    items: [_demoThread, _demoSellerThread],
     nextCursor: null,
     unreadCount: 1,
   );
@@ -349,8 +445,8 @@ class _ScreenshotChatRepository implements ChatRepository {
     String id, {
     String? cursor,
     int limit = 20,
-  }) async {
-    final messages = <ChatMessage>[
+  }) async => ChatPage<ChatMessage>(
+    items: [
       ChatMessage(
         id: 'message-demo-1',
         conversationId: 'conversation-demo-2048',
@@ -360,22 +456,9 @@ class _ScreenshotChatRepository implements ChatRepository {
         body: 'Please confirm when you arrive at the hub.',
         createdAt: DateTime.utc(2026, 9, 20, 1, 50),
       ),
-    ];
-    if (includeCourierReply) {
-      messages.add(
-        ChatMessage(
-          id: 'message-demo-2',
-          conversationId: 'conversation-demo-2048',
-          sequence: 2,
-          senderRole: 'courier',
-          mine: true,
-          body: 'I am at the hub entrance.',
-          createdAt: DateTime.utc(2026, 9, 20, 1, 55),
-        ),
-      );
-    }
-    return ChatPage<ChatMessage>(items: messages, nextCursor: null);
-  }
+    ],
+    nextCursor: null,
+  );
 
   @override
   Future<ChatSendResult> start({
@@ -400,8 +483,20 @@ class _ScreenshotChatRepository implements ChatRepository {
       _demoThread;
 }
 
+class _ScreenshotDashboardRepository implements DashboardRepository {
+  @override
+  Future<DashboardSnapshot> fetchDashboard() async => DashboardSnapshot(
+    sections: const {},
+    freshness: const DashboardFreshness(
+      state: DashboardFreshnessState.scaffold,
+      reason: 'OPERATIONAL_SCHEMA_DEFERRED',
+      generatedAt: '2026-09-20T02:00:00Z',
+    ),
+  );
+}
+
 class _ScreenshotNotificationRepository implements NotificationRepository {
-  CourierNotification notification = _demoNotification;
+  List<CourierNotification> notifications = _demoNotifications;
 
   @override
   Future<CourierNotificationPage> fetchNotifications({
@@ -409,21 +504,33 @@ class _ScreenshotNotificationRepository implements NotificationRepository {
     String category = 'all',
     int limit = 20,
     String? cursor,
-  }) async => CourierNotificationPage(
-    items: [notification],
-    generatedAt: DateTime.utc(2026, 9, 20, 2, 1),
-  );
+  }) async {
+    return CourierNotificationPage(
+      items: notifications,
+      generatedAt: DateTime.utc(2026, 11, 12, 2, 6),
+    );
+  }
 
   @override
-  Future<int> fetchUnreadCount() async => notification.isRead ? 0 : 1;
+  Future<int> fetchUnreadCount() async =>
+      notifications.where((notification) => !notification.isRead).length;
 
   @override
   Future<CourierNotification> fetchDetail(String notificationId) async =>
-      notification;
+      notifications.firstWhere(
+        (notification) => notification.id == notificationId,
+      );
 
   @override
-  Future<CourierNotification> markRead(String notificationId) async =>
-      notification = notification.copyWith(
-        readAt: DateTime.utc(2026, 9, 20, 2, 1),
-      );
+  Future<CourierNotification> markRead(String notificationId) async {
+    final notification = await fetchDetail(notificationId);
+    final updated = notification.copyWith(
+      readAt: DateTime.utc(2026, 11, 12, 2, 6),
+    );
+    notifications = [
+      for (final item in notifications)
+        if (item.id == notificationId) updated else item,
+    ];
+    return updated;
+  }
 }

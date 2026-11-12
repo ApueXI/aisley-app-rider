@@ -57,8 +57,8 @@ void main() {
       'Ana',
     );
     await enter(tester, 'Verification code', '012345');
-    await tester.ensureVisible(find.text('Verify email'));
-    await tester.tap(find.text('Verify email'));
+    await tester.ensureVisible(find.text('Verify and submit'));
+    await tester.tap(find.text('Verify and submit'));
     await tester.pumpAndSettle();
     expect(find.text('Account created successfully'), findsOneWidget);
     expect(
@@ -352,8 +352,8 @@ void main() {
       await tester.tap(find.text('Continue to email verification'));
       await tester.pumpAndSettle();
       await enter(tester, 'Verification code', '012345');
-      await tester.ensureVisible(find.text('Verify email'));
-      await tester.tap(find.text('Verify email'));
+      await tester.ensureVisible(find.text('Verify and submit'));
+      await tester.tap(find.text('Verify and submit'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.binding.handlePopRoute();

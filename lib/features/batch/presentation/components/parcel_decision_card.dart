@@ -2,15 +2,15 @@ part of '../final_mile_batch_screen.dart';
 
 class _ParcelDecisionCard extends StatelessWidget {
   const _ParcelDecisionCard({
-    required this.position,
     required this.task,
     required this.batch,
     required this.controller,
+    required this.onOpenParcel,
   });
-  final int position;
   final FinalMileBatchTask task;
   final FinalMileBatch batch;
   final FinalMileBatchController controller;
+  final VoidCallback onOpenParcel;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class _ParcelDecisionCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _BatchParcelCard(position: position, task: task),
+        _BatchParcelCard(task: task),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -42,43 +42,25 @@ class _ParcelDecisionCard extends StatelessWidget {
                       : () => controller.retryParcelDecision(batch.id, task.id),
                   child: const Text('Retry same decision'),
                 )
-              else if (task.status == 'delivery_assigned')
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    FilledButton(
-                      onPressed: blocked || controller.parcelRepository == null
-                          ? null
-                          : () => _decide(context, false),
-                      child: const Text('Accept parcel'),
-                    ),
-                    OutlinedButton(
-                      onPressed: blocked || controller.parcelRepository == null
-                          ? null
-                          : () => _decide(context, true),
-                      child: const Text('Reject parcel'),
-                    ),
-                  ],
+              else
+                OutlinedButton.icon(
+                  onPressed: blocked ? null : onOpenParcel,
+                  icon: Icon(
+                    task.status == 'delivery_assigned'
+                        ? Icons.rate_review_outlined
+                        : Icons.open_in_new,
+                  ),
+                  label: Text(
+                    task.status == 'delivery_assigned'
+                        ? 'Review parcel'
+                        : 'View parcel details',
+                  ),
                 ),
             ],
           ),
         ),
       ],
     );
-  }
-
-  Future<void> _decide(BuildContext context, bool reject) async {
-    final reason = await showDialog<String>(
-      context: context,
-      builder: (_) => _ParcelDecisionDialog(reject: reject),
-    );
-    if (reason != null && context.mounted) {
-      await controller.decideParcel(
-        batch.id,
-        task.id,
-        reason: reject ? reason : null,
-      );
-    }
   }
 }
 
@@ -100,7 +82,7 @@ class _ParcelDecisionDialogState extends State<_ParcelDecisionDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
     scrollable: true,
-    title: Text(widget.reject ? 'Reject parcel?' : 'Accept parcel?'),
+    title: Text(widget.reject ? 'Reject offer?' : 'Accept delivery?'),
     content: widget.reject
         ? TextField(
             controller: reason,
@@ -125,7 +107,7 @@ class _ParcelDecisionDialogState extends State<_ParcelDecisionDialog> {
         onPressed: widget.reject && reason.text.trim().runes.length < 3
             ? null
             : () => Navigator.pop(context, reason.text),
-        child: Text(widget.reject ? 'Reject parcel' : 'Accept parcel'),
+        child: Text(widget.reject ? 'Reject offer' : 'Accept delivery'),
       ),
     ],
   );

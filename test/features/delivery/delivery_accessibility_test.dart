@@ -59,22 +59,17 @@ void main() {
         await reveal(tester, delivered);
         expect(tester.widget<FilledButton>(delivered).onPressed, isNull);
         expect(repository.uploadedPhoto, isNull);
-        await reveal(tester, find.text('Cash due'));
-        expect(find.text('Cash due'), findsOneWidget);
+        await reveal(tester, find.text('Cash collection'));
+        expect(find.text('Cash collection'), findsOneWidget);
         expect(find.text('PHP 115.00'), findsOneWidget);
-        expect(
-          tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
-          isFalse,
-        );
+        expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
         await checkAccessibility(tester);
-        await tester.ensureVisible(find.byType(CheckboxListTile));
-        await focusByKeyboard(tester, find.byType(CheckboxListTile));
-        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await reveal(tester, find.byType(Checkbox));
+        await focusByKeyboard(tester, find.byType(Checkbox));
         await tester.pumpAndSettle();
-        expect(
-          tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
-          isTrue,
-        );
+        await tester.sendKeyEvent(LogicalKeyboardKey.space);
+        await tester.pumpAndSettle();
+        expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
         await checkAccessibility(tester);
         await reveal(tester, delivered);
         expect(tester.widget<FilledButton>(delivered).onPressed, isNotNull);
@@ -147,7 +142,9 @@ void main() {
         );
         await tester.pumpAndSettle();
         await checkScrollableAccessibility(tester);
-        expect(find.text('Delivered'), findsNothing);
+        final delivered = find.widgetWithText(FilledButton, 'Delivered');
+        expect(delivered, findsOneWidget);
+        expect(tester.widget<FilledButton>(delivered).onPressed, isNull);
         await reveal(tester, find.text('Refresh task'));
         await focusByKeyboard(
           tester,

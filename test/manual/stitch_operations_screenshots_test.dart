@@ -7,11 +7,18 @@ import 'package:aisley_app/core/networking/api_client.dart';
 import 'package:aisley_app/core/security/courier_map_security.dart';
 import 'package:aisley_app/features/batch/presentation/controllers/final_mile_batch_controller.dart';
 import 'package:aisley_app/features/batch/presentation/final_mile_batch_screen.dart';
+import 'package:aisley_app/features/chat/data/chat_repository.dart';
+import 'package:aisley_app/features/chat/domain/chat_models.dart';
+import 'package:aisley_app/features/chat/presentation/controllers/chat_controller.dart';
 import 'package:aisley_app/features/delivery/domain/delivery_models.dart';
+import 'package:aisley_app/features/delivery/domain/delivery_proof_photo.dart';
 import 'package:aisley_app/features/delivery/presentation/controllers/delivery_controller.dart';
 import 'package:aisley_app/features/delivery/presentation/delivery_screen.dart';
 import 'package:aisley_app/features/delivery/presentation/photo_capture/delivery_photo_capture.dart';
 import 'package:aisley_app/features/delivery/presentation/photo_capture/delivery_photo_capture_result.dart';
+import 'package:aisley_app/features/delivery_route/data/delivery_route_repository.dart';
+import 'package:aisley_app/features/delivery_route/domain/delivery_route_models.dart';
+import 'package:aisley_app/features/delivery_route/presentation/delivery_route_controller.dart';
 import 'package:aisley_app/features/linehaul/presentation/linehaul_controller.dart';
 import 'package:aisley_app/features/linehaul/presentation/linehaul_screen.dart';
 import 'package:aisley_app/features/pickup/domain/pickup_models.dart';
@@ -23,6 +30,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../features/batch/fixtures/final_mile_batch_screen_fixture.dart';
 import '../features/delivery/fixtures/delivery_screen_fixture.dart';
@@ -30,10 +38,15 @@ import '../features/linehaul/linehaul_fixture.dart';
 import '../features/pickup/fixtures/pickup_route_repository.dart';
 import '../features/delivery_route/delivery_route_contract_test.dart'
     show RouteTestStorage;
+import '../core/scanning/fixtures/scanner_platform.dart';
 
 const _captureEnabled = bool.fromEnvironment(
   'CAPTURE_STITCH_OPERATIONS',
   defaultValue: false,
+);
+const _captureDirectory = String.fromEnvironment(
+  'STITCH_CAPTURE_DIRECTORY',
+  defaultValue: 'build/stitch-ui/operations',
 );
 const _sdkFonts = String.fromEnvironment(
   'FLUTTER_FONT_DIR',
@@ -106,7 +119,7 @@ void main() {
 }
 
 void _setViewport(WidgetTester tester) {
-  tester.view.physicalSize = const Size(780, 2000);
+  tester.view.physicalSize = const Size(780, 1768);
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -118,21 +131,32 @@ Future<void> _pumpCaptureApp(
   Widget screen, {
   Widget Function(Widget child)? wrapper,
 }) async {
-  Widget body = RepaintBoundary(key: boundary, child: screen);
-  if (wrapper != null) body = wrapper(body);
   await tester.pumpWidget(
-    MaterialApp(theme: buildCourierTheme(Brightness.light), home: body),
+    MaterialApp(
+      theme: buildCourierTheme(Brightness.light),
+      home: screen,
+      builder: (context, child) {
+        Widget body = RepaintBoundary(key: boundary, child: child!);
+        if (wrapper != null) body = wrapper(body);
+        return body;
+      },
+    ),
   );
   await tester.pumpAndSettle();
 }
 
-Future<void> _capture(WidgetTester tester, GlobalKey boundary, String name) {
-  return tester.runAsync(() async {
+Future<void> _capture(
+  WidgetTester tester,
+  GlobalKey boundary,
+  String name,
+) async {
+  await tester.pumpAndSettle();
+  await tester.runAsync(() async {
     final renderObject =
         boundary.currentContext!.findRenderObject()! as RenderRepaintBoundary;
     final image = await renderObject.toImage(pixelRatio: 2);
     final png = await image.toByteData(format: ui.ImageByteFormat.png);
-    final folder = Directory('build/stitch-ui/operations');
+    final folder = Directory(_captureDirectory);
     await folder.create(recursive: true);
     final fileName = name.endsWith('.png') ? name : '$name.png';
     await File('${folder.path}/$fileName').writeAsBytes(
@@ -152,20 +176,27 @@ Future<void> _captureOfferedParcelDecision(
     parcelRepository: WidgetParcelRepository(repository),
   );
   final auth = batchAuthController();
+  final chat = ChatController(repository: _OperationsChatRepository());
+  await controller.load();
+  await controller.loadDetail('schedule-1');
   await _pumpCaptureApp(
     tester,
     boundary,
-    FinalMileBatchDetailScreen(
+    FinalMileOfferedTaskScreen(
       authController: auth,
       batchController: controller,
       scheduleId: 'schedule-1',
+      taskId: 'task-1',
+      chatController: chat,
     ),
   );
-  expect(find.text('Accept parcel'), findsNWidgets(2));
-  expect(find.text('Reject parcel'), findsNWidgets(2));
-  await tester.ensureVisible(find.text('Accept parcel').first);
+  expect(find.text('Task details'), findsOneWidget);
+  expect(find.text('Accept delivery'), findsOneWidget);
+  expect(find.text('Reject offer'), findsOneWidget);
+  expect(find.text('Message Logistics'), findsOneWidget);
   await _capture(tester, boundary, '03-offered-parcel-decision.png');
   await tester.pumpWidget(const SizedBox.shrink());
+  chat.dispose();
   controller.dispose();
   auth.dispose();
 }
@@ -174,23 +205,31 @@ Future<void> _captureMatchedPickup(
   WidgetTester tester,
   GlobalKey boundary,
 ) async {
+  final originalPlatform = MobileScannerPlatform.instance;
+  final scanner = ScannerPlatform();
+  MobileScannerPlatform.instance = scanner;
+  addTearDown(() async {
+    MobileScannerPlatform.instance = originalPlatform;
+    await scanner.captures.close();
+  });
+
   final auth = deliveryAuthController();
   final controller = PickupController(
     pickupRepository: _MatchedPickupRepository(),
   );
   final task = PickupTask(
-    id: 'task-demo-2049',
+    id: 'task-demo-1043',
     leg: PickupTaskLeg.firstMile,
     rawStatus: 'accepted',
     revision: 4,
-    order: PickupOrderReference(reference: 'ORD-DEMO-2049'),
-    waybill: PickupWaybillReference(reference: 'WB-DEMO-2049'),
+    order: PickupOrderReference(reference: 'ORD-DEMO-1043'),
+    waybill: PickupWaybillReference(reference: 'WB-DEMO-1043'),
     pickup: PickupLocation(
-      name: 'Sample Seller',
+      name: 'Example shop',
       addressLine1: '20 Market Street',
       barangay: 'Poblacion',
-      cityMunicipality: 'Makati City',
-      province: 'Metro Manila',
+      cityMunicipality: 'Marikina City',
+      province: 'NCR',
       region: 'NCR',
       postalCode: '1200',
     ),
@@ -199,8 +238,8 @@ Future<void> _captureMatchedPickup(
       province: 'Metro Manila',
     ),
     schedule: PickupSchedule(
-      id: 'schedule-demo-2049',
-      reference: 'SCH-DEMO-2049',
+      id: 'schedule-demo-1043',
+      reference: 'SCH-DEMO-1043',
       startsAt: DateTime.utc(2026, 10, 28, 1),
       endsAt: DateTime.utc(2026, 10, 28, 4),
     ),
@@ -214,15 +253,22 @@ Future<void> _captureMatchedPickup(
       task: task,
     ),
   );
-  await tester.scrollUntilVisible(
-    find.text('Check QR match'),
-    250,
-    scrollable: find.byType(Scrollable).first,
-  );
-  await tester.enterText(find.byType(TextField), 'WB-DEMO-2049');
-  await tester.ensureVisible(find.text('Check QR match'));
-  await tester.tap(find.text('Check QR match'));
+  await tester.ensureVisible(find.text('Scan QR or tracking ID'));
+  await tester.tap(find.text('Scan QR or tracking ID'));
   await tester.pumpAndSettle();
+  scanner.captures.add(
+    const BarcodeCapture(
+      barcodes: [
+        Barcode(rawValue: 'WB-DEMO-1043', format: BarcodeFormat.code128),
+      ],
+    ),
+  );
+  await tester.pumpAndSettle();
+  expect(
+    find.bySemanticsLabel(RegExp('Unverified scan candidate')),
+    findsOneWidget,
+  );
+  expect(find.text('WB-DEMO-1043'), findsOneWidget);
   await _capture(tester, boundary, '04-pickup-matched-candidate.png');
   await tester.pumpWidget(const SizedBox.shrink());
   controller.dispose();
@@ -233,15 +279,18 @@ Future<void> _captureDeliveryPhotoAndCash(
   WidgetTester tester,
   GlobalKey boundary,
 ) async {
+  tester.view.physicalSize = const Size(780, 1894);
   final auth = deliveryAuthController();
   final repository = WidgetDeliveryRepository();
+  repository.deliveryContext = _syntheticDeliveryContext();
   final controller = DeliveryController(deliveryRepository: repository)
     ..tasks = <PickupTask>[outForDeliveryTask];
+  await controller.loadDetails(outForDeliveryTask);
   final proofBytes =
       await tester.runAsync(_syntheticProofPng) ??
       (throw StateError('Could not generate the synthetic POD image.'));
   await tester.runAsync(() async {
-    final artifactDirectory = Directory('build/stitch-ui/operations');
+    final artifactDirectory = Directory(_captureDirectory);
     await artifactDirectory.create(recursive: true);
     await File('${artifactDirectory.path}/synthetic-pod-source.png')
         .writeAsBytes(proofBytes);
@@ -258,14 +307,29 @@ Future<void> _captureDeliveryPhotoAndCash(
       photoCaptureLauncher: launcher,
     ),
   );
-  await tester.ensureVisible(find.text('I collected PHP 115.00 in full.'));
   expect(
-    tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
-    isFalse,
+    find.text(
+      '42 Willow Street, San Isidro, Pasig City, Metro Manila, NCR, 1600',
+    ),
+    findsOneWidget,
   );
+  expect(find.text('Alex Reyes'), findsOneWidget);
+  expect(find.text('0917-555-0143'), findsOneWidget);
+  expect(find.text('Leave with the recipient at the door.'), findsOneWidget);
+  await _capture(tester, boundary, '05a-delivery-task-context.png');
+  await tester.scrollUntilVisible(
+    find.byType(Checkbox),
+    240,
+    scrollable: find.byType(Scrollable).first,
+  );
+  expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
   expect(proofBytes.length, greaterThan(1000));
   await _capture(tester, boundary, '05-delivery-cod-unchecked.png');
-  await tester.ensureVisible(find.text('Open camera for POD'));
+  await tester.scrollUntilVisible(
+    find.text('Open camera for POD'),
+    240,
+    scrollable: find.byType(Scrollable).first,
+  );
   await tester.tap(find.text('Open camera for POD'));
   await tester.pumpAndSettle();
   expect(launcher.captureCalls, 1);
@@ -275,15 +339,18 @@ Future<void> _captureDeliveryPhotoAndCash(
     () => precacheImage(MemoryImage(proofBytes), deliveryScreenContext),
   );
   await tester.pump();
-  await tester.ensureVisible(find.byType(Image).first);
-  await _capture(tester, boundary, '05b-delivery-photo-selected.png');
   await tester.scrollUntilVisible(
-    find.text('Refresh completion status'),
-    300,
+    find.byType(Image).first,
+    240,
     scrollable: find.byType(Scrollable).first,
   );
-  await tester.pumpAndSettle();
-  expect(find.text('Refresh completion status'), findsOneWidget);
+  await _capture(tester, boundary, '05b-delivery-photo-selected.png');
+  await tester.scrollUntilVisible(
+    find.text('Cash collection'),
+    160,
+    scrollable: find.byType(Scrollable).first,
+  );
+  expect(find.text('Delivered'), findsOneWidget);
   await _capture(tester, boundary, '05c-delivery-delivered-control.png');
   await tester.pumpWidget(const SizedBox.shrink());
   controller.dispose();
@@ -291,26 +358,36 @@ Future<void> _captureDeliveryPhotoAndCash(
 }
 
 Future<void> _captureBatch(WidgetTester tester, GlobalKey boundary) async {
-  final repository = WidgetBatchRepository()..acceptedIds.add('task-2');
+  final repository = WidgetBatchRepository()..acceptedIds.add('task-1');
   final parcels = WidgetParcelRepository(repository);
+  final routeController = DeliveryRouteController(
+    repository: _OperationsRouteRepository(),
+  );
   final controller = FinalMileBatchController(
     repository: repository,
     parcelRepository: parcels,
+    routeController: routeController,
   );
   final auth = batchAuthController();
+  await controller.load();
+  await controller.loadDetail('schedule-1');
   await _pumpCaptureApp(
     tester,
     boundary,
-    FinalMileBatchDetailScreen(
-      authController: auth,
-      batchController: controller,
-      scheduleId: 'schedule-1',
-    ),
+    FinalMileBatchScreen(authController: auth, batchController: controller),
   );
-  await tester.ensureVisible(find.text('Accept parcel').first);
+  await tester.tap(find.text('DSP-100'));
+  await tester.pumpAndSettle();
+  expect(find.text('1 accepted · 2 offered'), findsOneWidget);
+  expect(find.text('View delivery route'), findsOneWidget);
+  expect(
+    find.text('Route includes accepted deliveries only (1 parcel).'),
+    findsOneWidget,
+  );
   await _capture(tester, boundary, '11-final-mile-batch.png');
   await tester.pumpWidget(const SizedBox.shrink());
   controller.dispose();
+  routeController.dispose();
   auth.dispose();
 }
 
@@ -339,7 +416,10 @@ Future<void> _captureRouteFallback(
 }
 
 Future<void> _captureLinehaul(WidgetTester tester, GlobalKey boundary) async {
-  final controller = LinehaulController(FakeLinehaulRepository());
+  final controller = LinehaulController(
+    FakeLinehaulRepository()
+      ..current = tripJson(status: 'in_transfer', arrivalReported: true),
+  );
   final auth = deliveryAuthController();
   final config = const AppConfig(baseUrl: 'https://api.example.test');
   final security = CourierMapSecurity(
@@ -358,6 +438,13 @@ Future<void> _captureLinehaul(WidgetTester tester, GlobalKey boundary) async {
       child: child,
     ),
   );
+  await tester.tap(find.text('Outbound linehaul job'));
+  await tester.pumpAndSettle();
+  expect(find.text('Arrival reported'), findsOneWidget);
+  expect(
+    find.textContaining('does not record receipt or change custody'),
+    findsOneWidget,
+  );
   await _capture(tester, boundary, '15-linehaul-trip.png');
   await tester.pumpWidget(const SizedBox.shrink());
   controller.dispose();
@@ -370,12 +457,13 @@ Future<void> _capturePendingReview(
   GlobalKey boundary,
 ) async {
   final auth = deliveryAuthController();
-  final repository = WidgetDeliveryRepository();
-  final controller = DeliveryController(deliveryRepository: repository)
-    ..tasks = <PickupTask>[outForDeliveryTask];
   final proofBytes =
       await tester.runAsync(_syntheticProofPng) ??
       (throw StateError('Could not generate the synthetic POD image.'));
+  final repository = _OperationsDeliveryRepository(proofBytes)
+    ..deliveryContext = _syntheticDeliveryContext();
+  final controller = DeliveryController(deliveryRepository: repository)
+    ..tasks = <PickupTask>[outForDeliveryTask];
   final photo = DeliveryPhotoSelection(
     path: null,
     fileName: 'synthetic-proof.png',
@@ -402,6 +490,16 @@ Future<void> _capturePendingReview(
     ),
   );
   await _capture(tester, boundary, '16-delivery-pending-review.png');
+  final pendingCashDeclaration = find.text('PHP 115.00 submitted for review');
+  await tester.scrollUntilVisible(
+    pendingCashDeclaration,
+    240,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.ensureVisible(pendingCashDeclaration);
+  await tester.pumpAndSettle();
+  expect(pendingCashDeclaration, findsOneWidget);
+  await _capture(tester, boundary, '16b-delivery-pending-cod-review.png');
   await tester.pumpWidget(const SizedBox.shrink());
   controller.dispose();
   auth.dispose();
@@ -411,9 +509,9 @@ class _MatchedPickupRepository extends PickupRouteRepository {
   @override
   Future<WaybillResolution> resolveWaybill(String payload) async =>
       const WaybillResolution(
-        taskId: 'task-demo-2049',
-        orderReference: 'ORD-DEMO-2049',
-        waybillReference: 'WB-DEMO-2049',
+        taskId: 'task-demo-1043',
+        orderReference: 'ORD-DEMO-1043',
+        waybillReference: 'WB-DEMO-1043',
         taskStatus: 'accepted',
       );
 }
@@ -438,6 +536,102 @@ class _SyntheticPhotoCapture implements DeliveryPhotoCaptureLauncher {
       ),
     );
   }
+}
+
+DeliveryContext _syntheticDeliveryContext() => DeliveryContext(
+  taskId: 'delivery-task-1',
+  status: 'out_for_delivery',
+  revision: 7,
+  failedAttemptCount: 0,
+  hub: const PickupLocation(
+    name: 'Makati Hub',
+    addressLine1: '10 Central Avenue',
+    barangay: 'Poblacion',
+    cityMunicipality: 'Makati City',
+    province: 'Metro Manila',
+    region: 'NCR',
+    postalCode: '1210',
+  ),
+  destination: const PickupLocation(
+    addressLine1: '42 Willow Street',
+    barangay: 'San Isidro',
+    cityMunicipality: 'Pasig City',
+    province: 'Metro Manila',
+    region: 'NCR',
+    postalCode: '1600',
+  ),
+  recipientName: 'Alex Reyes',
+  recipientPhone: '0917-555-0143',
+  deliveryInstructions: 'Leave with the recipient at the door.',
+  distanceKm: 12.4,
+  estimatedDurationMinutes: 38,
+  routeStatus: 'ready',
+  calculatedAt: DateTime.utc(2026, 10, 28, 1),
+  paymentMethod: 'cod',
+  paymentStatus: 'pending',
+  payableTotal: '115.00',
+  currency: 'PHP',
+);
+
+class _OperationsChatRepository implements ChatRepository {
+  @override
+  Future<ChatPage<ChatThread>> list({
+    String? leg,
+    String? cursor,
+    int limit = 20,
+  }) async => const ChatPage<ChatThread>(
+    items: <ChatThread>[],
+    nextCursor: null,
+    unreadCount: 0,
+  );
+
+  @override
+  Future<ChatThread> detail(String id) => throw UnimplementedError();
+
+  @override
+  Future<ChatPage<ChatMessage>> messages(
+    String id, {
+    String? cursor,
+    int limit = 20,
+  }) async => const ChatPage<ChatMessage>(items: [], nextCursor: null);
+
+  @override
+  Future<ChatSendResult> start({
+    required String leg,
+    required String taskId,
+    required String counterpartyRole,
+    required String body,
+    required String idempotencyKey,
+    List<String> attachmentIds = const [],
+  }) => throw UnimplementedError();
+
+  @override
+  Future<ChatSendResult> send({
+    required String id,
+    required String body,
+    required String idempotencyKey,
+    List<String> attachmentIds = const [],
+  }) => throw UnimplementedError();
+
+  @override
+  Future<ChatThread> markRead(String id, int lastReadSequence) =>
+      throw UnimplementedError();
+}
+
+class _OperationsRouteRepository implements DeliveryRouteRepository {
+  @override
+  Future<DeliveryRoute> fetchRoute(String scheduleId) =>
+      throw UnimplementedError();
+}
+
+class _OperationsDeliveryRepository extends WidgetDeliveryRepository {
+  _OperationsDeliveryRepository(this.proofBytes);
+
+  final Uint8List proofBytes;
+
+  @override
+  Future<DeliveryProofPhoto> fetchProofPhoto(String proofId) async =>
+      DeliveryProofPhoto(bytes: proofBytes, contentType: 'image/png');
 }
 
 Future<Uint8List> _syntheticProofPng() async {

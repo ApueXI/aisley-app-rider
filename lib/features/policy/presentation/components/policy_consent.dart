@@ -135,26 +135,9 @@ class _PolicyScreenState extends State<PolicyScreen>
       animation: controller,
       builder: (context, child) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Terms and Privacy'),
-            actions: [
-              if (widget.showSignOutAction)
-                IconButton(
-                  onPressed: widget.authController.isSigningOut
-                      ? null
-                      : _signOut,
-                  tooltip: 'Sign out',
-                  icon: widget.authController.isSigningOut
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.logout),
-                ),
-            ],
-          ),
+          appBar: AppBar(title: const Text('Terms & Privacy consent')),
           body: _buildBody(context),
+          bottomNavigationBar: _buildBottomActions(context),
         );
       },
     );
@@ -219,10 +202,37 @@ class _PolicyScreenState extends State<PolicyScreen>
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
-        Text(
-          'Read the current Terms of Service and Privacy Policy.',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        CourierSurfaceCard(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.policy_outlined,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Review current policies',
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Read the current Terms of Service and Privacy Policy before you confirm each version.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         if (widget.requiredForAccess) ...[
           const SizedBox(height: 16),
@@ -254,20 +264,13 @@ class _PolicyScreenState extends State<PolicyScreen>
         const SizedBox(height: 16),
         if (items.isEmpty)
           const _NoPublishedPolicyView()
-        else
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ...items.map((item) => _buildPolicyCard(context, item)),
-                  _buildCombinedConfirmation(context),
-                ],
-              ),
-            ),
-          ),
+        else ...[
+          for (final item in items) ...[
+            CourierSurfaceCard(child: _buildPolicyCard(context, item)),
+            const SizedBox(height: 12),
+          ],
+          CourierSurfaceCard(child: _buildCombinedConfirmation(context)),
+        ],
         if (showRetry) ...[
           const SizedBox(height: 16),
           FilledButton.icon(

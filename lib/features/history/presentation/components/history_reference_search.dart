@@ -61,45 +61,56 @@ class _HistoryReferenceSearchState extends State<_HistoryReferenceSearch> {
           TextField(
             controller: _reference,
             focusNode: _focus,
-            decoration: const InputDecoration(labelText: 'Order reference'),
+            decoration: const InputDecoration(
+              labelText: 'Exact Order reference',
+            ),
             textInputAction: TextInputAction.search,
             autocorrect: false,
             enableSuggestions: false,
             onSubmitted: (_) => _search(),
           ),
           const SizedBox(height: 8),
-          const Text('Enter the full order reference. It must match exactly.'),
+          const Text('Use the full reference exactly as shown on the order.'),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 48,
-                  child: FilledButton(
-                    onPressed: controller.canSearch ? _search : null,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                      tapTargetSize: MaterialTapTargetSize.padded,
-                    ),
-                    child: const Text('Search'),
-                  ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final largeText = MediaQuery.textScalerOf(context).scale(14) > 18;
+              final stackActions = constraints.maxWidth < 300 || largeText;
+              final clear = OutlinedButton.icon(
+                key: const ValueKey('history-clear-search'),
+                onPressed: _clear,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  tapTargetSize: MaterialTapTargetSize.padded,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SizedBox(
-                  height: 48,
-                  child: OutlinedButton(
-                    onPressed: _clear,
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                      tapTargetSize: MaterialTapTargetSize.padded,
-                    ),
-                    child: const Text('Clear'),
-                  ),
+                icon: const Icon(Icons.close),
+                label: const Text('Clear'),
+              );
+              final search = FilledButton.icon(
+                key: const ValueKey('history-submit-search'),
+                onPressed: controller.canSearch ? _search : null,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  tapTargetSize: MaterialTapTargetSize.padded,
                 ),
-              ),
-            ],
+                icon: const Icon(Icons.search),
+                label: const Text('Search'),
+              );
+
+              if (stackActions) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [clear, const SizedBox(height: 8), search],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: clear),
+                  const SizedBox(width: 8),
+                  Expanded(child: search),
+                ],
+              );
+            },
           ),
           if (!controller.canRetryRateLimit) ...[
             const SizedBox(height: 8),

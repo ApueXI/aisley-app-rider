@@ -161,7 +161,7 @@ void main() {
       await controller.loadDetail('schedule-1');
       await tester.pumpAndSettle();
       expect(
-        find.widgetWithText(TextButton, 'View delivery route'),
+        find.widgetWithText(OutlinedButton, 'View delivery route'),
         findsOneWidget,
       );
       await tester.tap(find.text('View delivery route'));

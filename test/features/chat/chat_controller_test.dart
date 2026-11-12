@@ -9,13 +9,86 @@ import 'package:aisley_app/features/auth/data/auth_repository.dart';
 import 'package:aisley_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:aisley_app/features/chat/data/chat_repository.dart';
 import 'package:aisley_app/features/chat/domain/chat_models.dart';
+import 'package:aisley_app/features/chat/presentation/chat_inbox_screen.dart';
 import 'package:aisley_app/features/chat/presentation/chat_thread_screen.dart';
 import 'package:aisley_app/features/chat/presentation/controllers/chat_controller.dart';
 import 'package:aisley_app/features/dashboard/data/dashboard_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/accessibility.dart';
+
 void main() {
+  for (final scenario in AccessibilityScenario.matrix) {
+    accessibilityTest(
+      'inbox rows show task and read state without live metadata ${scenario.name}',
+      scenario,
+      (tester) async {
+        final repository = _ChatRepository()
+          ..inboxThreads = [
+            ChatThread(
+              id: 'thread-unread',
+              kind: 'logistics_courier',
+              leg: 'final_mile',
+              taskId: 'task-1',
+              counterpartyRole: 'logistics',
+              unreadCount: 1,
+              lastSequence: 4,
+              lastReadSequence: 3,
+              taskReference: 'ORDER-1',
+              counterpartyLabel: 'Logistics Dispatch',
+              sendAllowed: true,
+              lastMessagePreview: 'Please confirm arrival at the dropoff.',
+              lastMessageAt: DateTime.utc(2026, 11, 12, 1, 38),
+            ),
+            ChatThread(
+              id: 'thread-read',
+              kind: 'courier_seller',
+              leg: 'first_mile',
+              taskId: 'task-2',
+              counterpartyRole: 'seller',
+              unreadCount: 0,
+              lastSequence: 2,
+              lastReadSequence: 2,
+              taskReference: 'ORDER-2',
+              counterpartyLabel: 'Example shop',
+              sendAllowed: false,
+              lastMessagePreview: 'The parcel is ready for pickup.',
+              lastMessageAt: DateTime.utc(2026, 11, 12, 1, 15),
+            ),
+          ];
+        final controller = ChatController(repository: repository);
+        final auth = AuthController(
+          authRepository: _UnusedAuthRepository(),
+          dashboardRepository: _UnusedDashboardRepository(),
+        )..status = AuthStatus.authenticated;
+
+        await tester.pumpWidget(
+          scenario.app(
+            ChatInboxScreen(controller: controller, authController: auth),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Task messages'), findsOneWidget);
+        expect(find.text('Logistics Dispatch'), findsOneWidget);
+        expect(find.text('ORDER-1'), findsOneWidget);
+        expect(find.text('1 unread'), findsOneWidget);
+        expect(find.text('Example shop'), findsOneWidget);
+        expect(find.text('ORDER-2'), findsOneWidget);
+        expect(find.text('Read'), findsOneWidget);
+        expect(find.textContaining('ETA'), findsNothing);
+        expect(find.textContaining('online'), findsNothing);
+        expect(find.textContaining('directory'), findsNothing);
+        await checkAccessibility(tester);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        controller.dispose();
+        auth.dispose();
+      },
+    );
+  }
+
   test(
     'image-only Courier send freezes attachment IDs and key after timeout',
     () async {
@@ -428,6 +501,7 @@ class _ChatRepository implements ChatRepository {
   Object? sendError;
   Completer<ChatPage<ChatThread>>? pendingList;
   int listCount = 0;
+  List<ChatThread> inboxThreads = const [];
   ChatThread? detailThread;
   final List<String> startKeys = [];
   final List<String> startBodies = [];
@@ -445,7 +519,14 @@ class _ChatRepository implements ChatRepository {
     listCount++;
     if (listError case final error?) throw error;
     if (pendingList case final pending?) return pending.future;
-    return const ChatPage(items: [], nextCursor: null, unreadCount: 0);
+    return ChatPage(
+      items: inboxThreads,
+      nextCursor: null,
+      unreadCount: inboxThreads.fold<int>(
+        0,
+        (total, thread) => total + thread.unreadCount,
+      ),
+    );
   }
 
   @override

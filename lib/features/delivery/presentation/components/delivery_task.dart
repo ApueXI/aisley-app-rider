@@ -94,6 +94,19 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
         );
         final paymentReady =
             paymentIsKnown(deliveryContext) && (!isCod || cashAcknowledged);
+        final canRefreshCompletion =
+            !controller.isActionBusy(task) &&
+            controller.canRetryRateLimit &&
+            controller.completionStatuses[task.id] !=
+                DeliveryLoadStatus.loading;
+        final hasPhotoForIntent =
+            _selectedPhoto != null || controller.hasFreshProof(task);
+        final canSubmitIntent =
+            !reviewPending &&
+            !controller.isActionBusy(task) &&
+            controller.canStartAction(task) &&
+            paymentReady &&
+            hasPhotoForIntent;
         return UnsavedChangesGuard(
           key: _leaveGuard,
           hasUnsavedChanges: _selectedPhoto != null,
@@ -105,7 +118,11 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => _leaveGuard.currentState?.requestLeave(),
               ),
-              title: Text(reviewPending ? 'Delivery review' : 'Deliver order'),
+              title: Text(
+                reviewPending
+                    ? 'Delivery verification'
+                    : 'Delivery photo & cash',
+              ),
             ),
             body: RefreshIndicator(
               onRefresh: () async {
@@ -117,36 +134,33 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 children: [
-                  _DeliveryIdentity(task: task),
-                  const SizedBox(height: 16),
-                  _DeliveryContextCard(
+                  _DeliveryIdentity(
+                    task: task,
                     contextData: deliveryContext,
-                    status:
+                    contextStatus:
                         controller.contextStatuses[task.id] ??
                         DeliveryLoadStatus.idle,
-                    error: controller.contextErrors[task.id],
+                    contextError: controller.contextErrors[task.id],
                     onRetry:
                         widget.onRefresh ?? () => controller.loadDetails(task),
-                    codCollection: codCollection,
-                    cashAcknowledged: cashAcknowledged,
-                    canAcknowledgeCash:
-                        !reviewPending && !controller.isActionBusy(task),
-                    onCashAcknowledged: (value) {
-                      if (codCollection != null) {
-                        setCashAcknowledgement(task, codCollection, value);
-                      }
-                    },
-                    isReviewPending: reviewPending,
                   ),
                   const SizedBox(height: 16),
-                  _buildAction(
-                    context,
-                    task,
-                    deliveryContext,
-                    paymentReady: paymentReady,
-                    onBackToWork: () =>
-                        _leaveGuard.currentState?.requestLeave(),
-                  ),
+                  _buildAction(context, task, deliveryContext),
+                  if (isCod) ...[
+                    const SizedBox(height: 16),
+                    _DeliveryCashCollectionCard(
+                      contextData: deliveryContext,
+                      isReviewPending: reviewPending,
+                      cashAcknowledged: cashAcknowledged,
+                      canAcknowledge:
+                          !reviewPending && !controller.isActionBusy(task),
+                      onCashAcknowledged: (value) {
+                        if (codCollection != null) {
+                          setCashAcknowledgement(task, codCollection, value);
+                        }
+                      },
+                    ),
+                  ],
                   if (widget.chatController != null &&
                       task.isFinalMile &&
                       (task.status == PickupTaskStatus.deliveryAssigned ||
@@ -179,6 +193,13 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
                 ],
               ),
             ),
+            bottomNavigationBar: _buildFooter(
+              task,
+              controller: controller,
+              reviewPending: reviewPending,
+              canRefreshCompletion: canRefreshCompletion,
+              canSubmitIntent: canSubmitIntent,
+            ),
           ),
         );
       },
@@ -207,10 +228,8 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
   Widget _buildAction(
     BuildContext context,
     PickupTask task,
-    DeliveryContext? deliveryContext, {
-    required bool paymentReady,
-    required VoidCallback onBackToWork,
-  }) {
+    DeliveryContext? deliveryContext,
+  ) {
     if (task.status == PickupTaskStatus.delivered) {
       return _CompletedDeliveryCard();
     }
@@ -218,14 +237,6 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
       return _DeliveryPendingReviewCard(
         task: task,
         controller: widget.deliveryController,
-        contextData: deliveryContext,
-        canRefresh:
-            !widget.deliveryController.isActionBusy(task) &&
-            widget.deliveryController.canRetryRateLimit &&
-            widget.deliveryController.completionStatuses[task.id] !=
-                DeliveryLoadStatus.loading,
-        onRefresh: () => widget.deliveryController.loadCompletion(task),
-        onBackToWork: onBackToWork,
       );
     }
     if (widget.onRefresh != null &&
@@ -246,7 +257,6 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
         selectionError: _photoSelectionError,
         isPicking: _isPickingPhoto,
         canCancelUpload: _cancelPhotoUpload != null,
-        paymentReady: paymentReady,
         onChoosePhoto: _pickPhoto,
         cameraSupported: widget.photoCaptureLauncher.isSupported,
         onCapturePhoto: _capturePhoto,
@@ -254,13 +264,79 @@ class _DeliveryTaskScreenState extends State<DeliveryTaskScreen>
           _selectedPhoto = null;
           _photoSelectionError = null;
         }),
-        onSubmitPhoto: () => _confirmDelivered(task),
         onCancelUpload: () => _cancelPhotoUpload?.call(),
         onOpenPolicies: _openPolicies,
         showPolicyAction: widget.policyController != null,
       );
     }
     return const _DeliveryUnavailableActionCard();
+  }
+
+  Widget? _buildFooter(
+    PickupTask task, {
+    required DeliveryController controller,
+    required bool reviewPending,
+    required bool canRefreshCompletion,
+    required bool canSubmitIntent,
+  }) {
+    if (task.status == PickupTaskStatus.delivered || !task.canSubmitDelivery) {
+      return null;
+    }
+
+    final label =
+        controller.hasPendingCompletion(task) ||
+            controller.hasPendingProof(task)
+        ? 'Retry same Delivered request'
+        : 'Delivered';
+    final cod = controller.contexts[task.id]?.paymentMethod == 'cod';
+    final helper = reviewPending
+        ? 'Check whether Logistics has validated the completion intent.'
+        : cod
+        ? 'Requires photo proof and cash confirmation before submitting to Logistics review.'
+        : 'Requires photo proof and confirmed prepaid status before submitting to Logistics review.';
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: reviewPending
+                  ? FilledButton.icon(
+                      onPressed: canRefreshCompletion
+                          ? () => controller.loadCompletion(task)
+                          : null,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Refresh completion status'),
+                    )
+                  : FilledButton(
+                      onPressed: canSubmitIntent
+                          ? () => _confirmDelivered(task)
+                          : null,
+                      child: Text(label),
+                    ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              helper,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _openPolicies() async {

@@ -16,47 +16,37 @@ class _WorkDestinations extends StatelessWidget {
     appBar: AppBar(title: const Text('Work')),
     body: ListView(
       key: const PageStorageKey('work-menu'),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
-        CourierSectionHeader(
-          title: 'Work lists',
-          subtitle: 'Choose a list to review current work.',
-        ),
-        const SizedBox(height: 12),
         CourierSurfaceCard(
           padding: EdgeInsets.zero,
           child: Column(
             children: [
               _DestinationRow(
-                icon: Icons.inventory_2_outlined,
                 title: 'Pickup orders',
                 subtitle: 'Seller pickups and hub handoff',
                 onTap: onPickups,
               ),
               const Divider(height: 1),
               _DestinationRow(
-                icon: Icons.local_shipping_outlined,
                 title: 'Delivery work',
-                subtitle: 'Movement, evidence and delivery review',
+                subtitle: 'Photo proof and delivery review',
                 onTap: onDeliveries,
               ),
               const Divider(height: 1),
               _DestinationRow(
-                icon: Icons.view_list_outlined,
                 title: 'Final-mile batches',
                 subtitle: 'Review individual parcel decisions',
                 onTap: onBatches,
               ),
               const Divider(height: 1),
               _DestinationRow(
-                icon: Icons.route_outlined,
                 title: 'Linehaul jobs',
                 subtitle: 'Assigned hub transfers and company-truck routes',
                 onTap: onLinehaul,
               ),
               const Divider(height: 1),
               _DestinationRow(
-                icon: Icons.history_outlined,
                 title: 'Delivery history',
                 subtitle: 'Completed deliveries',
                 onTap: onHistory,
@@ -93,12 +83,13 @@ class _AccountDestinations extends StatelessWidget {
     appBar: AppBar(title: const Text('Account')),
     body: ListView(
       key: const PageStorageKey('account-menu'),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       children: [
-        CourierSurfaceCard(child: _AccountIdentity(courier: courier)),
-        const SizedBox(height: 20),
-        CourierSectionHeader(title: 'Account settings'),
-        const SizedBox(height: 12),
+        CourierSurfaceCard(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          child: _AccountIdentity(courier: courier),
+        ),
+        const SizedBox(height: 16),
         CourierSurfaceCard(
           padding: EdgeInsets.zero,
           child: Column(
@@ -106,7 +97,6 @@ class _AccountDestinations extends StatelessWidget {
               _DestinationRow(
                 icon: Icons.manage_accounts_outlined,
                 title: 'Profile',
-                subtitle: 'Personal details and profile photo',
                 onTap: onProfile,
               ),
               const Divider(height: 1),
@@ -120,7 +110,6 @@ class _AccountDestinations extends StatelessWidget {
               _DestinationRow(
                 icon: Icons.two_wheeler_outlined,
                 title: 'Vehicle and documents',
-                subtitle: 'Vehicle details, official receipt and registration',
                 onTap: onVehicle,
               ),
               const Divider(height: 1),
@@ -129,20 +118,18 @@ class _AccountDestinations extends StatelessWidget {
               _DestinationRow(
                 icon: Icons.policy_outlined,
                 title: 'Policies',
-                subtitle: 'Current versions and consent history',
                 onTap: onPolicies,
               ),
               const Divider(height: 1),
               _DestinationRow(
                 icon: Icons.support_agent_outlined,
                 title: 'Support tickets',
-                subtitle: 'Contact platform support',
                 onTap: onSupport,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         OutlinedButton.icon(
           onPressed: onSignOut,
           icon: const Icon(Icons.logout),
@@ -161,9 +148,9 @@ class _AccountIdentity extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final affiliation = courier.logistics;
     final name = courier.displayName;
     final email = courier.email;
-    final affiliation = courier.logistics;
     final affiliationNames = [
       _nonEmpty(courier.organizationName),
       _nonEmpty(courier.hubName),
@@ -176,17 +163,25 @@ class _AccountIdentity extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
-              radius: 24,
-              backgroundColor: scheme.surfaceContainerHighest,
-              foregroundColor: scheme.onSurface,
-              child: Text(_initials(name)),
+              radius: 28,
+              backgroundColor: scheme.primaryContainer,
+              foregroundColor: scheme.onPrimaryContainer,
+              child: Text(
+                _initials(name),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    name,
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
                   if (email != name) ...[
                     const SizedBox(height: 2),
                     Text(
@@ -195,11 +190,34 @@ class _AccountIdentity extends StatelessWidget {
                           ?.copyWith(color: scheme.onSurfaceVariant),
                     ),
                   ],
+                  if (affiliationNames.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.hub_outlined,
+                          size: 20,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            affiliationNames,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: scheme.onSurfaceVariant),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
           ],
         ),
+        const SizedBox(height: 8),
+        Divider(height: 1, color: scheme.outlineVariant),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -207,16 +225,14 @@ class _AccountIdentity extends StatelessWidget {
           children: [
             CourierStatusBadge(
               label: _accountStatusLabel(courier.status),
-              tone: courier.status == CourierAccountStatus.active
-                  ? CourierStatusTone.success
-                  : CourierStatusTone.neutral,
+              tone: CourierStatusTone.neutral,
             ),
             if (affiliation != null)
               CourierStatusBadge(
                 label: _affiliationStatusLabel(affiliation.status),
                 tone: switch (affiliation.status) {
                   CourierAffiliationStatus.approved =>
-                    CourierStatusTone.success,
+                    CourierStatusTone.neutral,
                   CourierAffiliationStatus.pending => CourierStatusTone.warning,
                   CourierAffiliationStatus.rejected ||
                   CourierAffiliationStatus.revoked =>
@@ -225,14 +241,6 @@ class _AccountIdentity extends StatelessWidget {
               ),
           ],
         ),
-        if (affiliationNames.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            affiliationNames,
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-        ],
       ],
     );
   }
@@ -240,25 +248,41 @@ class _AccountIdentity extends StatelessWidget {
 
 class _DestinationRow extends StatelessWidget {
   const _DestinationRow({
-    required this.icon,
     required this.title,
-    required this.subtitle,
+    this.icon,
+    this.subtitle,
     this.onTap,
   });
 
-  final IconData icon;
-  final String title, subtitle;
+  final IconData? icon;
+  final String title;
+  final String? subtitle;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return ListTile(
-      minVerticalPadding: 8,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Icon(icon, color: scheme.primary),
-      title: Text(title),
-      subtitle: Text(onTap == null ? '$subtitle · Unavailable' : subtitle),
+      minTileHeight: icon == null
+          ? 65.5
+          : subtitle == null
+          ? 56
+          : 64,
+      minVerticalPadding: 10,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      leading: icon == null ? null : Icon(icon, color: scheme.onSurfaceVariant),
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(fontWeight: icon == null ? FontWeight.w600 : null),
+      ),
+      subtitle: subtitle == null
+          ? (onTap == null ? const Text('Unavailable') : null)
+          : Text(
+              onTap == null ? '$subtitle · Unavailable' : subtitle!,
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(fontSize: 12),
+            ),
       trailing: onTap == null
           ? null
           : Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),

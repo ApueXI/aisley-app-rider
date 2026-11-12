@@ -70,7 +70,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
       expect(registrationStep(tester), 0);
-      expect(find.textContaining('This code expired'), findsOneWidget);
+      expect(find.text('Code expired'), findsOneWidget);
       expect(
         tester.widget<TextField>(field('First name')).controller!.text,
         'Ana',

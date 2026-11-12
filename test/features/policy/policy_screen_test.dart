@@ -51,19 +51,50 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.byType(CheckboxListTile), findsNWidgets(2));
-      final accept = find.widgetWithText(FilledButton, 'Accept');
-      expect(tester.widget<FilledButton>(accept).onPressed, isNull);
       if (scenario.size.width == 390 && scenario.scale == 1) {
         await _capture(tester, boundary, '${scenario.brightness.name}-reading');
       }
-      final checkbox = find.descendant(
+      final policyList = find.byType(Scrollable).first;
+      await tester.scrollUntilVisible(
+        find.text('These are plain policy terms.'),
+        280,
+        scrollable: policyList,
+      );
+      await tester.scrollUntilVisible(
+        find.text('These are plain privacy terms.'),
+        280,
+        scrollable: policyList,
+      );
+      await tester.scrollUntilVisible(
+        find.text('Your confirmation'),
+        280,
+        scrollable: policyList,
+      );
+      expect(find.byType(CheckboxListTile), findsNWidgets(2));
+      expect(
+        tester
+            .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+            .map((tile) => tile.value),
+        [false, false],
+      );
+      final accept = find.widgetWithText(FilledButton, 'Accept');
+      expect(tester.widget<FilledButton>(accept).onPressed, isNull);
+      final termsCheckbox = find.descendant(
         of: find.byType(CheckboxListTile).first,
         matching: find.byType(Checkbox),
       );
-      await tester.ensureVisible(checkbox);
+      await tester.ensureVisible(termsCheckbox);
       await tester.pumpAndSettle();
-      await tester.tap(checkbox);
+      await tester.tap(termsCheckbox);
+      await tester.pumpAndSettle();
+      expect(tester.widget<FilledButton>(accept).onPressed, isNull);
+      final privacyCheckbox = find.descendant(
+        of: find.byType(CheckboxListTile).last,
+        matching: find.byType(Checkbox),
+      );
+      await tester.ensureVisible(privacyCheckbox);
+      await tester.pumpAndSettle();
+      await tester.tap(privacyCheckbox);
       await tester.pumpAndSettle();
       await tester.ensureVisible(accept);
       await tester.pumpAndSettle();
@@ -107,7 +138,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byTooltip('Sign out'));
+        await tester.tap(find.widgetWithText(OutlinedButton, 'Sign out'));
         await tester.pumpAndSettle();
         expect(repository.logoutCalls, 0);
         await checkAccessibility(tester);
@@ -115,7 +146,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(auth.status, AuthStatus.policyConsentRequired);
         expect(repository.logoutCalls, 0);
-        await tester.tap(find.byTooltip('Sign out'));
+        await tester.tap(find.widgetWithText(OutlinedButton, 'Sign out'));
         await tester.pumpAndSettle();
         await tester.tap(find.widgetWithText(FilledButton, 'Sign out'));
         await tester.pumpAndSettle();
@@ -144,8 +175,19 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Terms and Privacy'), findsOneWidget);
+      expect(find.text('Terms & Privacy consent'), findsOneWidget);
       expect(find.text('These are plain policy terms.'), findsOneWidget);
+      final policyList = find.byType(Scrollable).first;
+      await tester.scrollUntilVisible(
+        find.text('These are plain privacy terms.'),
+        280,
+        scrollable: policyList,
+      );
+      await tester.scrollUntilVisible(
+        find.text('Your confirmation'),
+        280,
+        scrollable: policyList,
+      );
       expect(find.byType(CheckboxListTile), findsNWidgets(2));
       expect(
         find.bySemanticsLabel(
@@ -153,7 +195,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('View published history'), findsNWidgets(2));
+      expect(find.text('View published history'), findsAtLeastNWidgets(1));
     },
   );
 
@@ -250,11 +292,11 @@ class _WidgetPolicyApi implements PolicyApi {
         PolicyConsentItem(
           rawType: 'privacy_policy',
           label: 'Privacy Policy',
-          required: false,
-          accepted: true,
+          required: !saved,
+          accepted: saved,
           acceptedAt: null,
           currentVersion: 2,
-          acceptedVersion: 2,
+          acceptedVersion: saved ? 2 : null,
         ),
       ],
       allRequiredAccepted: saved,

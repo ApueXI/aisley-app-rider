@@ -9,10 +9,10 @@ class _DashboardBody extends StatelessWidget {
     this.historyController,
     required this.onOpenDeliveries,
     required this.onOpenHistory,
+    required this.onOpenWork,
     this.onOpenBatches,
     this.onOpenNotifications,
     this.previewController,
-    this.profilePhoto,
   });
 
   final AuthController authController;
@@ -21,9 +21,9 @@ class _DashboardBody extends StatelessWidget {
   final DeliveryController? deliveryController;
   final HistoryController? historyController;
   final VoidCallback onOpenDeliveries, onOpenHistory;
+  final VoidCallback onOpenWork;
   final VoidCallback? onOpenBatches, onOpenNotifications;
   final DashboardPreviewController? previewController;
-  final ProfilePhotoData? profilePhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +35,7 @@ class _DashboardBody extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
-        _WelcomeCard(
-          courier: authController.courier!,
-          profilePhoto: profilePhoto,
-        ),
+        _WelcomeCard(courier: authController.courier!),
         if (pickupController != null || deliveryController != null) ...[
           const SizedBox(height: 16),
           _WorkShortcuts(
@@ -57,7 +54,6 @@ class _DashboardBody extends StatelessWidget {
                 : null,
           ),
         ],
-        const SizedBox(height: 24),
         if (snapshot?.operational == true)
           _DashboardAggregate(
             snapshot: snapshot!,
@@ -66,6 +62,7 @@ class _DashboardBody extends StatelessWidget {
                 : null,
             onOpenPickups: onOpenPickups,
             onOpenDeliveries: onOpenDeliveries,
+            onOpenWork: onOpenWork,
             onOpenBatches: onOpenBatches,
             onOpenNotifications: onOpenNotifications,
           )
@@ -83,13 +80,14 @@ class _DashboardBody extends StatelessWidget {
             hasPreviews: previewController != null,
           ),
         ],
-        TextButton.icon(
-          onPressed: loading || !authController.canRetryDashboard
-              ? null
-              : authController.loadDashboard,
-          icon: const Icon(Icons.refresh),
-          label: const Text('Refresh dashboard'),
-        ),
+        if (snapshot?.operational != true)
+          TextButton.icon(
+            onPressed: loading || !authController.canRetryDashboard
+                ? null
+                : authController.loadDashboard,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Refresh dashboard'),
+          ),
       ],
     );
   }

@@ -36,7 +36,6 @@ class _LinehaulScreenState extends State<LinehaulScreen> {
     animation: widget.controller,
     builder: (context, _) {
       final c = widget.controller;
-      final trip = c.selected;
       return PopScope(
         canPop: !c.saving,
         child: Scaffold(
@@ -119,27 +118,21 @@ class _LinehaulScreenState extends State<LinehaulScreen> {
                         padding: EdgeInsets.zero,
                         onTap: c.locked || c.loading
                             ? null
-                            : () => c.select(item.id),
+                            : () => _openTrip(item.id),
                         child: ListTile(
                           selected: item.id == c.selectedId,
                           title: Text(
                             item.direction == 'return'
-                                ? 'Return transfer'
-                                : 'Outbound transfer',
+                                ? 'Return linehaul job'
+                                : 'Outbound linehaul job',
                           ),
                           subtitle: Text(
                             '${item.fromHub} → ${item.toHub}\n${item.statusLabel} · ${item.parcelCount} ${item.parcelCount == 1 ? 'parcel' : 'parcels'}',
                           ),
                           trailing: item.id == c.selectedId
-                              ? const Icon(Icons.expand_more)
+                              ? const Icon(Icons.chevron_right)
                               : const Icon(Icons.chevron_right),
                         ),
-                      ),
-                    if (trip != null)
-                      LinehaulTripDetail(
-                        trip: trip,
-                        controller: c,
-                        onConfirm: (action) => _confirm(action),
                       ),
                   ],
                 ),
@@ -151,40 +144,21 @@ class _LinehaulScreenState extends State<LinehaulScreen> {
     },
   );
 
-  Future<void> _confirm(String action) async {
-    final c = widget.controller, trip = widget.controller.selected;
-    if (trip == null || c.locked) return;
-    final revision = trip.revision;
-    final accepted = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        scrollable: true,
-        title: Text(
-          action == 'depart' ? 'Confirm departure?' : 'Confirm arrival at hub?',
+  Future<void> _openTrip(String id) async {
+    final controller = widget.controller;
+    final routeLoad = controller.select(id);
+    if (controller.selectedId != id) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LinehaulTripDetailScreen(
+          tripId: id,
+          controller: controller,
+          authController: widget.authController,
+          policyController: widget.policyController,
         ),
-        content: Text(
-          action == 'depart'
-              ? 'Confirm you have physically departed ${trip.fromHub} with the released truck/load. The scheduled time is only a plan.'
-              : 'Confirm you have reached ${trip.toHub}. Logistics must still receive the cargo and close unloading.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(action == 'depart' ? 'Depart' : 'Arrived at hub'),
-          ),
-        ],
       ),
     );
-    if (accepted == true &&
-        mounted &&
-        c.selected?.id == trip.id &&
-        c.selected?.revision == revision) {
-      await c.confirm(action);
-    }
+    await routeLoad;
   }
 
   Future<void> _policies() async {

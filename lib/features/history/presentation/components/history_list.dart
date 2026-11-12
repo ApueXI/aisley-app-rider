@@ -32,13 +32,13 @@ class _HistoryListBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const CourierSectionHeader(
-            title: 'Delivery history',
-            subtitle: 'Completed final-mile deliveries',
-          ),
-          const SizedBox(height: 16),
           _HistoryReferenceSearch(controller: controller),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          if (status == HistoryLoadStatus.loaded ||
+              status == HistoryLoadStatus.empty) ...[
+            _HistoryResultsHeader(controller: controller),
+            const SizedBox(height: 12),
+          ],
           if ((status == HistoryLoadStatus.idle ||
                   status == HistoryLoadStatus.loading) &&
               items.isEmpty)
@@ -86,6 +86,76 @@ class _HistoryListBody extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _HistoryResultsHeader extends StatelessWidget {
+  const _HistoryResultsHeader({required this.controller});
+
+  final HistoryController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = controller.items.length;
+    final filtered = controller.activeReference != null;
+    final countLabel = filtered
+        ? '$count ${count == 1 ? 'match' : 'matches'}'
+        : '$count ${count == 1 ? 'delivery' : 'deliveries'} shown';
+
+    final resultSummary = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Semantics(
+          header: true,
+          child: Text(
+            filtered ? 'Search results' : 'Delivered records',
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          countLabel,
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+      ],
+    );
+    final readOnlyLabel = Text(
+      'Read-only view',
+      textAlign: TextAlign.end,
+      style: Theme.of(context).textTheme.bodySmall
+          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stack =
+            constraints.maxWidth < 340 ||
+            MediaQuery.textScalerOf(context).scale(1) > 1.25;
+        if (stack) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              resultSummary,
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: readOnlyLabel,
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: resultSummary),
+            const SizedBox(width: 8),
+            readOnlyLabel,
+          ],
+        );
+      },
     );
   }
 }
