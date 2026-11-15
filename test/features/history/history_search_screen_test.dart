@@ -234,7 +234,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Review policies'));
     await tester.pumpAndSettle();
-    expect(find.text('Platform policies'), findsOneWidget);
+    expect(find.text('Terms & Privacy consent'), findsOneWidget);
     repository.error = null;
     await tester.pageBack();
     await tester.pumpAndSettle();

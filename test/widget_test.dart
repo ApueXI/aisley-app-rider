@@ -4,18 +4,11 @@ import 'features/auth/fixtures/registration_screen_fixture.dart'
     as registration;
 
 import 'package:aisley_app/features/auth/data/registration_email.dart';
-import 'package:aisley_app/features/account/domain/password_challenge.dart';
-
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aisley_app/app/courier_app.dart';
 import 'package:aisley_app/core/networking/api_contract_exception.dart';
-import 'package:aisley_app/features/account/data/account_repository.dart';
-import 'package:aisley_app/features/account/domain/account_models.dart';
-import 'package:aisley_app/features/account/presentation/controllers/account_controller.dart';
 import 'package:aisley_app/features/auth/data/auth_repository.dart';
 import 'package:aisley_app/features/auth/domain/auth_models.dart';
 import 'package:aisley_app/features/auth/presentation/controllers/auth_controller.dart';
@@ -65,10 +58,9 @@ void main() {
 
     await tester.pumpWidget(CourierApp(authController: controller));
     await tester.tap(find.text('Create account'));
-    await _verifyRegistrationEmail(tester);
-    await _pumpUntilFound(tester, find.text('Personal details'));
+    await _pumpUntilFound(tester, find.text('Create your account'));
 
-    expect(find.text('Step 2 of 6 · Personal details'), findsOneWidget);
+    expect(find.text('Step 1 of 6 · Personal details'), findsOneWidget);
     expect(find.text('First name'), findsOneWidget);
     expect(find.text('Continue'), findsOneWidget);
     expect(find.text('Required evidence'), findsNothing);
@@ -85,8 +77,7 @@ void main() {
 
     await tester.pumpWidget(CourierApp(authController: controller));
     await tester.tap(find.text('Create account'));
-    await _verifyRegistrationEmail(tester);
-    await _pumpUntilFound(tester, find.text('Personal details'));
+    await _pumpUntilFound(tester, find.text('Create your account'));
     await tester.ensureVisible(find.text('Continue'));
     await tester.tap(find.text('Continue'));
     await tester.pump();
@@ -109,7 +100,7 @@ void main() {
 
     await tester.pumpWidget(CourierApp(authController: controller));
     expect(find.text('AISLEY Rider'), findsOneWidget);
-    expect(find.text('Sign in'), findsNWidgets(2));
+    expect(find.text('Sign in'), findsOneWidget);
 
     await tester.enterText(
       find.bySemanticsLabel('Email'),
@@ -159,7 +150,7 @@ void main() {
     expect(find.text('Retry'), findsOneWidget);
   });
 
-  testWidgets('dashboard refreshes its avatar after a profile photo update', (
+  testWidgets('dashboard shows identity and affiliation without a photo', (
     WidgetTester tester,
   ) async {
     final authController =
@@ -169,37 +160,20 @@ void main() {
           )
           ..status = AuthStatus.authenticated
           ..courier = _FakeAuthRepository().courier;
-    final accountController = AccountController(
-      accountRepository: _FakeDashboardAccountRepository(),
-    );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: DashboardScreen(
-          authController: authController,
-          accountController: accountController,
-        ),
-      ),
+      MaterialApp(home: DashboardScreen(authController: authController)),
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('Maya Santos'), findsOneWidget);
+    expect(find.text('Aisley Express · Makati Hub'), findsOneWidget);
     expect(
       find.byKey(const ValueKey<String>('dashboard-profile-photo')),
       findsNothing,
     );
-
-    accountController.profilePhoto = ProfilePhotoData(
-      bytes: Uint8List.fromList(_onePixelPng),
-      contentType: 'image/png',
-    );
-    accountController.profilePhotoStatus = ProfilePhotoStatus.available;
-    accountController.notifyListeners();
-    await tester.pump();
-
-    expect(
-      find.byKey(const ValueKey<String>('dashboard-profile-photo')),
-      findsOneWidget,
-    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    authController.dispose();
   });
 
   testWidgets('policy-gated dashboard opens consent without signing out', (
@@ -219,24 +193,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Terms and Privacy'), findsOneWidget);
+    expect(find.text('Terms & Privacy consent'), findsOneWidget);
     expect(
       find.text('Accept the required policies to continue to your work.'),
       findsOneWidget,
     );
   });
-}
-
-Future<void> _verifyRegistrationEmail(WidgetTester tester) async {
-  await _pumpUntilFound(tester, find.text('Send verification code'));
-  await tester.enterText(find.byType(TextField).first, 'courier@example.com');
-  await tester.ensureVisible(find.text('Send verification code'));
-  await tester.tap(find.text('Send verification code'));
-  await tester.pump();
-  await tester.enterText(find.byType(TextField).last, '012345');
-  await tester.ensureVisible(find.text('Verify email'));
-  await tester.tap(find.text('Verify email'));
-  await tester.pump();
 }
 
 Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
@@ -352,166 +314,6 @@ class _FakeDashboardRepository implements DashboardRepository {
     });
   }
 }
-
-class _FakeDashboardAccountRepository implements AccountRepository {
-  @override
-  Future<CourierAccount> fetchAccount() async {
-    return CourierAccount.fromJson(_dashboardAccountJson);
-  }
-
-  @override
-  Future<CourierAccount> updateProfile({
-    required String firstName,
-    String? middleName,
-    required String lastName,
-    required String contactNumber,
-    String? idempotencyKey,
-  }) async {
-    return CourierAccount.fromJson(_dashboardAccountJson);
-  }
-
-  @override
-  Future<PasswordChallenge> requestPasswordCode({
-    required String currentPassword,
-    required String password,
-    required String passwordConfirmation,
-  }) async {
-    return PasswordChallenge(
-      id: '00000000-0000-4000-8000-000000000001',
-      maskedEmail: 'r***@example.test',
-      expiresAt: DateTime.now().add(const Duration(minutes: 10)),
-      resendAt: DateTime.now().add(const Duration(seconds: 60)),
-    );
-  }
-
-  @override
-  Future<void> changePassword({
-    required String currentPassword,
-    required String password,
-    required String passwordConfirmation,
-    required String challengeId,
-    required String verificationCode,
-  }) async {}
-
-  @override
-  Future<CourierAccount> uploadProfilePhoto({
-    required ProfilePhotoSelection selection,
-    String? idempotencyKey,
-    void Function(void Function() cancel)? onCancel,
-  }) async {
-    return CourierAccount.fromJson(_dashboardAccountJson);
-  }
-
-  @override
-  Future<ProfilePhotoData> fetchProfilePhoto(String profilePhotoUrl) async {
-    return ProfilePhotoData(
-      bytes: Uint8List.fromList(_onePixelPng),
-      contentType: 'image/png',
-    );
-  }
-
-  @override
-  Future<void> deleteProfilePhoto() async {}
-}
-
-const _dashboardAccountJson = <String, dynamic>{
-  'id': 'courier-1',
-  'email': 'courier@example.com',
-  'role': 'courier',
-  'status': 'active',
-  'profile': <String, dynamic>{
-    'first_name': 'Maya',
-    'middle_name': null,
-    'last_name': 'Santos',
-    'contact_number': '09171234567',
-    'sex': 'female',
-    'birth_date': '1999-01-01',
-    'age': 27,
-    'profile_photo_url': null,
-  },
-  'affiliation': <String, dynamic>{
-    'status': 'approved',
-    'organization_name': 'Aisley Express',
-    'hub_name': 'Makati Hub',
-  },
-  'security': <String, dynamic>{
-    'email_editable': false,
-    'profile_photo_editable': true,
-    'password_change_requires_current_password': true,
-  },
-};
-
-const _onePixelPng = <int>[
-  137,
-  80,
-  78,
-  71,
-  13,
-  10,
-  26,
-  10,
-  0,
-  0,
-  0,
-  13,
-  73,
-  72,
-  68,
-  82,
-  0,
-  0,
-  0,
-  1,
-  0,
-  0,
-  0,
-  1,
-  8,
-  6,
-  0,
-  0,
-  0,
-  31,
-  21,
-  196,
-  137,
-  0,
-  0,
-  0,
-  13,
-  73,
-  68,
-  65,
-  84,
-  120,
-  156,
-  99,
-  248,
-  207,
-  192,
-  240,
-  31,
-  0,
-  5,
-  0,
-  1,
-  255,
-  137,
-  153,
-  61,
-  0,
-  0,
-  0,
-  0,
-  73,
-  69,
-  78,
-  68,
-  174,
-  66,
-  96,
-  130,
-];
 
 class _FakePolicyApi implements PolicyApi {
   @override

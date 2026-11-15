@@ -1,0 +1,164 @@
+{
+  "designSystem": {
+    "displayName": "Aisley Rider Courier System",
+    "styleGuidelines": "## Brand & Style\n\nThis design system establishes a high-performance, utilitarian work environment tailored specifically for on-demand couriers and fleet logistics operators navigating real-world transit conditions. The interface prioritizes rapid visual parsing, immediate situational awareness, and foolproof touch interactions under varied outdoor lighting conditions (direct sunlight to night delivery).\n\nThe aesthetic is functional, professional, and rigorous—drawing directly from modern industrial tooling and refined Material 3 guidelines. It rejects decorative overhead such as arbitrary floating navigation bars, complex drop shadows, saturated color washes, and skeuomorphic gradients. The emotional target is calm reliability, structural precision, and frictionless workflow execution.\n\n## Layout & Spacing\n\nThe layout is built for a 390×844 logical portrait viewport (iPhone 12/13/14 and common modern Android devices in the 360–412px class).\n\n- **Screen Margins:** Fixed 16px (`1rem`) horizontal outer margins ensure content is safely clear of hardware edges while maximizing legible data area.\n- **Vertical Rhythm:** Rooted in a strict 4px / 8px grid system. Elements group with 4px or 8px gaps; distinct card modules separate with 12px or 16px vertical spacing.\n- **Safe Area Anchoring:** Top viewports respect dynamic app bar heights (56px) plus safe system insets. The bottom root navigation snaps directly to the bottom hardware inset.\n- **Touch Ergonomics:** All primary interactive components guarantee a minimum 48×48px tap target size to accommodate single-handed thumb reach and gloved hands.\n\n## Elevation & Depth\n\nVisual hierarchy is achieved through pure tonal layering and crisp boundaries rather than drop shadows:\n\n- **Zero Shadows:** Elevation 0 across standard states. Drop shadows, diffuse color glows, and skeuomorphic bevels are banned.\n- **Container Separation:** Achieved through the tonal contrast between `#F7F7F8` (canvas) and `#FFFFFF` (card/sheet surface), framed by a precise 1px stroke of `#E2E2E6`.\n- **Modals & Overlays:** Bottom sheets and contextual action overlays sit directly on top of the layout with a 1px border on exposed edges, backdropped by a 40% `#202024` neutral scrim.\n- **Active State Highlights:** Selected cards or highlighted tasks use a 2px `#C00065` border or `#C00065` text emphasis rather than spatial elevation.\n\n## Components\n\n### Action Buttons\n- **Primary Button:** Height 48px or 52px, full-width or half-split; background `#C00065`, label pure white (`#FFFFFF`), `10px` corner radius. Disabled state uses `#E2E2E6` fill with `#55555D` label.\n- **Secondary Button:** Height 48px; background `#FFFFFF`, 1px border `#E2E2E6`, text `#202024`.\n- **Critical/Destructive Button:** Background `#FFFFFF`, 1px border `#E2E2E6`, text `#C00065` or destructive red `#D92D20`.\n\n### Surface Cards\n- **Base Card:** Flat `#FFFFFF` fill, 1px uniform border `#E2E2E6`, `12px` corner radius. Padding strictly 16px. Internal separators use 1px horizontal rules `#E2E2E6`.\n- **Active Delivery Card:** Includes a 4px solid `#C00065` vertical accent bar along the left edge or a subtle tag indicator at the top right.\n\n### Bottom Navigation Bar (Root Hierarchy)\n- **Structure:** Persistent full-width bottom bar anchored to screen bottom. Background `#FFFFFF` with a 1px top border `#E2E2E6`. Fixed 4-tab configuration:\n  1. **Home:** High-level dashboard, shift status, and immediate call-to-action.\n  2. **Work:** Active order queue, route map toggle, and pickup manifests.\n  3. **Task Messages:** Dispatcher chat, direct client comms, and system alerts.\n  4. **Account:** Payout history, performance metrics, fleet settings, and vehicle details.\n- **States:** Active tab icon and label use `#C00065`. Inactive tabs use `#55555D`. No pill/bubble indicator surrounds the active item.\n\n### Input Fields\n- Flat `#FFFFFF` background, 48px height, 10px border radius, 1px border `#E2E2E6`.\n- Active focus state transitions the border to a 1.5px `#C00065` stroke without outer halo rings.\n- Label: Body Medium (`14px`) `#55555D`; Entered Text: Body Large (`16px`) `#202024`.\n\n### Chips & Badges\n- **Status Chips:** Height 28px–32px, `8px` corner radius. Background `#F7F7F8`, 1px border `#E2E2E6`, text `#202024` or `#55555D`.\n- **Urgent / Live Badges:** Borderless `#C00065` fill with `#FFFFFF` text, `6px` radius.\n\n### List Tiles\n- Height 56px to 72px based on metadata density. Border bottom 1px `#E2E2E6`. Leading slot reserved for 24px icon or sequential step number; trailing slot holds time or chevron in `#55555D`.",
+    "theme": {
+      "bodyFont": "ROBOTO_FLEX",
+      "bodyFontFamily": "Roboto Flex",
+      "colorMode": "LIGHT",
+      "colorVariant": "FIDELITY",
+      "customColor": "#c00065",
+      "designMd": "---\nname: Aisley Rider Courier System\ncolors:\n  surface: '#f9f9fa'\n  surface-dim: '#dadadb'\n  surface-bright: '#f9f9fa'\n  surface-container-lowest: '#ffffff'\n  surface-container-low: '#f3f3f4'\n  surface-container: '#eeeeef'\n  surface-container-high: '#e8e8e9'\n  surface-container-highest: '#e2e2e3'\n  on-surface: '#1a1c1d'\n  on-surface-variant: '#594047'\n  inverse-surface: '#2f3132'\n  inverse-on-surface: '#f0f1f2'\n  outline: '#8d6f77'\n  outline-variant: '#e1bec6'\n  surface-tint: '#ba0061'\n  primary: '#94004d'\n  on-primary: '#ffffff'\n  primary-container: '#c00065'\n  on-primary-container: '#ffd3de'\n  inverse-primary: '#ffb1c7'\n  secondary: '#5f5e62'\n  on-secondary: '#ffffff'\n  secondary-container: '#e4e1e7'\n  on-secondary-container: '#656468'\n  tertiary: '#494951'\n  on-tertiary: '#ffffff'\n  tertiary-container: '#616169'\n  on-tertiary-container: '#dedde6'\n  error: '#ba1a1a'\n  on-error: '#ffffff'\n  error-container: '#ffdad6'\n  on-error-container: '#93000a'\n  primary-fixed: '#ffd9e2'\n  primary-fixed-dim: '#ffb1c7'\n  on-primary-fixed: '#3e001d'\n  on-primary-fixed-variant: '#8e0049'\n  secondary-fixed: '#e4e1e7'\n  secondary-fixed-dim: '#c8c5cb'\n  on-secondary-fixed: '#1b1b1f'\n  on-secondary-fixed-variant: '#47464b'\n  tertiary-fixed: '#e3e1eb'\n  tertiary-fixed-dim: '#c7c5cf'\n  on-tertiary-fixed: '#1a1b22'\n  on-tertiary-fixed-variant: '#46464e'\n  background: '#f9f9fa'\n  on-background: '#1a1c1d'\n  surface-variant: '#e2e2e3'\ntypography:\n  display-lg:\n    fontFamily: Roboto Flex\n    fontSize: 36px\n    fontWeight: '700'\n    lineHeight: 44px\n    letterSpacing: -0.02em\n  headline-lg:\n    fontFamily: Roboto Flex\n    fontSize: 28px\n    fontWeight: '700'\n    lineHeight: 36px\n    letterSpacing: -0.01em\n  headline-md:\n    fontFamily: Roboto Flex\n    fontSize: 24px\n    fontWeight: '600'\n    lineHeight: 32px\n    letterSpacing: 0em\n  title-lg:\n    fontFamily: Roboto Flex\n    fontSize: 20px\n    fontWeight: '600'\n    lineHeight: 26px\n    letterSpacing: 0em\n  title-md:\n    fontFamily: Roboto Flex\n    fontSize: 16px\n    fontWeight: '600'\n    lineHeight: 22px\n    letterSpacing: 0.01em\n  body-lg:\n    fontFamily: Roboto Flex\n    fontSize: 16px\n    fontWeight: '400'\n    lineHeight: 24px\n    letterSpacing: 0.01em\n  body-md:\n    fontFamily: Roboto Flex\n    fontSize: 14px\n    fontWeight: '400'\n    lineHeight: 20px\n    letterSpacing: 0.02em\n  body-sm:\n    fontFamily: Roboto Flex\n    fontSize: 12px\n    fontWeight: '400'\n    lineHeight: 16px\n    letterSpacing: 0.02em\n  label-lg:\n    fontFamily: Roboto Flex\n    fontSize: 14px\n    fontWeight: '600'\n    lineHeight: 20px\n    letterSpacing: 0.01em\n  label-md:\n    fontFamily: Roboto Flex\n    fontSize: 12px\n    fontWeight: '600'\n    lineHeight: 16px\n    letterSpacing: 0.04em\n  label-sm:\n    fontFamily: Roboto Flex\n    fontSize: 11px\n    fontWeight: '500'\n    lineHeight: 14px\n    letterSpacing: 0.04em\nrounded:\n  sm: 0.25rem\n  DEFAULT: 0.5rem\n  md: 0.75rem\n  lg: 1rem\n  xl: 1.5rem\n  full: 9999px\nspacing:\n  gutter: 0.75rem\n  margin: 1rem\n  space-xs: 0.25rem\n  space-sm: 0.5rem\n  space-md: 1rem\n  space-lg: 1.5rem\n  space-xl: 2rem\n---\n\n## Brand & Style\n\nThis design system establishes a high-performance, utilitarian work environment tailored specifically for on-demand couriers and fleet logistics operators navigating real-world transit conditions. The interface prioritizes rapid visual parsing, immediate situational awareness, and foolproof touch interactions under varied outdoor lighting conditions (direct sunlight to night delivery).\n\nThe aesthetic is functional, professional, and rigorous—drawing directly from modern industrial tooling and refined Material 3 guidelines. It rejects decorative overhead such as arbitrary floating navigation bars, complex drop shadows, saturated color washes, and skeuomorphic gradients. The emotional target is calm reliability, structural precision, and frictionless workflow execution.\n\n## Colors\n\nThe palette is strictly calibrated for maximum contrast and high-speed glanceability on mobile screens:\n\n- **Canvas Background (`#F7F7F8`):** An ultra-neutral, low-strain cool grey canvas that prevents glare while maintaining distinct separation from elevated surface cards.\n- **Surface Layer (`#FFFFFF`):** Crisp pure white applied to interactive containers, data cards, and sheets to establish clear functional boundaries.\n- **Primary Ink / Primary Surface Text (`#202024`):** A dense carbon black engineered for critical hierarchy, route data, payment values, and primary headings.\n- **Secondary Ink / Metadata (`#55555D`):** High-legibility neutral slate dedicated to timestamps, secondary metrics, field labels, and non-critical helper labels.\n- **Hairline Structural Borders (`#E2E2E6`):** Standard 1px boundary stroke used consistently across cards, dividers, and input borders to replace elevation drop shadows.\n- **Brand Accent / Primary Action (`#C00065`):** A vibrant magenta accent reserved exclusively for decisive forward actions (e.g., \"Accept Batch\", \"Slide to Deliver\"), active navigation selection states, and direct system callouts. Never dilute this color into low-contrast tints or ambient glows.\n\n## Typography\n\nTypography relies on **Roboto Flex** across all functional tiers, ensuring systematic alignment with native Flutter Material 3 metrics while leveraging dense numeric figures for addresses, earnings, and timestamps.\n\n- **Display & Headings:** Used sparingly for onboarding metrics, total weekly balance, and full-screen milestone confirmation.\n- **Title Large (`24px`, weight 600) & Title Medium (`16px`, weight 600):** Serve as standard screen headers, delivery modal titles, and card section headers.\n- **Body Large (`16px`):** Applied to primary user prompts, delivery addresses, and customer instructions.\n- **Body Medium (`14px`):** The workhorse scale for order itemization, metadata tables, transit warnings, and input fields.\n- **Labels:** Reserved for status pills, badge indicators, active tabs, and button action text.\n\n## Layout & Spacing\n\nThe layout is built for a 390×844 logical portrait viewport (iPhone 12/13/14 and common modern Android devices in the 360–412px class).\n\n- **Screen Margins:** Fixed 16px (`1rem`) horizontal outer margins ensure content is safely clear of hardware edges while maximizing legible data area.\n- **Vertical Rhythm:** Rooted in a strict 4px / 8px grid system. Elements group with 4px or 8px gaps; distinct card modules separate with 12px or 16px vertical spacing.\n- **Safe Area Anchoring:** Top viewports respect dynamic app bar heights (56px) plus safe system insets. The bottom root navigation snaps directly to the bottom hardware inset.\n- **Touch Ergonomics:** All primary interactive components guarantee a minimum 48×48px tap target size to accommodate single-handed thumb reach and gloved hands.\n\n## Elevation & Depth\n\nVisual hierarchy is achieved through pure tonal layering and crisp boundaries rather than drop shadows:\n\n- **Zero Shadows:** Elevation 0 across standard states. Drop shadows, diffuse color glows, and skeuomorphic bevels are banned.\n- **Container Separation:** Achieved through the tonal contrast between `#F7F7F8` (canvas) and `#FFFFFF` (card/sheet surface), framed by a precise 1px stroke of `#E2E2E6`.\n- **Modals & Overlays:** Bottom sheets and contextual action overlays sit directly on top of the layout with a 1px border on exposed edges, backdropped by a 40% `#202024` neutral scrim.\n- **Active State Highlights:** Selected cards or highlighted tasks use a 2px `#C00065` border or `#C00065` text emphasis rather than spatial elevation.\n\n## Shapes\n\nThe geometric language is calibrated for a modern, industrial utility profile:\n\n- **Buttons:** 10px corner radius (`rounded-md`). Strikes an intentional balance between structural rigidity and comfortable tap ergonomics.\n- **Cards & Surface Modules:** 12px corner radius (`rounded-lg`). Uniform curvature across parcel summaries, navigation alerts, and data sections.\n- **Badges & Status Chips:** 6px to 8px corner radius. Pill forms (fully circular radii) are avoided to maintain the clean, technical aesthetic.\n- **Inputs & Keypad Targets:** 10px corner radius matching button standards.\n\n## Components\n\n### Action Buttons\n- **Primary Button:** Height 48px or 52px, full-width or half-split; background `#C00065`, label pure white (`#FFFFFF`), `10px` corner radius. Disabled state uses `#E2E2E6` fill with `#55555D` label.\n- **Secondary Button:** Height 48px; background `#FFFFFF`, 1px border `#E2E2E6`, text `#202024`.\n- **Critical/Destructive Button:** Background `#FFFFFF`, 1px border `#E2E2E6`, text `#C00065` or destructive red `#D92D20`.\n\n### Surface Cards\n- **Base Card:** Flat `#FFFFFF` fill, 1px uniform border `#E2E2E6`, `12px` corner radius. Padding strictly 16px. Internal separators use 1px horizontal rules `#E2E2E6`.\n- **Active Delivery Card:** Includes a 4px solid `#C00065` vertical accent bar along the left edge or a subtle tag indicator at the top right.\n\n### Bottom Navigation Bar (Root Hierarchy)\n- **Structure:** Persistent full-width bottom bar anchored to screen bottom. Background `#FFFFFF` with a 1px top border `#E2E2E6`. Fixed 4-tab configuration:\n  1. **Home:** High-level dashboard, shift status, and immediate call-to-action.\n  2. **Work:** Active order queue, route map toggle, and pickup manifests.\n  3. **Task Messages:** Dispatcher chat, direct client comms, and system alerts.\n  4. **Account:** Payout history, performance metrics, fleet settings, and vehicle details.\n- **States:** Active tab icon and label use `#C00065`. Inactive tabs use `#55555D`. No pill/bubble indicator surrounds the active item.\n\n### Input Fields\n- Flat `#FFFFFF` background, 48px height, 10px border radius, 1px border `#E2E2E6`.\n- Active focus state transitions the border to a 1.5px `#C00065` stroke without outer halo rings.\n- Label: Body Medium (`14px`) `#55555D`; Entered Text: Body Large (`16px`) `#202024`.\n\n### Chips & Badges\n- **Status Chips:** Height 28px–32px, `8px` corner radius. Background `#F7F7F8`, 1px border `#E2E2E6`, text `#202024` or `#55555D`.\n- **Urgent / Live Badges:** Borderless `#C00065` fill with `#FFFFFF` text, `6px` radius.\n\n### List Tiles\n- Height 56px to 72px based on metadata density. Border bottom 1px `#E2E2E6`. Leading slot reserved for 24px icon or sequential step number; trailing slot holds time or chevron in `#55555D`.",
+      "font": "ROBOTO_FLEX",
+      "headlineFont": "ROBOTO_FLEX",
+      "headlineFontFamily": "Roboto Flex",
+      "labelFont": "ROBOTO_FLEX",
+      "labelFontFamily": "Roboto Flex",
+      "namedColors": {
+        "background": "#f9f9fa",
+        "error": "#ba1a1a",
+        "error_container": "#ffdad6",
+        "inverse_on_surface": "#f0f1f2",
+        "inverse_primary": "#ffb1c7",
+        "inverse_surface": "#2f3132",
+        "on_background": "#1a1c1d",
+        "on_error": "#ffffff",
+        "on_error_container": "#93000a",
+        "on_primary": "#ffffff",
+        "on_primary_container": "#ffd3de",
+        "on_primary_fixed": "#3e001d",
+        "on_primary_fixed_variant": "#8e0049",
+        "on_secondary": "#ffffff",
+        "on_secondary_container": "#656468",
+        "on_secondary_fixed": "#1b1b1f",
+        "on_secondary_fixed_variant": "#47464b",
+        "on_surface": "#1a1c1d",
+        "on_surface_variant": "#594047",
+        "on_tertiary": "#ffffff",
+        "on_tertiary_container": "#dedde6",
+        "on_tertiary_fixed": "#1a1b22",
+        "on_tertiary_fixed_variant": "#46464e",
+        "outline": "#8d6f77",
+        "outline_variant": "#e1bec6",
+        "primary": "#94004d",
+        "primary_container": "#c00065",
+        "primary_fixed": "#ffd9e2",
+        "primary_fixed_dim": "#ffb1c7",
+        "secondary": "#5f5e62",
+        "secondary_container": "#e4e1e7",
+        "secondary_fixed": "#e4e1e7",
+        "secondary_fixed_dim": "#c8c5cb",
+        "surface": "#f9f9fa",
+        "surface_bright": "#f9f9fa",
+        "surface_container": "#eeeeef",
+        "surface_container_high": "#e8e8e9",
+        "surface_container_highest": "#e2e2e3",
+        "surface_container_low": "#f3f3f4",
+        "surface_container_lowest": "#ffffff",
+        "surface_dim": "#dadadb",
+        "surface_tint": "#ba0061",
+        "surface_variant": "#e2e2e3",
+        "tertiary": "#494951",
+        "tertiary_container": "#616169",
+        "tertiary_fixed": "#e3e1eb",
+        "tertiary_fixed_dim": "#c7c5cf"
+      },
+      "overrideNeutralColor": "#f7f7f8",
+      "overridePrimaryColor": "#c00065",
+      "overrideSecondaryColor": "#202024",
+      "overrideTertiaryColor": "#55555d",
+      "roundness": "ROUND_EIGHT",
+      "spacing": {
+        "gutter": "0.75rem",
+        "margin": "1rem",
+        "space-lg": "1.5rem",
+        "space-md": "1rem",
+        "space-sm": "0.5rem",
+        "space-xl": "2rem",
+        "space-xs": "0.25rem"
+      },
+      "spacingScale": 2,
+      "typography": {
+        "body-lg": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "letterSpacing": "0.01em",
+          "lineHeight": "24px"
+        },
+        "body-md": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "14px",
+          "fontWeight": "400",
+          "letterSpacing": "0.02em",
+          "lineHeight": "20px"
+        },
+        "body-sm": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "letterSpacing": "0.02em",
+          "lineHeight": "16px"
+        },
+        "display-lg": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "36px",
+          "fontWeight": "700",
+          "letterSpacing": "-0.02em",
+          "lineHeight": "44px"
+        },
+        "headline-lg": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "28px",
+          "fontWeight": "700",
+          "letterSpacing": "-0.01em",
+          "lineHeight": "36px"
+        },
+        "headline-md": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "24px",
+          "fontWeight": "600",
+          "letterSpacing": "0em",
+          "lineHeight": "32px"
+        },
+        "label-lg": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "14px",
+          "fontWeight": "600",
+          "letterSpacing": "0.01em",
+          "lineHeight": "20px"
+        },
+        "label-md": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "12px",
+          "fontWeight": "600",
+          "letterSpacing": "0.04em",
+          "lineHeight": "16px"
+        },
+        "label-sm": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "11px",
+          "fontWeight": "500",
+          "letterSpacing": "0.04em",
+          "lineHeight": "14px"
+        },
+        "title-lg": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "20px",
+          "fontWeight": "600",
+          "letterSpacing": "0em",
+          "lineHeight": "26px"
+        },
+        "title-md": {
+          "fontFamily": "Roboto Flex",
+          "fontSize": "16px",
+          "fontWeight": "600",
+          "letterSpacing": "0.01em",
+          "lineHeight": "22px"
+        }
+      }
+    }
+  },
+  "name": "assets/cf67e39ea951477bacd66dec7dda7a16",
+  "version": "1"
+}

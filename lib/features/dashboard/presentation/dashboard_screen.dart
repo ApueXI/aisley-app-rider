@@ -5,7 +5,6 @@ import '../../linehaul/presentation/linehaul_screen.dart';
 import 'dart:async';
 
 import '../../../shared/presentation/destination_scope.dart';
-import '../../../shared/presentation/courier_section_header.dart';
 import '../../../shared/presentation/courier_status_badge.dart';
 import '../../../shared/presentation/courier_surface_card.dart';
 import '../../../shared/presentation/sign_out_confirmation.dart';
@@ -14,7 +13,6 @@ import '../../policy/presentation/policy_screen.dart';
 
 import 'package:flutter/material.dart';
 
-import '../../account/domain/account_models.dart';
 import '../../account/presentation/controllers/account_controller.dart';
 import '../../account/presentation/account_screen.dart';
 import '../../auth/domain/auth_models.dart';
@@ -298,6 +296,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             ],
           ),
           bottomNavigationBar: NavigationBar(
+            height: _navigationBarHeight(context),
             selectedIndex: _tab,
             onDestinationSelected: _selectTab,
             destinations: const [
@@ -327,4 +326,9 @@ class _DashboardScreenState extends State<DashboardScreen>
       );
     },
   );
+
+  double _navigationBarHeight(BuildContext context) {
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    return textScale <= 1 ? 64 : 64 + (textScale - 1) * 32;
+  }
 }

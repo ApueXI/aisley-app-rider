@@ -130,8 +130,14 @@ void main() {
     await fixture.openAlert(tester);
     await tester.tap(find.text('Open related work'));
     await tester.pumpAndSettle();
-    expect(find.text('Dispatch batch offer'), findsNothing);
-    expect(find.textContaining('hub'), findsWidgets);
+    expect(find.text('Delivery photo & cash'), findsOneWidget);
+    expect(find.text('CURRENT-ORDER'), findsOneWidget);
+    expect(find.text('Assigned hub'), findsOneWidget);
+    expect(find.text('Current hub'), findsOneWidget);
+    expect(find.textContaining('123 Sample Road'), findsOneWidget);
+    expect(find.text('09170000000'), findsOneWidget);
+    expect(fixture.pickupRepository.taskReads, ['task-1']);
+    expect(fixture.deliveryRepository.contextReads, ['task-1']);
     fixture.pickupRepository.error = const ApiException(
       statusCode: 404,
       code: 'NOT_FOUND',
@@ -144,6 +150,8 @@ void main() {
     expect(find.byType(PickupTaskDetailScreen), findsNothing);
     expect(find.textContaining('no longer available'), findsOneWidget);
     expect(find.textContaining('CURRENT-ORDER'), findsNothing);
+    expect(fixture.pickupRepository.taskReads, ['task-1', 'task-1']);
+    expect(fixture.deliveryRepository.contextReads, ['task-1']);
     fixture.expectNoMutations();
     await fixture.close(tester);
   });
@@ -158,8 +166,11 @@ void main() {
       await fixture.openAlert(tester);
       await tester.tap(find.text('Open related work'));
       await tester.pumpAndSettle();
-      expect(find.text('Deliver order'), findsOneWidget);
-      expect(find.textContaining('Current hub'), findsWidgets);
+      expect(find.text('Delivery photo & cash'), findsOneWidget);
+      expect(find.text('Assigned hub'), findsOneWidget);
+      expect(find.text('Current hub'), findsOneWidget);
+      expect(find.textContaining('123 Sample Road'), findsOneWidget);
+      expect(find.text('09170000000'), findsOneWidget);
       expect(fixture.deliveryRepository.contextReads, ['task-1']);
       fixture.expectNoMutations();
       await fixture.close(tester);

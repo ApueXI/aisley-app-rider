@@ -93,8 +93,8 @@ void main() {
     );
     await tester.tap(find.text('Refresh route'));
     await tester.pumpAndSettle();
-    final refresh = find.widgetWithText(TextButton, 'Refresh route');
-    expect(tester.widget<TextButton>(refresh).onPressed, isNull);
+    final refresh = find.widgetWithText(OutlinedButton, 'Refresh route');
+    expect(tester.widget<OutlinedButton>(refresh).onPressed, isNull);
     expect(find.text('Wait before retrying the route.'), findsOneWidget);
     expect(find.text('Back to pickup tasks'), findsOneWidget);
     await controller.loadRouteManifest('schedule-a', refresh: true);
@@ -200,11 +200,8 @@ void main() {
       repository.response = emptyPickupRoute();
       await tester.tap(find.text('Simulate map failure'));
       await tester.pumpAndSettle();
-      expect(find.text('Map could not be loaded.'), findsOneWidget);
-      expect(
-        find.textContaining('Route stops are unavailable.'),
-        findsOneWidget,
-      );
+      expect(find.text('No route stops available'), findsOneWidget);
+      expect(find.textContaining('Route stops are unavailable.'), findsNothing);
       expect(find.text('Back to pickup tasks'), findsOneWidget);
       expect(
         find.textContaining('Route stops remain available below'),

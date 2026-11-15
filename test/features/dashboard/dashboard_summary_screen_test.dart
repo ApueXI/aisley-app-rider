@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:aisley_app/app/courier_theme.dart';
 import 'package:aisley_app/core/networking/api_client.dart';
 import 'package:aisley_app/core/networking/api_contract_exception.dart';
 import 'package:aisley_app/features/auth/data/auth_repository.dart';
@@ -8,8 +9,13 @@ import 'package:aisley_app/features/auth/presentation/controllers/auth_controlle
 import 'package:aisley_app/features/dashboard/data/dashboard_repository.dart';
 import 'package:aisley_app/features/dashboard/domain/dashboard_models.dart';
 import 'package:aisley_app/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:aisley_app/features/notification/data/notification_repository.dart';
+import 'package:aisley_app/features/notification/domain/notification_models.dart';
+import 'package:aisley_app/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/accessibility.dart';
 
 void main() {
   testWidgets('unavailable summaries share one readable notice', (
@@ -206,17 +212,145 @@ void main() {
     addTearDown(auth.dispose);
     await _show(tester, auth);
 
-    expect(find.text('Needs refresh'), findsOneWidget);
-    expect(
-      find.text(
-        'Showing earlier data for this section. Refresh before acting.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Refresh failed · Showing cached data'), findsOneWidget);
     expect(find.text('ORD-SYNTHETIC'), findsOneWidget);
+    expect(find.textContaining('Accepted (Stale)'), findsOneWidget);
     expect(find.text('No available work.'), findsOneWidget);
-    expect(find.text('No recent notifications.'), findsOneWidget);
+    expect(find.text('No recent notifications.'), findsNothing);
+    expect(find.text('Refresh dashboard'), findsNothing);
     expect(find.text('Task ID'), findsNothing);
+  });
+
+  const smallTextScenario = AccessibilityScenario(
+    Size(320, 700),
+    2,
+    Brightness.light,
+  );
+
+  accessibilityTest(
+    'operational Home sections reflow at 320 px and 2x text',
+    smallTextScenario,
+    (tester) async {
+      final repository = _SummaryRepository()
+        ..snapshot = const DashboardSnapshot(
+          sections: {
+            'active_tasks': DashboardSection(
+              state: DashboardSectionState.stale,
+              generatedAt: '2026-10-28T01:45:00Z',
+              items: [
+                {
+                  'id': 'synthetic-task',
+                  'leg': 'first_mile',
+                  'status': 'accepted',
+                  'order_reference': 'ORD-2026-VERY-LONG-REFERENCE-2048',
+                },
+              ],
+            ),
+            'available_tasks': DashboardSection(
+              state: DashboardSectionState.available,
+              generatedAt: '2026-10-28T01:45:00Z',
+              items: [
+                {
+                  'id': 'synthetic-offer',
+                  'leg': 'final_mile',
+                  'status': 'delivery_assigned',
+                  'waybill_reference': 'WB-2026-VERY-LONG-REFERENCE-2049',
+                },
+              ],
+            ),
+          },
+          freshness: DashboardFreshness(state: DashboardFreshnessState.partial),
+        );
+      final auth = _auth(repository);
+      await tester.pumpWidget(
+        smallTextScenario.app(DashboardScreen(authController: auth)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Active work'), findsOneWidget);
+      expect(find.textContaining('Accepted (Stale)'), findsOneWidget);
+      expect(find.text('ORD-2026-VERY-LONG-REFERENCE-2048'), findsOneWidget);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).height,
+        96,
+      );
+      expect(find.text('Task messages'), findsOneWidget);
+      await checkAccessibility(tester);
+      await focusByKeyboard(
+        tester,
+        find.widgetWithText(NavigationDestination, 'Task messages'),
+      );
+      expect(tester.takeException(), isNull);
+      auth.dispose();
+    },
+  );
+
+  accessibilityTest(
+    'Work and Account menus keep labels and focus at 320 px / 2x',
+    smallTextScenario,
+    (tester) async {
+      final auth = _auth(_SummaryRepository());
+      await tester.pumpWidget(
+        smallTextScenario.app(DashboardScreen(authController: auth)),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(NavigationDestination, 'Work'));
+      await tester.pumpAndSettle();
+      expect(find.text('Pickup orders'), findsOneWidget);
+      await checkAccessibility(tester);
+      await focusByKeyboard(
+        tester,
+        find.widgetWithText(NavigationDestination, 'Work'),
+      );
+
+      await tester.tap(find.widgetWithText(NavigationDestination, 'Account'));
+      await tester.pumpAndSettle();
+      expect(find.text('Appearance'), findsOneWidget);
+      expect(find.text('System'), findsOneWidget);
+      await checkAccessibility(tester);
+      await focusByKeyboard(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Sign out'),
+      );
+      expect(tester.takeException(), isNull);
+      auth.dispose();
+    },
+  );
+
+  testWidgets('Home notification label leaves an unknown count unspecified', (
+    tester,
+  ) async {
+    final unreadCount = Completer<int>();
+    final notifications = NotificationController(
+      notificationRepository: _UnreadCountRepository()..pending = unreadCount,
+    );
+    final auth = _auth(_SummaryRepository());
+    addTearDown(auth.dispose);
+    addTearDown(notifications.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildCourierTheme(Brightness.light),
+        home: DashboardScreen(
+          authController: auth,
+          notificationController: notifications,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Notifications'), findsOneWidget);
+    unreadCount.completeError(const ApiException.network('unavailable'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Notifications'), findsOneWidget);
+
+    final repository =
+        notifications.notificationRepository as _UnreadCountRepository;
+    repository.pending = null;
+    repository.count = 0;
+    await notifications.refreshUnreadCount();
+    await tester.pump();
+    expect(find.byTooltip('Notifications, 0 unread'), findsOneWidget);
   });
 
   testWidgets('notice and retry remain accessible at large text sizes', (
@@ -275,6 +409,8 @@ Future<void> _show(
             .copyWith(textScaler: TextScaler.linear(scale)),
         child: child!,
       ),
+      theme: buildCourierTheme(Brightness.light),
+      darkTheme: buildCourierTheme(Brightness.dark),
       home: DashboardScreen(authController: auth),
     ),
   );
@@ -313,6 +449,26 @@ class _SummaryRepository implements DashboardRepository {
     if (pending case final response?) return response.future;
     return snapshot;
   }
+}
+
+class _UnreadCountRepository implements NotificationRepository {
+  Completer<int>? pending;
+  int count = 0;
+
+  @override
+  Future<int> fetchUnreadCount() => pending?.future ?? Future.value(count);
+
+  @override
+  Future<CourierNotificationPage> fetchNotifications({
+    NotificationFilter filter = NotificationFilter.all,
+    String category = 'all',
+    int limit = 20,
+    String? cursor,
+  }) async => const CourierNotificationPage(items: []);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError(invocation.memberName.toString());
 }
 
 const _scaffold = DashboardSnapshot(

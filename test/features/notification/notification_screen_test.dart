@@ -45,15 +45,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Courier inbox'), findsOneWidget);
+    expect(find.text('Notifications'), findsOneWidget);
     expect(find.byType(ChoiceChip), findsNWidgets(3));
     expect(
-      find.byKey(const ValueKey('notification-category-support')),
+      find.byKey(const ValueKey('notification-category-filter')),
       findsOneWidget,
     );
     expect(find.text('Delivery offered'), findsOneWidget);
-    expect(find.text('Deliveries'), findsNWidgets(2));
-    expect(find.text('1 unread notification'), findsOneWidget);
+    expect(find.text('Deliveries'), findsOneWidget);
+    expect(find.text('Unread (1)'), findsOneWidget);
     expect(find.text('Mark all as read'), findsNothing);
 
     await tester.tap(find.text('Delivery offered'));
@@ -225,9 +225,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final support = find.byKey(const ValueKey('notification-category-support'));
-    await tester.drag(find.byType(ListView).first, const Offset(0, -700));
+    final categoryFilter = find.byKey(
+      const ValueKey('notification-category-filter'),
+    );
+    await tester.ensureVisible(categoryFilter);
+    await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
+    final support = find.byKey(const ValueKey('notification-category-support'));
     await tester.tap(support);
     await tester.pumpAndSettle();
 

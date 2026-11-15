@@ -78,7 +78,7 @@ try {
   await send('Runtime.enable');
   await send('Network.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 780, height: 1000, deviceScaleFactor: 1, mobile: false });
-  await send('Page.navigate', { url: 'http://localhost:8766' });
+  await send('Page.navigate', { url: 'http://localhost:8765' });
   for (let attempt = 0; attempt < 60; attempt++) {
     if (await evaluate("!!globalThis.maplibregl?.Map && document.querySelectorAll('.maplibregl-canvas').length > 0")) break;
     await delay(500);
@@ -93,6 +93,26 @@ try {
   const initial = await waitForMap(121.25);
   assert.equal(initial.validLayerOrder, true, 'Tiles must be below the line and numbered markers');
   assert.ok(initial.rasterCount <= 16, 'Viewport tile count must be bounded');
+  const stacking = await evaluate(`(() => {
+    const root = document.querySelector('.maplibregl-map');
+    const style = getComputedStyle(root);
+    const bounds = root.getBoundingClientRect();
+    // A high SDK child must remain below a sibling overlay outside the map.
+    const control = document.createElement('div');
+    control.style.cssText = 'position:absolute;inset:0;z-index:999999;pointer-events:auto';
+    root.append(control);
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:auto';
+    root.parentElement.append(overlay);
+    const top = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    const covered = top === overlay;
+    overlay.remove();
+    control.remove();
+    return {isolation: style.isolation, zIndex: style.zIndex, covered};
+  })()`);
+  assert.deepEqual(stacking, {isolation: 'isolate', zIndex: '0', covered: true},
+    'Map controls must remain inside their stacking context');
+
   await click(155, 445); // Material Zoom in on the fixed fixture layout.
   await delay(1000);
   assert.ok((await evaluate('courierFixtureMap.getZoom()')) > initial.zoom);

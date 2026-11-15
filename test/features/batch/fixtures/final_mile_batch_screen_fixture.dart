@@ -22,7 +22,7 @@ class WidgetBatchRepository implements FinalMileBatchRepository {
   final acceptedIds = <String>{}, rejectedIds = <String>{};
   @override
   Future<List<FinalMileBatch>> fetchBatches() async =>
-      rejectedIds.length == 2 ? [] : [batch()];
+      rejectedIds.length == 3 ? [] : [batch()];
   @override
   Future<FinalMileBatch> fetchBatch(String scheduleId) async {
     if (pendingRead case final pending?) return pending.future;
@@ -41,22 +41,30 @@ class WidgetBatchRepository implements FinalMileBatchRepository {
     id: 'schedule-1',
     reference: 'DSP-100',
     scheduledFor: DateTime.utc(2026, 9, 27, 1, 30),
-    parcelCount: 2 - rejectedIds.length,
-    status: accepted || acceptedIds.length + rejectedIds.length == 2
+    parcelCount: 3 - rejectedIds.length,
+    status: accepted || acceptedIds.length == 3
         ? FinalMileBatchStatus.accepted
         : FinalMileBatchStatus.offered,
     tasks: [
-      for (var i = 1; i <= 2; i++)
+      for (var i = 1; i <= 3; i++)
         if (!rejectedIds.contains('task-$i'))
           FinalMileBatchTask(
             id: 'task-$i',
             status: accepted || acceptedIds.contains('task-$i')
                 ? 'delivery_accepted'
                 : 'delivery_assigned',
-            orderReference: i == 1 ? 'ORD-100' : 'ORD-101',
+            orderReference: 'ORD-${99 + i}',
             parcel: FinalMileBatchParcel(
-              itemCount: i == 1 ? 3 : 1,
-              price: i == 1 ? '1250.00' : '499.50',
+              itemCount: i == 1
+                  ? 3
+                  : i == 2
+                  ? 1
+                  : 2,
+              price: i == 1
+                  ? '1250.00'
+                  : i == 2
+                  ? '499.50'
+                  : '875.00',
               currency: 'PHP',
             ),
             destination: FinalMileBatchDestination(

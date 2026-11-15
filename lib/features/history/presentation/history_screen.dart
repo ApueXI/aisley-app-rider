@@ -1,5 +1,4 @@
 import '../../../shared/presentation/destination_scope.dart';
-import '../../../shared/presentation/courier_section_header.dart';
 import '../../../shared/presentation/courier_status_badge.dart';
 import '../../../shared/presentation/courier_surface_card.dart';
 
@@ -52,7 +51,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(
-            leading: destinationBackButton(context),
+            leading:
+                destinationBackButton(context) ??
+                (Navigator.of(context).canPop() ? const BackButton() : null),
             title: const Text('Delivery history'),
           ),
           body: RefreshIndicator(

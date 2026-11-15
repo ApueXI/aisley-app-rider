@@ -16,12 +16,7 @@ import 'fixtures/pickup_route_repository.dart';
 
 void main() {
   for (final scenario in AccessibilityScenario.matrix) {
-    for (final (status, message) in [
-      ('pending', 'The pickup route is still being prepared.'),
-      ('ready', 'Route stops were not provided.'),
-      ('unavailable', 'Route stops are unavailable.'),
-      ('future', 'This pickup route cannot be displayed.'),
-    ]) {
+    for (final status in ['pending', 'ready', 'unavailable', 'future']) {
       accessibilityTest('empty $status route: ${scenario.name}', scenario, (
         tester,
       ) async {
@@ -38,9 +33,16 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.textContaining(message), findsOneWidget);
-        await reveal(tester, find.text('Back to pickup tasks'));
+        expect(find.text('Pickup route'), findsOneWidget);
+        expect(find.text('No route stops available'), findsOneWidget);
+        expect(
+          find.text(
+            'No route stops are available. Return to pickup tasks to review your work.',
+          ),
+          findsOneWidget,
+        );
         expect(find.text('Back to pickup tasks'), findsOneWidget);
+        expect(find.text('Refresh route'), findsOneWidget);
         expect(
           find.textContaining('Route stops remain available below'),
           findsNothing,
@@ -54,6 +56,8 @@ void main() {
           findsNothing,
         );
         expect(find.text('Authorized stop order'), findsNothing);
+        expect(find.text('Route stops were not provided.'), findsNothing);
+        expect(find.text('Route stops are unavailable.'), findsNothing);
         expect(repository.routeReads, ['schedule-a']);
         await checkScrollableAccessibility(tester);
 

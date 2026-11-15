@@ -1,10 +1,9 @@
 part of '../dashboard_screen.dart';
 
 class _WelcomeCard extends StatelessWidget {
-  const _WelcomeCard({required this.courier, this.profilePhoto});
+  const _WelcomeCard({required this.courier});
 
   final CourierIdentity courier;
-  final ProfilePhotoData? profilePhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -12,45 +11,26 @@ class _WelcomeCard extends StatelessWidget {
     final organization = courier.organizationName;
     final hub = courier.hubName;
     final affiliation = [?organization, ?hub].join(' · ');
-    final photoBytes = profilePhoto?.bytes;
 
     return CourierSurfaceCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: scheme.surfaceContainerHighest,
-            foregroundColor: scheme.onSurface,
-            child: photoBytes == null || photoBytes.isEmpty
-                ? Text(_initials(courier.displayName))
-                : ClipOval(
-                    child: Image.memory(
-                      photoBytes,
-                      key: const ValueKey<String>('dashboard-profile-photo'),
-                      width: 44,
-                      height: 44,
-                      fit: BoxFit.cover,
-                      semanticLabel: '${courier.displayName} profile photo',
-                      errorBuilder: (context, error, stack) =>
-                          Text(_initials(courier.displayName)),
-                    ),
-                  ),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   courier.displayName,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 if (affiliation.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     affiliation,
-                    style: Theme.of(context).textTheme.bodyMedium
+                    style: Theme.of(context).textTheme.bodyLarge
                         ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ],
@@ -72,17 +52,9 @@ class _WorkShortcuts extends StatelessWidget {
   Widget build(BuildContext context) {
     final shortcuts = [
       if (onOpenPickups != null)
-        _WorkShortcut(
-          icon: Icons.inventory_2_outlined,
-          label: 'Pickup orders',
-          onTap: onOpenPickups!,
-        ),
+        _WorkShortcut(label: 'Pickup orders', onTap: onOpenPickups!),
       if (onOpenDeliveries != null)
-        _WorkShortcut(
-          icon: Icons.local_shipping_outlined,
-          label: 'Delivery work',
-          onTap: onOpenDeliveries!,
-        ),
+        _WorkShortcut(label: 'Delivery work', onTap: onOpenDeliveries!),
     ];
 
     if (shortcuts.isEmpty) return const SizedBox.shrink();
@@ -120,32 +92,26 @@ class _WorkShortcuts extends StatelessWidget {
 }
 
 class _WorkShortcut extends StatelessWidget {
-  const _WorkShortcut({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  const _WorkShortcut({required this.label, required this.onTap});
 
-  final IconData icon;
   final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return CourierSurfaceCard(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      padding: EdgeInsets.zero,
       onTap: onTap,
-      child: Row(
-        children: [
-          Icon(icon, color: scheme.primary, size: 22),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.titleSmall),
+      child: SizedBox(
+        height: 48,
+        child: Center(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(width: 4),
-          Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
-        ],
+        ),
       ),
     );
   }

@@ -276,25 +276,27 @@ class _RouteMapViewState extends State<RouteMapView> {
         const SizedBox(height: 8),
         SizedBox(
           height: 300,
-          child: Semantics(
-            label: widget.semanticLabel,
-            child: MapLibreMap(
-              key: ValueKey(_mapVersion),
-              annotationOrder: const [AnnotationType.symbol],
-              dragEnabled: false,
-              styleString: CourierMapSecurity.emptyStyle,
-              initialCameraPosition: CameraPosition(
-                target: LatLng(first.latitude, first.longitude),
-                zoom: 10,
+          child: ClipRect(
+            child: Semantics(
+              label: widget.semanticLabel,
+              child: MapLibreMap(
+                key: ValueKey(_mapVersion),
+                annotationOrder: const [AnnotationType.symbol],
+                dragEnabled: false,
+                styleString: CourierMapSecurity.emptyStyle,
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(first.latitude, first.longitude),
+                  zoom: 10,
+                ),
+                trackCameraPosition: true,
+                rotateGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+                onMapCreated: (controller) {
+                  _map = controller;
+                },
+                onStyleLoadedCallback: () => unawaited(_styleLoaded()),
+                onCameraIdle: () => unawaited(_updateTiles()),
               ),
-              trackCameraPosition: true,
-              rotateGesturesEnabled: false,
-              tiltGesturesEnabled: false,
-              onMapCreated: (controller) {
-                _map = controller;
-              },
-              onStyleLoadedCallback: () => unawaited(_styleLoaded()),
-              onCameraIdle: () => unawaited(_updateTiles()),
             ),
           ),
         ),

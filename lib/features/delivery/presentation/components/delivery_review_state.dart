@@ -4,18 +4,10 @@ class _DeliveryPendingReviewCard extends StatelessWidget {
   const _DeliveryPendingReviewCard({
     required this.task,
     required this.controller,
-    required this.contextData,
-    required this.canRefresh,
-    required this.onRefresh,
-    required this.onBackToWork,
   });
 
   final PickupTask task;
   final DeliveryController controller;
-  final DeliveryContext? contextData;
-  final bool canRefresh;
-  final VoidCallback onRefresh;
-  final VoidCallback onBackToWork;
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +15,6 @@ class _DeliveryPendingReviewCard extends StatelessWidget {
     final evidenceId =
         controller.proofs[task.id]?.proofId ?? completion?.evidenceId;
     final evidenceStatus = controller.evidenceStatusFor(task);
-    final cod = contextData?.paymentMethod == 'cod';
-    final codCollection = contextData?.codCollection;
-
     return CourierSurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,25 +40,6 @@ class _DeliveryPendingReviewCard extends StatelessWidget {
             label: 'Delivered intent',
             value: 'Awaiting Logistics validation',
           ),
-          if (cod) ...[
-            const Divider(height: 28),
-            const CourierSectionHeader(title: 'Cash declaration'),
-            const SizedBox(height: 4),
-            if (codCollection == null)
-              const Text(
-                'The current cash amount is unavailable. Refresh delivery details to review it.',
-              )
-            else ...[
-              Text(
-                'Cash due ${codCollection.displayAmount}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'The cash collection declaration was sent with the Delivered intent and is awaiting Logistics validation.',
-              ),
-            ],
-          ],
           if (evidenceId != null) ...[
             const SizedBox(height: 16),
             DeliveryProofPhotoPreview(
@@ -90,17 +60,6 @@ class _DeliveryPendingReviewCard extends StatelessWidget {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: canRefresh ? onRefresh : null,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Refresh completion status'),
-          ),
-          TextButton.icon(
-            onPressed: onBackToWork,
-            icon: const Icon(Icons.arrow_back),
-            label: const Text('Back to delivery work'),
-          ),
         ],
       ),
     );

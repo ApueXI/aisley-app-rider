@@ -1,12 +1,13 @@
 import '../../../shared/presentation/task_row.dart';
 import '../../../shared/presentation/destination_scope.dart';
-import '../../../shared/presentation/courier_section_header.dart';
 import '../../../shared/presentation/courier_status_badge.dart';
 import '../../../shared/presentation/courier_surface_card.dart';
 
 import 'package:flutter/material.dart';
 
 import '../../auth/presentation/controllers/auth_controller.dart';
+import '../../chat/presentation/controllers/chat_controller.dart';
+import '../../chat/presentation/chat_thread_screen.dart';
 import '../../policy/presentation/controllers/policy_controller.dart';
 import '../../policy/presentation/policy_screen.dart';
 import '../domain/final_mile_batch_models.dart';
@@ -17,18 +18,22 @@ part 'components/final_mile_batch_list.dart';
 part 'components/final_mile_batch_detail.dart';
 part 'components/parcel_decision_card.dart';
 part 'components/final_mile_batch_status.dart';
+part 'components/final_mile_offered_task_detail.dart';
+part 'components/final_mile_offered_task_actions.dart';
 
 class FinalMileBatchScreen extends StatefulWidget {
   const FinalMileBatchScreen({
     required this.authController,
     required this.batchController,
     this.policyController,
+    this.chatController,
     super.key,
   });
 
   final AuthController authController;
   final FinalMileBatchController batchController;
   final PolicyController? policyController;
+  final ChatController? chatController;
 
   @override
   State<FinalMileBatchScreen> createState() => _FinalMileBatchScreenState();
@@ -75,6 +80,7 @@ class _FinalMileBatchScreenState extends State<FinalMileBatchScreen> {
           batchController: widget.batchController,
           scheduleId: batch.id,
           policyController: widget.policyController,
+          chatController: widget.chatController,
         ),
       ),
     );

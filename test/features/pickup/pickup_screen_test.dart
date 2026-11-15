@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -97,126 +99,307 @@ void main() {
     },
   );
 
-  testWidgets('accepts a first-mile task before showing pickup confirmation', (
-    tester,
-  ) async {
-    final originalPlatform = MobileScannerPlatform.instance;
-    final scanner = ScannerPlatform();
-    MobileScannerPlatform.instance = scanner;
-    addTearDown(() async {
-      MobileScannerPlatform.instance = originalPlatform;
-      await scanner.captures.close();
-    });
-    final repository = _WidgetPickupRepository();
-    final controller = PickupController(pickupRepository: repository);
-    final authController = _authenticatedAuthController();
+  testWidgets(
+    'captures unverified scan candidates before explicit pickup confirmation',
+    (tester) async {
+      final originalPlatform = MobileScannerPlatform.instance;
+      final scanner = ScannerPlatform();
+      MobileScannerPlatform.instance = scanner;
+      addTearDown(() async {
+        MobileScannerPlatform.instance = originalPlatform;
+        await scanner.captures.close();
+      });
+      final repository = _WidgetPickupRepository();
+      final controller = PickupController(pickupRepository: repository);
+      final authController = _authenticatedAuthController();
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: PickupScreen(
-          authController: authController,
-          pickupController: controller,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PickupScreen(
+            authController: authController,
+            pickupController: controller,
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Seller pickups'), findsOneWidget);
-    expect(find.text('ORD-100'), findsOneWidget);
-    await tester.ensureVisible(find.text('ORD-100'));
-    await tester.tap(find.text('ORD-100'));
-    await tester.pumpAndSettle();
+      expect(find.text('Seller pickups'), findsOneWidget);
+      expect(find.text('ORD-100'), findsOneWidget);
+      await tester.ensureVisible(find.text('ORD-100'));
+      await tester.tap(find.text('ORD-100'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Accept Seller pickup'), findsOneWidget);
-    expect(find.text('Pickup details'), findsOneWidget);
+      expect(find.text('Accept Seller pickup'), findsOneWidget);
+      expect(find.text('Pickup details'), findsOneWidget);
 
-    await tester.drag(find.byType(ListView), const Offset(0, -500));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Accept Seller pickup'));
-    await tester.pumpAndSettle();
-    expect(find.text('Accept this task?'), findsOneWidget);
-    await tester.tap(find.text('Accept task'));
-    await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -500));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Accept Seller pickup'));
+      await tester.pumpAndSettle();
+      expect(find.text('Accept this task?'), findsOneWidget);
+      await tester.tap(find.text('Accept task'));
+      await tester.pumpAndSettle();
 
-    await tester.drag(find.byType(ListView), const Offset(0, -500));
-    await tester.pumpAndSettle();
-    expect(find.text('Verify Seller handoff'), findsOneWidget);
-    expect(find.text('Confirm pickup'), findsOneWidget);
-    expect(find.text('Pickup confirmed'), findsNothing);
+      await tester.drag(find.byType(ListView), const Offset(0, -500));
+      await tester.pumpAndSettle();
+      expect(find.text('Pickup scan review'), findsOneWidget);
+      expect(find.text('Scan verification'), findsOneWidget);
+      expect(find.text('Confirm pickup'), findsOneWidget);
+      expect(find.text('Pickup confirmed'), findsNothing);
 
-    expect(find.byType(TextField), findsNothing);
-    expect(find.byType(SegmentedButton<String>), findsNothing);
-    expect(
-      tester
-          .widget<FilledButton>(
-            find.widgetWithText(FilledButton, 'Confirm pickup'),
-          )
-          .onPressed,
-      isNull,
-    );
-    await tester.tap(find.text('Scan QR or tracking ID'));
-    await tester.pumpAndSettle();
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    expect(
-      tester
-          .widget<FilledButton>(
-            find.widgetWithText(FilledButton, 'Confirm pickup'),
-          )
-          .onPressed,
-      isNull,
-    );
-    await tester.tap(find.text('Scan QR or tracking ID'));
-    await tester.pumpAndSettle();
-    scanner.captures.add(
-      const BarcodeCapture(
-        barcodes: [
-          Barcode(rawValue: 'AISLEY:WB:1:WB-100', format: BarcodeFormat.qrCode),
-        ],
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Captured QR payload'), findsOneWidget);
-    expect(repository.confirmations, 0);
-    await tester.ensureVisible(find.text('Check QR match'));
-    await tester.tap(find.text('Check QR match'));
-    await tester.pumpAndSettle();
-    expect(
-      find.textContaining('different or unavailable task'),
-      findsOneWidget,
-    );
-    await tester.ensureVisible(find.text('Scan again'));
-    await tester.tap(find.text('Scan again'));
-    await tester.pumpAndSettle();
-    scanner.captures.add(
-      const BarcodeCapture(
-        barcodes: [
-          Barcode(rawValue: 'TRACK-100', format: BarcodeFormat.code128),
-        ],
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Captured tracking ID'), findsOneWidget);
-    expect(find.text('TRACK-100'), findsOneWidget);
-    expect(find.text('Check QR match'), findsNothing);
-    expect(find.textContaining('different or unavailable task'), findsNothing);
-    expect(repository.confirmations, 0);
-    await tester.ensureVisible(find.text('Confirm pickup'));
-    await tester.tap(find.text('Confirm pickup'));
-    await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsNothing);
+      expect(find.byType(SegmentedButton<String>), findsNothing);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Confirm pickup'),
+            )
+            .onPressed,
+        isNull,
+      );
+      await tester.tap(find.text('Scan QR or tracking ID'));
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Confirm pickup'),
+            )
+            .onPressed,
+        isNull,
+      );
+      await tester.tap(find.text('Scan QR or tracking ID'));
+      await tester.pumpAndSettle();
+      scanner.captures.add(
+        const BarcodeCapture(
+          barcodes: [
+            Barcode(
+              rawValue: 'AISLEY:WB:1:WB-100',
+              format: BarcodeFormat.qrCode,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('AISLEY:WB:1:WB-100'), findsOneWidget);
+      expect(find.text('Automatically detected: QR code'), findsOneWidget);
+      expect(repository.confirmations, 0);
+      expect(find.text('Check QR match'), findsNothing);
+      expect(
+        find.textContaining('different or unavailable task'),
+        findsNothing,
+      );
+      await tester.ensureVisible(find.text('Scan again'));
+      await tester.tap(find.text('Scan again'));
+      await tester.pumpAndSettle();
+      scanner.captures.add(
+        const BarcodeCapture(
+          barcodes: [
+            Barcode(rawValue: 'TRACK-100', format: BarcodeFormat.code128),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Automatically detected: Code 128'), findsOneWidget);
+      expect(find.text('TRACK-100'), findsOneWidget);
+      expect(find.text('Check QR match'), findsNothing);
+      expect(
+        find.textContaining('different or unavailable task'),
+        findsNothing,
+      );
+      expect(repository.confirmations, 0);
+      await tester.ensureVisible(find.text('Confirm pickup'));
+      await tester.tap(find.text('Confirm pickup'));
+      await tester.pumpAndSettle();
 
-    expect(repository.confirmations, 1);
-    expect(repository.lastIdentifierType, 'tracking_id');
-    expect(repository.lastIdentifier, 'TRACK-100');
-    expect(find.text('Pickup confirmed'), findsOneWidget);
-    expect(
-      find.text('The server recorded physical pickup from the Seller.'),
-      findsOneWidget,
-    );
-    await tester.drag(find.byType(ListView), const Offset(0, 500));
-    await tester.pumpAndSettle();
-    expect(find.text('Picked up from Seller'), findsOneWidget);
-  });
+      expect(repository.confirmations, 1);
+      expect(repository.lastIdentifierType, 'tracking_id');
+      expect(repository.lastIdentifier, 'TRACK-100');
+      expect(find.text('Pickup confirmed'), findsOneWidget);
+      expect(
+        find.text('The server recorded physical pickup from the Seller.'),
+        findsOneWidget,
+      );
+      await tester.drag(find.byType(ListView), const Offset(0, 500));
+      await tester.pumpAndSettle();
+      expect(find.text('Picked up from Seller'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'retries an uncertain pickup with the original payload after reopening details',
+    (tester) async {
+      final originalPlatform = MobileScannerPlatform.instance;
+      final scanner = ScannerPlatform();
+      MobileScannerPlatform.instance = scanner;
+      addTearDown(() async {
+        MobileScannerPlatform.instance = originalPlatform;
+        await scanner.captures.close();
+      });
+
+      final repository = _WidgetPickupRepository()
+        ..firstMilePickupErrors.addAll([
+          const ApiException.network(
+            'The pickup request timed out.',
+            networkFailure: ApiNetworkFailure.timeout,
+          ),
+          const ApiException(
+            statusCode: 429,
+            code: 'RATE_LIMITED',
+            message: 'Wait before retrying.',
+            retryAfter: Duration(seconds: 1),
+          ),
+        ]);
+      final successfulRetry = Completer<FirstMilePickupResult>();
+      repository.nextFirstMilePickupResult = successfulRetry;
+      final controller = PickupController(pickupRepository: repository);
+      final authController = _authenticatedAuthController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PickupScreen(
+            authController: authController,
+            pickupController: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('ORD-100'));
+      await tester.tap(find.text('ORD-100'));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -500));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Accept Seller pickup'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Accept task'));
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(ListView), const Offset(0, -500));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Scan QR or tracking ID'));
+      await tester.pumpAndSettle();
+      scanner.captures.add(
+        const BarcodeCapture(
+          barcodes: [
+            Barcode(rawValue: 'TRACK-100', format: BarcodeFormat.code128),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Confirm pickup'));
+      await tester.tap(find.text('Confirm pickup'));
+      await tester.pumpAndSettle();
+
+      final acceptedTask = _firstMileTask.copyWith(rawStatus: 'accepted');
+      expect(controller.hasPendingAttempt(acceptedTask), isTrue);
+      expect(repository.confirmations, 1);
+      expect(find.text('Retry pickup confirmation'), findsOneWidget);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ORD-100'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('TRACK-100'), findsNothing);
+      expect(find.text('Retry pickup confirmation'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Retry pickup confirmation'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      await tester.ensureVisible(find.text('Scan QR or tracking ID'));
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.widgetWithText(OutlinedButton, 'Scan QR or tracking ID'),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      await tester.tap(find.text('Retry pickup confirmation'));
+      await tester.pumpAndSettle();
+      expect(controller.canRetryRateLimit, isFalse);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Retry pickup confirmation'),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.widgetWithText(OutlinedButton, 'Scan QR or tracking ID'),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      await tester.pump(const Duration(seconds: 1));
+      expect(controller.canRetryRateLimit, isTrue);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Retry pickup confirmation'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+
+      await tester.tap(find.text('Retry pickup confirmation'));
+      await tester.pump();
+      expect(repository.confirmations, 3);
+      expect(controller.isActionBusy(acceptedTask), isTrue);
+      expect(find.text('Confirming pickup'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Confirming pickup'),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.widgetWithText(OutlinedButton, 'Scan QR or tracking ID'),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      expect(
+        repository.confirmationIdentifierTypes,
+        everyElement('tracking_id'),
+      );
+      expect(repository.confirmationIdentifiers, everyElement('TRACK-100'));
+      expect(repository.confirmationIdempotencyKeys, hasLength(3));
+      expect(repository.confirmationIdempotencyKeys.toSet(), hasLength(1));
+
+      successfulRetry.complete(
+        const FirstMilePickupResult(
+          taskId: 'task-1',
+          taskStatus: 'picked_up_from_seller',
+          orderStatus: 'picked_up',
+          nextStep: 'Transfer the parcel to the Logistics hub.',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(controller.hasPendingAttempt(acceptedTask), isFalse);
+      expect(find.text('Pickup confirmed'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      controller.dispose();
+      authController.dispose();
+    },
+  );
 
   testWidgets('shows final-mile evidence as awaiting validation', (
     tester,
@@ -349,9 +532,14 @@ class _WidgetPickupRepository implements PickupRepository {
 
   final bool includeFinalMile;
   Object? finalMileError;
+  final List<ApiException> firstMilePickupErrors = <ApiException>[];
+  Completer<FirstMilePickupResult>? nextFirstMilePickupResult;
   int confirmations = 0;
   String? lastIdentifierType;
   String? lastIdentifier;
+  final List<String> confirmationIdentifierTypes = <String>[];
+  final List<String> confirmationIdentifiers = <String>[];
+  final List<String> confirmationIdempotencyKeys = <String>[];
 
   @override
   Future<FirstMileTaskPage> fetchFirstMileTasks({
@@ -381,6 +569,17 @@ class _WidgetPickupRepository implements PickupRepository {
     confirmations++;
     lastIdentifierType = identifierType;
     lastIdentifier = identifier;
+    confirmationIdentifierTypes.add(identifierType);
+    confirmationIdentifiers.add(identifier);
+    confirmationIdempotencyKeys.add(idempotencyKey);
+    if (firstMilePickupErrors.isNotEmpty) {
+      throw firstMilePickupErrors.removeAt(0);
+    }
+    final pendingResult = nextFirstMilePickupResult;
+    if (pendingResult != null) {
+      nextFirstMilePickupResult = null;
+      return pendingResult.future;
+    }
     return const FirstMilePickupResult(
       taskId: 'task-1',
       taskStatus: 'picked_up_from_seller',

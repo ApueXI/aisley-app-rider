@@ -252,8 +252,8 @@ void main() {
         await tester.tap(find.text('Send verification code'));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(TextField).last, '012345');
-        await tester.ensureVisible(find.text('Verify email'));
-        await tester.tap(find.text('Verify email'));
+        await tester.ensureVisible(find.text('Verify and submit'));
+        await tester.tap(find.text('Verify and submit'));
         await tester.pumpAndSettle();
         expect(verified, true);
         expect(repo.code, '012345');

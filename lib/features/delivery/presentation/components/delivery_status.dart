@@ -38,21 +38,6 @@ class _DeliveredStatusText extends StatelessWidget {
   }
 }
 
-class _AwaitingCompletionText extends StatelessWidget {
-  const _AwaitingCompletionText();
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      liveRegion: true,
-      label: 'Awaiting Logistics validation for completion',
-      child: Text(
-        'Completion intent accepted by the server. Awaiting Logistics validation. Refresh to see whether delivery was finalized.',
-      ),
-    );
-  }
-}
-
 class _DeliveryDetailRow extends StatelessWidget {
   const _DeliveryDetailRow({required this.label, required this.value});
 
@@ -95,7 +80,9 @@ class _DeliveryStatusPill extends StatelessWidget {
       tone: switch (label) {
         'Delivered' => CourierStatusTone.success,
         'Rejected' || 'Cancelled' => CourierStatusTone.critical,
-        'In transit' || 'Out for delivery' => CourierStatusTone.info,
+        'Delivery accepted' ||
+        'In transit' ||
+        'Out for delivery' => CourierStatusTone.info,
         _ => CourierStatusTone.neutral,
       },
     );
@@ -243,6 +230,20 @@ String _deliveryStatusLabel(String status) {
     'out_for_delivery' => 'Out for delivery',
     'delivered' => 'Delivered',
     'rejected' => 'Offer rejected',
+    _ => 'Status unavailable',
+  };
+}
+
+String _deliveryTaskStatusBadgeLabel(String status) {
+  return switch (status) {
+    'delivery_assigned' => 'Offer pending',
+    'delivery_accepted' => 'Delivery accepted',
+    'picked_up_from_hub' => 'Picked up from hub',
+    'in_transit' => 'In transit',
+    'out_for_delivery' => 'Out for delivery',
+    'delivered' => 'Delivered',
+    'rejected' => 'Offer rejected',
+    'cancelled' => 'Cancelled',
     _ => 'Status unavailable',
   };
 }

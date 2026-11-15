@@ -145,157 +145,178 @@ extension _PickupTaskActions on _PickupTaskDetailScreenState {
   }
 
   Widget _buildVerification(BuildContext context, PickupTask task) {
-    final controller = _pickupController;
-    final actionStatus = controller.actionStatus(task);
-    final actionError = controller.actionError(task);
-    final busy = controller.isActionBusy(task);
-    final isFinalMile = task.isFinalMile;
-    final candidate = _scanCandidate;
-    final canSubmit = task.isFirstMile
-        ? candidate != null &&
-              candidate.value.trim().isNotEmpty &&
-              candidate.value.trim().length <= 128
-        : task.revision != null;
-    final scheme = Theme.of(context).colorScheme;
-    final pendingFinalSubmission =
-        isFinalMile &&
-        actionStatus == PickupTaskActionStatus.awaitingValidation &&
-        controller.lastFinalMilePickup?.taskId == task.id;
-    final verificationLocked = busy || pendingFinalSubmission;
+    if (task.isFirstMile) {
+      return _buildFirstMileScanReview(context, task);
+    }
+    return const Text(
+      'No pickup verification action is available for this task.',
+    );
+  }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              isFinalMile ? 'Verify hub handoff' : 'Verify Seller handoff',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              isFinalMile
-                  ? 'Submit the waybill identifier as evidence. Logistics must validate it before the task becomes picked up from the hub.'
-                  : 'Scan the waybill QR code or printed tracking barcode. Review the captured value before confirming physical pickup.',
-            ),
-            const SizedBox(height: 16),
-            if (BarcodeScannerScreen.isSupported) ...[
-              OutlinedButton.icon(
-                onPressed: verificationLocked ? null : _openScanner,
-                icon: const Icon(Icons.camera_alt_outlined),
-                label: Text(
-                  candidate == null ? 'Scan QR or tracking ID' : 'Scan again',
-                ),
-              ),
-            ] else
-              const Text(
-                'Camera scanning is unavailable on this platform. Use the Android app or a supported browser.',
+  Widget _buildFirstMileScanReview(BuildContext context, PickupTask task) {
+    final controller = _pickupController;
+    final candidate = _scanCandidate;
+    final actionError = controller.actionError(task);
+    final actionStatus = controller.actionStatus(task);
+    final busy = controller.isActionBusy(task);
+    final hasPendingAttempt = controller.hasPendingAttempt(task);
+    final scheme = Theme.of(context).colorScheme;
+    final detectedType = candidate == null
+        ? null
+        : switch (candidate.type) {
+            BarcodeScanType.qr => 'QR code',
+            BarcodeScanType.trackingId => 'Code 128',
+          };
+
+    return CourierSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Scan verification',
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const Divider(height: 20),
+          if (actionError != null) ...[
+            Semantics(liveRegion: true, child: Text(actionError)),
+            if (actionStatus == PickupTaskActionStatus.consentRequired &&
+                _policyController != null)
+              TextButton.icon(
+                onPressed: _openPolicies,
+                icon: const Icon(Icons.policy_outlined),
+                label: const Text('Review policies'),
               ),
             const SizedBox(height: 12),
-            if (candidate == null)
-              const Text('Scan a parcel code to prepare pickup verification.')
-            else
-              Semantics(
-                liveRegion: true,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+          Text(
+            'Scanned code',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (candidate == null)
+            Text(
+              'Scan the waybill QR code or tracking barcode to prepare pickup confirmation.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            )
+          else
+            Semantics(
+              liveRegion: true,
+              label:
+                  'Unverified scan candidate. $detectedType. ${candidate.value}',
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 60),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: scheme.outlineVariant),
+                ),
+                child: Row(
                   children: [
-                    Text('Captured ${candidate.typeLabel}'),
-                    Text(candidate.value),
+                    Expanded(
+                      child: Text(
+                        candidate.value,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(Icons.lock_outline, color: scheme.onSurfaceVariant),
                   ],
                 ),
               ),
-            if (candidate?.identifierType == 'qr') ...[
-              const SizedBox(height: 4),
-              OutlinedButton.icon(
-                onPressed:
-                    verificationLocked ||
-                        !canSubmit ||
-                        !controller.canRetryRateLimit
-                    ? null
-                    : _resolveQr,
-                icon: const Icon(Icons.verified_outlined),
-                label: const Text('Check QR match'),
-              ),
-            ],
-            if (_resolutionMessage != null) ...[
-              const SizedBox(height: 10),
-              Text(
-                _resolutionMessage!,
-                style: TextStyle(
-                  color: _resolvedForThisTask == false
-                      ? scheme.error
-                      : scheme.primary,
-                ),
-              ),
-              if (controller.waybillResolutionStatus ==
-                      PickupSectionStatus.consentRequired &&
-                  _policyController != null)
-                TextButton.icon(
-                  onPressed: _openPolicies,
-                  icon: const Icon(Icons.policy_outlined),
-                  label: const Text('Review policies'),
-                ),
-            ],
-            if (actionError != null) ...[
-              const SizedBox(height: 12),
-              Text(actionError, style: TextStyle(color: scheme.error)),
-              if (actionStatus == PickupTaskActionStatus.consentRequired &&
-                  _policyController != null)
-                TextButton.icon(
-                  onPressed: _openPolicies,
-                  icon: const Icon(Icons.policy_outlined),
-                  label: const Text('Review policies'),
-                ),
-              if (_canRetryAction(actionStatus) &&
-                  controller.hasPendingAttempt(task))
-                TextButton.icon(
-                  onPressed:
-                      busy ||
-                          (actionStatus == PickupTaskActionStatus.rateLimited &&
-                              !controller.canRetryRateLimit)
-                      ? null
-                      : () => _retryPickup(task),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry same attempt'),
-                ),
-            ],
-            if (pendingFinalSubmission) ...[
-              const SizedBox(height: 12),
-              Semantics(
-                liveRegion: true,
-                label: 'Awaiting Logistics validation for hub pickup',
-                child: Text(
-                  'Awaiting Logistics validation. Do not treat this submission as picked up from the hub yet.',
-                  style: TextStyle(color: scheme.primary),
-                ),
-              ),
-            ] else ...[
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: busy || !canSubmit
-                    ? null
-                    : () => _submitPickup(task),
-                icon: busy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        isFinalMile
-                            ? Icons.upload_outlined
-                            : Icons.check_circle_outline,
-                      ),
-                label: Text(
-                  isFinalMile ? 'Submit hub pickup evidence' : 'Confirm pickup',
-                ),
-              ),
-            ],
+            ),
+          if (detectedType != null) ...[
+            const SizedBox(height: 12),
+            _ScanTypeLabel(label: 'Automatically detected: $detectedType'),
           ],
+          if (BarcodeScannerScreen.isSupported) ...[
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed:
+                  busy || hasPendingAttempt || !controller.canRetryRateLimit
+                  ? null
+                  : _openScanner,
+              icon: const Icon(Icons.refresh),
+              label: Text(
+                candidate == null ? 'Scan QR or tracking ID' : 'Scan again',
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Camera scanning is unavailable on this platform. Use a supported device or browser to capture a code.',
+            ),
+          ],
+          if (hasPendingAttempt && actionError != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Retry will send the same pickup confirmation again.',
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ScanTypeLabel extends StatelessWidget {
+  const _ScanTypeLabel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [Flexible(child: Text(label))],
         ),
+      ),
+    );
+  }
+}
+
+class _PickupScanNotice extends StatelessWidget {
+  const _PickupScanNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      liveRegion: true,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.verified_user_outlined, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Code capture only reads the value. Confirm pickup asks the server to verify it for this task and records handoff if accepted.',
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ),
+        ],
       ),
     );
   }

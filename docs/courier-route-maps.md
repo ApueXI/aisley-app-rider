@@ -149,3 +149,5 @@ order/rendered markers and camera/refresh/cleanup behavior, and writes
 `build/courier-map-browser.png`. Never attach it to a signed-in user browser.
 This test needs the pinned public MapLibre JS/CSS CDN and WebGL2. It does not
 exercise deployed API authorization, private tile CORS, or provider imagery.
+
+Map platform views are clipped to their viewport. The web map root isolates SDK controls at z-index zero within Flutter paint order. Route positions stay internal; Courier has no numeric coordinate inputs or value readouts.

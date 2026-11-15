@@ -17,9 +17,10 @@ void main() {
       tester,
     ) async {
       final repository = WidgetBatchRepository();
+      final parcelRepository = WidgetParcelRepository(repository);
       final controller = FinalMileBatchController(
         repository: repository,
-        parcelRepository: WidgetParcelRepository(repository),
+        parcelRepository: parcelRepository,
       );
       final auth = batchAuthController();
       await tester.pumpWidget(
@@ -36,28 +37,62 @@ void main() {
       await checkScrollableAccessibility(tester);
       await focusByKeyboard(
         tester,
-        find.widgetWithText(FilledButton, 'Accept parcel').first,
+        find.widgetWithText(OutlinedButton, 'Review parcel').first,
       );
       expect(repository.acceptCalls, 0);
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
-      expect(find.text('Accept parcel?'), findsOneWidget);
+      expect(find.text('Task details'), findsOneWidget);
+      final selectedOrderReference = find.byWidgetPredicate(
+        (widget) => widget is Text && widget.data?.startsWith('ORD-') == true,
+      );
+      expect(selectedOrderReference, findsOneWidget);
+      final selectedReference = tester
+          .widget<Text>(selectedOrderReference)
+          .data;
+      expect(find.text('Accept delivery'), findsOneWidget);
+      await checkScrollableAccessibility(tester);
+      final acceptDelivery = find.widgetWithText(
+        FilledButton,
+        'Accept delivery',
+      );
+      await focusByKeyboard(tester, acceptDelivery);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Accept delivery?'), findsOneWidget);
       await checkAccessibility(tester);
       await focusByKeyboard(tester, find.widgetWithText(TextButton, 'Cancel'));
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsNothing);
-      expectKeyboardFocus(
-        find.widgetWithText(FilledButton, 'Accept parcel').first,
+      expectKeyboardFocus(acceptDelivery);
+      expect(repository.acceptCalls, 0);
+      await focusByKeyboard(tester, acceptDelivery);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      final confirmAcceptance = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(FilledButton, 'Accept delivery'),
+      );
+      await tester.tap(confirmAcceptance);
+      await tester.pumpAndSettle();
+      expect(find.text('Task details'), findsNothing);
+      await checkScrollableAccessibility(tester);
+      final updatedBatch = controller.batchById('schedule-1')!;
+      expect(parcelRepository.accepted, hasLength(1));
+      final acceptedTaskId = parcelRepository.accepted.single;
+      final acceptedTask = updatedBatch.tasks.singleWhere(
+        (task) => task.id == acceptedTaskId,
+      );
+      expect(acceptedTask.orderReference, selectedReference);
+      expect(acceptedTask.status, 'delivery_accepted');
+      expect(
+        updatedBatch.tasks
+            .where((task) => task.id != acceptedTaskId)
+            .map((task) => task.status),
+        everyElement('delivery_assigned'),
       );
       expect(repository.acceptCalls, 0);
-      await controller.decideParcel('schedule-1', 'task-1');
-      await tester.pumpAndSettle();
-      await checkScrollableAccessibility(tester);
-      expect(
-        controller.batchById('schedule-1')!.tasks.first.status,
-        'delivery_accepted',
-      );
       await unmount(tester, [controller, auth]);
     });
   }

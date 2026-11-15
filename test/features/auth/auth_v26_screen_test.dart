@@ -37,7 +37,8 @@ void main() {
       await tester.tap(find.text('Return to sign in'));
       await tester.pumpAndSettle();
       expect(find.text('AISLEY Rider'), findsOneWidget);
-      expect(find.text('Sign in'), findsNWidgets(2));
+      expect(find.text('Sign in to your rider account'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
     });
   }
 
@@ -50,7 +51,8 @@ void main() {
     await tester.pumpWidget(CourierApp(authController: auth));
     await tester.pumpAndSettle();
     expect(find.text('AISLEY Rider'), findsOneWidget);
-    expect(find.text('Sign in'), findsNWidgets(2));
+    expect(find.text('Sign in to your rider account'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
     expect(api.storage.token, isNull);
   });
 

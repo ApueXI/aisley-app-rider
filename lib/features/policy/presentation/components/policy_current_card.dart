@@ -8,72 +8,77 @@ extension _PolicyCurrentCard on _PolicyScreenState {
         controller.isDocumentStale(type) ||
         document?.version.version != item.currentVersion;
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Semantics(
-            header: true,
-            child: Text(item.label, style: theme.textTheme.titleLarge),
-          ),
-          const SizedBox(height: 8),
-          if (document == null)
-            Text(
-              item.currentVersion == null
-                  ? 'No published version is currently available.'
-                  : 'This document could not be loaded. Refresh before accepting.',
-            )
-          else ...[
-            Text(
-              'Version ${document.version.version} • Published ${_formatDate(context, document.version.publishedAt)}',
-              style: theme.textTheme.bodySmall,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              type == PolicyType.termsOfService
+                  ? Icons.gavel_outlined
+                  : Icons.shield_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            if (stale)
-              const Padding(
-                padding: EdgeInsets.only(top: 12),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Semantics(
+                header: true,
                 child: Text(
-                  'This document may be stale. Refresh before accepting.',
+                  item.label,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-            if (document.version.changeSummary != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Text('What changed: ${document.version.changeSummary!}'),
-              ),
-            const SizedBox(height: 16),
-            SelectableText(
-              document.version.content,
-              minLines: 3,
-              style: theme.textTheme.bodyMedium,
             ),
           ],
-          TextButton(
+        ),
+        const SizedBox(height: 8),
+        if (document == null)
+          Text(
+            item.currentVersion == null
+                ? 'No published version is currently available.'
+                : 'This document could not be loaded. Refresh before accepting.',
+          )
+        else ...[
+          Text(
+            'Version ${document.version.version} · Published ${_formatDate(context, document.version.publishedAt)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (stale)
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Text(
+                'This document may be stale. Refresh before accepting.',
+              ),
+            ),
+          if (document.version.changeSummary != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text('What changed: ${document.version.changeSummary!}'),
+            ),
+          const SizedBox(height: 16),
+          SelectableText(
+            document.version.content,
+            minLines: 3,
+            style: theme.textTheme.bodyMedium,
+          ),
+        ],
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(
             onPressed: () => _openHistory(type),
             child: const Text('View published history'),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildCombinedConfirmation(BuildContext context) {
-    final items = controller.consentStatus!.supportedPolicies.toList();
-    final pending = items.where((item) => item.required).toList();
-    final enabled =
-        pending.isNotEmpty &&
-        !controller.isBusy &&
-        !controller.hasUnsupportedRequiredPolicy &&
-        (controller.state != PolicyViewState.rateLimited ||
-            controller.canRetryRateLimit) &&
-        pending.every(
-          (item) =>
-              item.currentVersion != null &&
-              _confirmedVersions[item.type] == item.currentVersion &&
-              controller.documentFor(item.type!)?.version.version ==
-                  item.currentVersion &&
-              !controller.isDocumentStale(item.type!),
-        );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -130,15 +135,6 @@ extension _PolicyCurrentCard on _PolicyScreenState {
               );
             },
           ),
-        const SizedBox(height: 16),
-        FilledButton(
-          onPressed: enabled ? _acceptTogether : null,
-          child: Text(
-            controller.state == PolicyViewState.accepting
-                ? 'Accepting…'
-                : 'Accept',
-          ),
-        ),
         if (controller.consentStatus!.allRequiredAccepted)
           const Padding(
             padding: EdgeInsets.only(top: 12),
@@ -146,5 +142,82 @@ extension _PolicyCurrentCard on _PolicyScreenState {
           ),
       ],
     );
+  }
+
+  Widget? _buildBottomActions(BuildContext context) {
+    final pending =
+        controller.consentStatus?.supportedPolicies.any(
+          (item) => item.required,
+        ) ??
+        false;
+    if (!pending && !widget.showSignOutAction) return null;
+
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (pending)
+                SizedBox(
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: _canAcceptTogether() ? _acceptTogether : null,
+                    child: Text(
+                      controller.state == PolicyViewState.accepting
+                          ? 'Accepting…'
+                          : 'Accept',
+                    ),
+                  ),
+                ),
+              if (widget.showSignOutAction) ...[
+                if (pending) const SizedBox(height: 8),
+                SizedBox(
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: widget.authController.isSigningOut
+                        ? null
+                        : _signOut,
+                    icon: widget.authController.isSigningOut
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.logout),
+                    label: const Text('Sign out'),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _canAcceptTogether() {
+    final pending =
+        controller.consentStatus?.supportedPolicies
+            .where((item) => item.required)
+            .toList() ??
+        const <PolicyConsentItem>[];
+    return pending.isNotEmpty &&
+        !controller.isBusy &&
+        !controller.hasUnsupportedRequiredPolicy &&
+        (controller.state != PolicyViewState.rateLimited ||
+            controller.canRetryRateLimit) &&
+        pending.every(
+          (item) =>
+              item.currentVersion != null &&
+              _confirmedVersions[item.type] == item.currentVersion &&
+              controller.documentFor(item.type!)?.version.version ==
+                  item.currentVersion &&
+              !controller.isDocumentStale(item.type!),
+        );
   }
 }

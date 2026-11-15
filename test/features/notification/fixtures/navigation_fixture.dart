@@ -117,7 +117,16 @@ class NavigationDeliveryRepository implements DeliveryRepository {
           status: 'in_transit',
           revision: 3,
           hub: const PickupLocation(name: 'Current hub'),
-          destination: const PickupLocation(cityMunicipality: 'Current area'),
+          destination: const PickupLocation(
+            addressLine1: '123 Sample Road',
+            barangay: 'San Isidro',
+            cityMunicipality: 'Pasig City',
+            province: 'Rizal',
+            region: 'NCR',
+            postalCode: '1600',
+          ),
+          recipientName: 'Test Recipient',
+          recipientPhone: '09170000000',
         );
   }
 
@@ -200,7 +209,13 @@ class NavigationFixture {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Notifications'));
+    await tester.tap(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is IconButton &&
+            widget.tooltip?.startsWith('Notifications') == true,
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text(notificationTitle),

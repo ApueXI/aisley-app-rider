@@ -141,6 +141,7 @@ ThemeData buildCourierTheme(Brightness brightness) {
       backgroundColor: scheme.surface,
       indicatorColor: scheme.primaryContainer,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      height: 64,
     ),
     iconButtonTheme: IconButtonThemeData(
       style: IconButton.styleFrom(minimumSize: const Size(48, 48)),

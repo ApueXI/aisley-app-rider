@@ -28,8 +28,6 @@ class PickupTaskDetailScreen extends StatefulWidget {
 
 class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
   BarcodeScanCandidate? _scanCandidate;
-  bool? _resolvedForThisTask;
-  String? _resolutionMessage;
 
   PickupController get _pickupController => widget.pickupController;
 
@@ -53,6 +51,8 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
       animation: widget.pickupController,
       builder: (context, child) {
         final task = widget.pickupController.taskWithId(widget.task);
+        final scanReview =
+            task.isFirstMile && task.isAccepted && !task.hasBeenPickedUp;
         final scoped = widget.pickupController.isTargeted;
         final tasks = task.isFirstMile
             ? widget.pickupController.firstMileTasks
@@ -93,7 +93,9 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
           );
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Pickup order')),
+          appBar: AppBar(
+            title: Text(scanReview ? 'Pickup scan review' : 'Pickup order'),
+          ),
           body: RefreshIndicator(
             onRefresh: widget.onRefresh ?? widget.pickupController.load,
             child: ListView(
@@ -101,10 +103,17 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 _TaskIdentity(task: task),
-                const SizedBox(height: 16),
-                _TaskDetails(task: task),
-                const SizedBox(height: 16),
+                if (!scanReview) ...[
+                  const SizedBox(height: 16),
+                  _TaskDetails(task: task),
+                  const SizedBox(height: 16),
+                ] else
+                  const SizedBox(height: 16),
                 _buildAction(context, task),
+                if (scanReview) ...[
+                  const SizedBox(height: 12),
+                  const _PickupScanNotice(),
+                ],
                 const SizedBox(height: 16),
                 if (widget.chatController != null &&
                     (task.isAssigned ||
@@ -134,8 +143,54 @@ class _PickupTaskDetailScreenState extends State<PickupTaskDetailScreen> {
               ],
             ),
           ),
+          bottomNavigationBar: scanReview ? _pickupConfirmationBar(task) : null,
         );
       },
+    );
+  }
+
+  Widget _pickupConfirmationBar(PickupTask task) {
+    final controller = widget.pickupController;
+    final candidate = _scanCandidate;
+    final isRetry = controller.hasPendingAttempt(task);
+    final busy = controller.isActionBusy(task);
+    final canSubmit =
+        candidate != null &&
+        candidate.value.trim().isNotEmpty &&
+        candidate.value.trim().length <= 128;
+    final canRun =
+        (isRetry || canSubmit) && !busy && controller.canRetryRateLimit;
+    final action = isRetry ? _retryPickup : _submitPickup;
+    final label = busy
+        ? 'Confirming pickup'
+        : isRetry
+        ? 'Retry pickup confirmation'
+        : 'Confirm pickup';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: FilledButton.icon(
+            onPressed: canRun ? () => action(task) : null,
+            icon: busy
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.check),
+            label: Text(label, textAlign: TextAlign.center),
+          ),
+        ),
+      ),
     );
   }
 

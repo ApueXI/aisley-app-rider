@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:aisley_app/core/config/app_config.dart';
@@ -121,6 +122,42 @@ void main() {
       expect(await c.confirm('arrival'), false);
     },
   );
+  testWidgets('arrival detail keeps Logistics receipt separate', (
+    tester,
+  ) async {
+    final repo = FakeLinehaulRepository()
+      ..current = tripJson(status: 'in_transfer', arrivalReported: true);
+    final controller = LinehaulController(repo);
+    final auth = deliveryAuthController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LinehaulScreen(controller: controller, authController: auth),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('Origin hub → Destination hub'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Linehaul job'), findsOneWidget);
+    expect(find.text('Job ID: trip-1'), findsOneWidget);
+    expect(find.text('Arrival reported'), findsOneWidget);
+    expect(
+      find.textContaining('Wait for Logistics to receive the cargo'),
+      findsOneWidget,
+    );
+    expect(find.text('Refresh arrival status'), findsOneWidget);
+    expect(find.text('View route'), findsOneWidget);
+    expect(find.text('Gate checkpoint'), findsNothing);
+    expect(find.textContaining('staging'), findsNothing);
+    expect(find.textContaining('manifest'), findsNothing);
+    expect(find.text('Cargo received'), findsNothing);
+    expect(controller.selected!.status, 'in_transfer');
+    expect(controller.selected!.arrivedAt, isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    controller.dispose();
+    auth.dispose();
+  });
   test(
     'unreleased departure is unavailable even before scheduled time',
     () async {
@@ -265,6 +302,12 @@ void main() {
         );
         await tester.pumpAndSettle();
         await checkScrollableAccessibility(tester);
+        await reveal(
+          tester,
+          find.textContaining('Origin hub → Destination hub'),
+        );
+        await tester.tap(find.textContaining('Origin hub → Destination hub'));
+        await tester.pumpAndSettle();
         await reveal(tester, find.text('Depart'));
         await tester.tap(find.text('Depart'));
         await tester.pumpAndSettle();

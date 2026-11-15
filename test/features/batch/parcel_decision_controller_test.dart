@@ -11,8 +11,7 @@ void main() {
   test(
     'accept/reject preserve siblings and refresh committed membership',
     () async {
-      final batches = WidgetBatchRepository(),
-          parcels = WidgetParcelRepository(WidgetBatchRepository());
+      final batches = WidgetBatchRepository();
       final api = WidgetParcelRepository(batches);
       var refreshed = 0;
       final c = FinalMileBatchController(
@@ -30,10 +29,13 @@ void main() {
         await c.decideParcel('schedule-1', 'task-2', reason: 'Cannot carry'),
         true,
       );
-      expect(c.batches.single.tasks.single.id, 'task-1');
+      expect(
+        c.batches.single.tasks.map((task) => task.id),
+        containsAll(['task-1', 'task-3']),
+      );
       expect(refreshed, 2);
       expect(batches.acceptCalls, 0);
-      expect(parcels.accepted, isEmpty);
+      expect(api.accepted, ['task-1']);
     },
   );
   test(
@@ -61,7 +63,10 @@ void main() {
       expect(await c.retryParcelDecision('schedule-1', 'task-1'), true);
       expect(api.keys.toSet(), hasLength(1));
       expect(api.reasons, ['Cannot carry', 'Cannot carry']);
-      expect(c.batches.single.tasks.single.id, 'task-2');
+      expect(
+        c.batches.single.tasks.map((task) => task.id),
+        containsAll(['task-2', 'task-3']),
+      );
     },
   );
   test('late reply after logout cannot restore private state', () async {

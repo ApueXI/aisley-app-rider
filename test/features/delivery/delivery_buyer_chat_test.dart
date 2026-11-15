@@ -40,6 +40,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(find.text('Message Buyer'), 250);
+      await tester.pumpAndSettle();
       expect(find.text('Message Buyer'), findsOneWidget);
       expect(
         tester
@@ -52,7 +53,10 @@ void main() {
       expect(chat.activeTask?.taskId, task.id);
       expect(chat.activeTask?.leg, 'final_mile');
       expect(chat.activeTask?.counterpartyRole, 'customer');
-      expect(find.textContaining('Final mile · ORD-123'), findsOneWidget);
+      expect(find.text('Message Buyer'), findsOneWidget);
+      expect(find.text('Buyer'), findsOneWidget);
+      expect(find.text('ORD-123'), findsOneWidget);
+      expect(find.text('Final mile'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.byTooltip('Send message'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
